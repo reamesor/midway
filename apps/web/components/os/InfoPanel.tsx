@@ -14,25 +14,28 @@ export function InfoPanel() {
         </div>
         <ul className="list-disc space-y-1.5 pl-4 font-sans text-[13px] text-ink-dim">
           <li>
-            <span className="text-ink">MIDWAY</span> is a Solana boardwalk arcade —
-            games and tools feed one shared treasury.
+            On <span className="text-ink">pump.fun</span> and most trading/token rails,
+            fees and claimable value flow back to <span className="text-ink">deployers</span>.
           </li>
           <li>
-            Tagline: <span className="text-ink">every cut comes home</span> — the house
-            edge is not pocketed; it is routed on-chain.
+            On <span className="text-ink">Midway</span>, the house cut comes home to who
+            runs it — CTOs / operators — <span className="text-ink">and</span> gamblers,
+            holders, and builders. Everyone gains something.
           </li>
           <li>
-            Split: <span className="text-ink">40% burn</span> ·{" "}
+            Tagline: <span className="text-ink">every cut comes home</span>. Loop:{" "}
+            <span className="text-ink">5% house cut</span> →{" "}
+            <span className="text-ink">40% burn</span> ·{" "}
             <span className="text-ink">40% believers</span> ·{" "}
             <span className="text-ink">20% build</span>.
           </li>
           <li>
-            Live now: <span className="text-ink">Colors</span> (pick 3 of 6). More rides
-            plug into the same loop later.
+            Live now: <span className="text-ink">Colors</span> (demo / Fun Mode). More
+            rides plug into the same design later.
           </li>
           <li>
-            Rolls are <span className="text-ink">provably fair</span>. This build is{" "}
-            <span className="text-ink">alpha / Fun Mode</span> — expect rough edges.
+            Rolls are <span className="text-ink">provably fair</span>. Alpha booth —
+            expect rough edges.
           </li>
         </ul>
       </div>
@@ -43,11 +46,48 @@ export function InfoPanel() {
         inside a bootleg operating system. Under the wallpaper and windows, the product is
         simple: <strong className="font-semibold text-ink">one shared treasury</strong>{" "}
         that captures the house cut from play (and later mint/trade) and gives that value
-        back to the project and the people who believe in it.
+        back to the people who keep the boardwalk alive — not a private deployer purse.
       </p>
       <p className="font-sans text-ink-dim">
         Elsewhere, casinos and platforms keep the edge. Here the edge is the product —
         captured, split, and shown in the open so you can watch the cut come home.
+      </p>
+
+      <Header>Not deployer-only fees — who gets the cut</Header>
+      <p className="font-sans text-ink-dim">
+        On pump.fun and a lot of trading / token platforms, the fee story is simple: value
+        accrues to whoever deployed the coin. Midway&apos;s model is different by design.
+        The house cut is meant to flow back to{" "}
+        <strong className="font-semibold text-ink">who runs it</strong> — CTOs and
+        operators who keep the booths open —{" "}
+        <strong className="font-semibold text-ink">and</strong> to the crowd that makes
+        the boardwalk worth running.
+      </p>
+      <ul className="list-disc space-y-1.5 pl-4 font-sans text-[13px] text-ink-dim">
+        <li>
+          <span className="text-ink">Gamblers / players</span> — play the rides; the
+          edge funds the shared loop instead of vanishing into a black box.
+        </li>
+        <li>
+          <span className="text-ink">Believers (holders)</span> — the 40% believers slice
+          is the holder / loyalty share of every cut that comes home.
+        </li>
+        <li>
+          <span className="text-ink">Builders</span> — the 20% build slice keeps audits,
+          new attractions, and the OS itself lit.
+        </li>
+        <li>
+          <span className="text-ink">Operators / CTOs</span> — the people running Midway
+          sit inside that same ecosystem, not above it as the sole fee sink.
+        </li>
+      </ul>
+      <p className="font-sans text-ink-dim">
+        That&apos;s the philosophy behind{" "}
+        <span className="text-ink">every cut comes home</span>: one 5% house cut on
+        Colors, then <span className="text-ink">40% burn / 40% believers / 20% build</span>.
+        Live Colors is still demo / Fun Mode treasury math — the split you see in
+        TREASURY.MON is the Midway design made visible, with full on-chain payouts still
+        landing.
       </p>
 
       <Header>The boardwalk metaphor</Header>
@@ -106,10 +146,11 @@ export function InfoPanel() {
 
       <Header>&ldquo;Every cut comes home&rdquo;</Header>
       <p className="font-sans text-ink-dim">
-        That line is the trust story. No silent rake. No mystery fee that evaporates into
-        ops. When you play, mint, or trade through Midway rails, the cut is meant to be
-        visible, countable, and destined for burn / believers / build — not a private
-        purse.
+        That line is the trust story — and the contrast with deployer-only fee models.
+        No silent rake. No mystery fee that evaporates into a private purse. When you
+        play, mint, or trade through Midway rails, the cut is meant to be visible,
+        countable, and destined for burn / believers / build so operators, gamblers,
+        believers, and builders all get a piece of the boardwalk.
       </p>
 
       <Header>Play · mint · trade</Header>

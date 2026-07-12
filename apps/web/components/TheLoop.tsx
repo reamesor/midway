@@ -26,7 +26,7 @@ const STEPS: {
     glyph: "coin",
     lead: "5% of stake, every roll",
     detail:
-      "Win or lose — Colors takes 5% of total cost. Other houses pocket it; Midway routes it home.",
+      "Win or lose — Colors takes 5% of total cost. Pump-style rails pay deployers; Midway routes the cut home.",
   },
   {
     title: "3 · TREASURY",
@@ -72,8 +72,9 @@ export function TheLoop() {
       <header className="space-y-1 border-b border-line pb-2.5">
         <p className="text-[11px] tracking-wide text-ink">EVERY CUT COMES HOME</p>
         <p className="font-sans text-[13px] font-normal normal-case tracking-normal leading-snug text-ink-dim">
-          One engine for the boardwalk: action feeds a house cut into one treasury,
-          then out as burn · believers · build.
+          Unlike deployer-only fee rails, Midway routes the house cut home — to
+          operators, players, holders, and builders. Action → treasury → burn ·
+          believers · build.
         </p>
       </header>
 
