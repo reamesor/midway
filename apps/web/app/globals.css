@@ -373,6 +373,127 @@ html.dark .desktop-wallpaper {
   opacity: 0.35;
 }
 
+/* Idle desktop — calm empty-workspace scene */
+.idle-desktop {
+  position: absolute;
+  inset: 0;
+  bottom: 40px;
+  z-index: 3;
+  pointer-events: auto;
+  overflow: hidden;
+}
+.idle-desktop-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 96px 24px;
+}
+@media (max-width: 767px) {
+  .idle-desktop-stage {
+    padding: 72px 16px 24px;
+    align-items: start;
+    padding-top: 88px;
+  }
+}
+.idle-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  opacity: 0.88;
+}
+.idle-brand-tent {
+  filter: drop-shadow(2px 3px 0 color-mix(in srgb, var(--ink) 12%, transparent));
+}
+.idle-brand-copy {
+  display: grid;
+  gap: 4px;
+}
+.idle-brand-word {
+  font-family: var(--font-heading);
+  font-size: clamp(22px, 4vw, 34px);
+  letter-spacing: 0.28em;
+  color: var(--ink);
+  text-indent: 0.28em;
+}
+.idle-brand-tag {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: var(--ink-dim);
+}
+.idle-cubes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.idle-cube-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.idle-cube {
+  position: relative;
+  pointer-events: auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.idle-cube-body {
+  width: 100%;
+  height: 100%;
+  border: 2px solid color-mix(in srgb, var(--ink) 55%, transparent);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--cube) 88%, #fff) 0%,
+      var(--cube) 48%,
+      color-mix(in srgb, var(--cube) 78%, var(--ink)) 100%
+    );
+  box-shadow:
+    3px 3px 0 color-mix(in srgb, var(--ink) 18%, transparent),
+    inset 1px 1px 0 color-mix(in srgb, #fff 35%, transparent),
+    inset -1px -1px 0 color-mix(in srgb, var(--ink) 12%, transparent);
+  image-rendering: pixelated;
+  transition: box-shadow 0.35s ease, filter 0.35s ease;
+}
+.idle-cube-body.is-flash {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--gold) 70%, transparent),
+    3px 3px 0 color-mix(in srgb, var(--ink) 18%, transparent),
+    inset 1px 1px 0 color-mix(in srgb, #fff 45%, transparent);
+  filter: brightness(1.08);
+}
+.idle-cube-label {
+  position: absolute;
+  bottom: 6px;
+  font-family: var(--font-heading);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  pointer-events: none;
+  opacity: 0.55;
+}
+.idle-cube:hover .idle-cube-label {
+  opacity: 0.9;
+}
+.idle-cube:focus-visible {
+  outline: 1px dashed var(--ink);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .idle-cube-body {
+    transition: none;
+  }
+}
+
 .blink {
   animation: blink steps(2) 1.4s infinite;
 }
@@ -595,7 +716,7 @@ html.dark .win-titlebar.focused {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blink, .marquee-track, .glitch-pulse, .bevel-btn:hover {
+  .blink, .marquee-track, .glitch-pulse, .bevel-btn:hover, .idle-cube-body {
     animation: none !important;
   }
 }

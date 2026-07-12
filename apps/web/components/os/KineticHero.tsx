@@ -1,9 +1,14 @@
 "use client";
 
 import { PixelIcon, TENT, P_TENT } from "@/lib/pixel";
+import { useOs } from "./OsContext";
 
-/** Subtle corner brand — replaces the barren center KineticHero. */
+/** Subtle corner brand — hidden when the idle empty-desktop scene owns the mark. */
 export function KineticHero() {
+  const { open } = useOs();
+  const empty = Object.values(open).every((v) => !v);
+  if (empty) return null;
+
   return (
     <div className="pointer-events-none absolute right-3 top-3 z-[2] flex items-center gap-2 md:right-5 md:top-4">
       <PixelIcon

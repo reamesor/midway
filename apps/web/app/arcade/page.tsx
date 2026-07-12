@@ -7,6 +7,7 @@ import { Taskbar } from "@/components/os/Taskbar";
 import { Win } from "@/components/os/Win";
 import { DesktopIcons } from "@/components/os/DesktopIcons";
 import { KineticHero } from "@/components/os/KineticHero";
+import { IdleDesktop } from "@/components/os/IdleDesktop";
 import { TheLoop } from "@/components/TheLoop";
 import { ColorsGame } from "@/components/colors/ColorsGame";
 import { TreasuryPanel } from "@/components/treasury/TreasuryPanel";
@@ -132,10 +133,11 @@ function Desktop() {
     <div className="relative h-[100dvh] w-full overflow-hidden">
       <BootScreen />
       <div className="desktop-wallpaper" />
+      <IdleDesktop />
       <KineticHero />
       <DesktopIcons />
 
-      <div className="absolute inset-0 bottom-10 z-[8] md:bottom-11">
+      <div className="pointer-events-none absolute inset-0 bottom-10 z-[8] md:bottom-11">
         <Win
           key={`loop-${layoutKey}`}
           id="loop"

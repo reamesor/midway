@@ -42,7 +42,7 @@ export function Win({
       onDragStart={() => focusWin(id)}
       onMouseDown={() => focusWin(id)}
       enableResizing={!calm}
-      className="absolute"
+      className="absolute pointer-events-auto"
     >
       <div
         className={`flex h-full flex-col bevel hard-shadow ${
