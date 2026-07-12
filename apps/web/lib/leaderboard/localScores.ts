@@ -35,8 +35,16 @@ const INDEX_KEY = "midway-player-stats-index:v1";
 
 export const SCORES_EVENT = "midway-scores";
 
+type SeedRow = {
+  pubkey: string;
+  username: string;
+  rounds: number;
+  wins: number;
+  solWon: number;
+};
+
 /** Plausible booth names for a seeded DEMO board. */
-const SEED_ROWS: Omit<PlayerStats, "updatedAt"> & { username: string }[] = [
+const SEED_ROWS: SeedRow[] = [
   { pubkey: "SEED_NEONFOX", username: "NeonFox", rounds: 42, wins: 18, solWon: 3.42 },
   { pubkey: "SEED_PIXELPIT", username: "PixelPit", rounds: 37, wins: 14, solWon: 2.81 },
   { pubkey: "SEED_TENTCAT", username: "TentCat", rounds: 55, wins: 12, solWon: 2.15 },
