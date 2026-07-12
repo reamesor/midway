@@ -2,9 +2,19 @@
 
 import type { ReactNode } from "react";
 import { useOs } from "@/components/os/OsContext";
+import {
+  HOLDER_CLAIM_BONUS_BPS,
+  HOLDER_MULTIPLIERS,
+  formatClaimBonusBps,
+  formatMultiplier,
+} from "@/lib/nft/holders";
 
 export function InfoPanel() {
-  const { openWin } = useOs();
+  const { openWin, openSoon } = useOs();
+  const multiplierLine = HOLDER_MULTIPLIERS.map(
+    (t) => `${formatMultiplier(t.multiplier)} ${t.label.toLowerCase()}`,
+  ).join(" · ");
+  const claimBonus = formatClaimBonusBps(HOLDER_CLAIM_BONUS_BPS);
 
   return (
     <div className="info-panel space-y-5 text-[14px] leading-relaxed text-ink">
@@ -30,8 +40,9 @@ export function InfoPanel() {
             <span className="text-ink">20% build</span>.
           </li>
           <li>
-            Live now: <span className="text-ink">Colors</span> (demo / Fun Mode). More
-            rides plug into the same design later.
+            Live now: <span className="text-ink">Colors</span> (demo / Fun Mode). NFT
+            holders (when mint ships) get planned ride multipliers + an extra believers
+            claim cut — see NFT.LAUNCH.
           </li>
           <li>
             Rolls are <span className="text-ink">provably fair</span>. Alpha booth —
@@ -163,13 +174,34 @@ export function InfoPanel() {
         many booths — each feeds the same three-way split so the ecosystem
         compounds instead of fragmenting into unrelated silos.
       </p>
-      <button
-        type="button"
-        className="bevel-btn px-3 py-2 font-heading text-[11px]"
-        onClick={() => openWin("token")}
-      >
-        OPEN TOKEN.INFO
-      </button>
+      <p className="font-sans text-ink-dim">
+        <strong className="font-semibold text-ink">NFT.LAUNCH</strong> (not live yet)
+        spells the holder promise in numbers: planned Colors / attraction multipliers
+        ({multiplierLine}) plus {claimBonus} believers / claimable-fee share for
+        holders vs non-holders. Economics are designed — mint and claims are not
+        wired.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="bevel-btn px-3 py-2 font-heading text-[11px]"
+          onClick={() => openWin("token")}
+        >
+          OPEN TOKEN.INFO
+        </button>
+        <button
+          type="button"
+          className="bevel-btn px-3 py-2 font-heading text-[11px]"
+          onClick={() =>
+            openSoon(
+              "NFT.LAUNCH",
+              "When live: holders get planned ride multipliers + an extra cut of claimable believers fees. Mint not open yet.",
+            )
+          }
+        >
+          OPEN NFT.LAUNCH
+        </button>
+      </div>
 
       <Header>Honest &amp; fair</Header>
       <p className="font-sans text-ink-dim">

@@ -48,6 +48,11 @@ export function TokenInfoPanel() {
             Holders sit in the <span className="text-ink">believers</span> slice of the
             treasury loop that every ride feeds.
           </li>
+          <li>
+            Midway NFTs (when mint ships) add{" "}
+            <span className="text-ink">planned ride multipliers</span> and an{" "}
+            <span className="text-ink">extra believers claim cut</span> — see NFT.LAUNCH.
+          </li>
         </ul>
       </div>
 
@@ -62,7 +67,9 @@ export function TokenInfoPanel() {
       <p className="font-sans text-ink-dim">
         It is not a casino chip you cash at a cage. It is the stake in the loop: burn
         tightens supply, believers get paid, build keeps the lights on. Same story as
-        INFO.TXT and LOOP.EXE — just the token booth.
+        INFO.TXT and LOOP.EXE — just the token booth. Collection holders get a separate
+        designed boost (ride multipliers + claim bonus) once NFT.LAUNCH goes live;
+        that path is still under construction.
       </p>
 
       <Header>Token address</Header>

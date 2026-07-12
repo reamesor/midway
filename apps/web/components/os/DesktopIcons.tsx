@@ -41,7 +41,8 @@ const ICONS: DockIcon[] = [
     label: "NFT",
     glyph: "nft",
     title: "NFT.LAUNCH",
-    blurb: "Mint drops where fees and royalties feed burn · believers · build. Booth under construction.",
+    blurb:
+      "When live: holders get planned ride multipliers + an extra cut of claimable believers fees. Mint not open yet.",
   },
 ];
 

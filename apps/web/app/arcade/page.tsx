@@ -15,6 +15,7 @@ import { MidwayWalletPanel } from "@/components/wallet/MidwayWalletPanel";
 import { InfoPanel } from "@/components/os/InfoPanel";
 import { TokenInfoPanel } from "@/components/os/TokenInfoPanel";
 import { ComingSoonStub } from "@/components/os/ComingSoonStub";
+import { NftLaunchPanel } from "@/components/os/NftLaunchPanel";
 import { FairnessPanel } from "@/components/os/FairnessPanel";
 import { applyHouseCut, type TreasuryState } from "@/lib/treasury/split";
 
@@ -120,6 +121,7 @@ function tileLayout(
 
 function Desktop() {
   const { booted, soonTitle } = useOs();
+  const isNftLaunch = soonTitle === "NFT.LAUNCH";
   const [treasury, setTreasury] = useState<TreasuryState>({
     total: 0,
     burn: 0,
@@ -248,10 +250,10 @@ function Desktop() {
           id="soon"
           title={soonTitle || "COMING.SOON"}
           default={winDefaults.soon}
-          minWidth={260}
-          minHeight={200}
+          minWidth={280}
+          minHeight={isNftLaunch ? 360 : 200}
         >
-          <ComingSoonStub />
+          {isNftLaunch ? <NftLaunchPanel /> : <ComingSoonStub />}
         </Win>
       </div>
 

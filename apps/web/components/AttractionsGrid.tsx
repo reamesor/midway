@@ -22,7 +22,7 @@ const attractions = [
     status: "soon" as const,
     icon: "🖼️",
     title: "NFT Launchpad",
-    body: "mint drops where royalties + mint fees don't vanish — they buy back and burn, and pay the community.",
+    body: "mint drops where royalties + mint fees don't vanish — and holders get planned ride multipliers plus an extra cut of claimable believers fees.",
     feeds: "→ feeds treasury: mint fee + resale royalty",
   },
   {
