@@ -39,12 +39,12 @@ type CubeSpec = {
 type CubePhase = "idle" | "rolling" | "character" | "returning";
 
 const CUBE_LAYOUT: Omit<CubeSpec, "id">[] = [
-  { x: 18, y: 28, size: 52, driftX: 14, driftY: 10, rot: 8, duration: 22, delay: 0 },
-  { x: 72, y: 22, size: 44, driftX: -12, driftY: 14, rot: -10, duration: 26, delay: 1.2 },
-  { x: 28, y: 68, size: 48, driftX: 16, driftY: -12, rot: 6, duration: 24, delay: 0.6 },
-  { x: 78, y: 62, size: 56, driftX: -14, driftY: -10, rot: -7, duration: 28, delay: 2 },
-  { x: 48, y: 18, size: 40, driftX: 10, driftY: 16, rot: 12, duration: 20, delay: 1.5 },
-  { x: 58, y: 74, size: 46, driftX: -10, driftY: 12, rot: -9, duration: 25, delay: 0.3 },
+  { x: 18, y: 28, size: 52, driftX: 18, driftY: 12, rot: 8, duration: 18, delay: 0 },
+  { x: 72, y: 22, size: 44, driftX: -15, driftY: 16, rot: -10, duration: 22, delay: 1.4 },
+  { x: 28, y: 68, size: 48, driftX: 20, driftY: -14, rot: 6, duration: 20, delay: 0.7 },
+  { x: 78, y: 62, size: 56, driftX: -17, driftY: -12, rot: -7, duration: 24, delay: 2.1 },
+  { x: 48, y: 18, size: 40, driftX: 12, driftY: 18, rot: 12, duration: 16, delay: 1.1 },
+  { x: 58, y: 74, size: 46, driftX: -13, driftY: 14, rot: -9, duration: 21, delay: 0.4 },
 ];
 
 const FACE_NAMES = ["px", "nx", "py", "ny", "pz", "nz"] as const;
@@ -86,24 +86,29 @@ function IdleCube({
     }
   }, []);
 
-  const baseX =
+  // Pointer parallax + click nudge live on a separate spring layer so they
+  // never rewrite the idle drift keyframes (that restart was the stutter).
+  const parallaxX =
     (reduced ? 0 : (pointer.x - 0.5) * (attract ? 10 : 18) * (spec.x > 50 ? -1 : 1) * 0.35) +
     (attract ? (pointer.x * 100 - spec.x) * 0.08 : 0) +
     nudge.x;
-  const baseY =
+  const parallaxY =
     (reduced ? 0 : (pointer.y - 0.5) * (attract ? 8 : 14) * (spec.y > 50 ? -1 : 1) * 0.35) +
     (attract ? (pointer.y * 100 - spec.y) * 0.08 : 0) +
     nudge.y;
 
-  const driftTransition: Transition = reduced
-    ? { duration: 0 }
-    : {
-        duration: attract ? spec.duration * 1.85 : spec.duration,
-        repeat: Infinity,
-        repeatType: "mirror",
-        ease: "easeInOut",
-        delay: spec.delay,
-      };
+  const driftTransition = useCallback(
+    (axisDuration: number): Transition =>
+      reduced
+        ? { duration: 0 }
+        : {
+            duration: axisDuration,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: spec.delay,
+          },
+    [reduced, spec.delay],
+  );
 
   const enterHover = useCallback(() => {
     hovered.current = true;
@@ -170,82 +175,91 @@ function IdleCube({
   const isReturning = phase === "returning";
   const dieActive = !reduced && (isRolling || showCharacter);
 
+  const dx = spec.driftX;
+  const dy = spec.driftY;
+  const r = spec.rot;
+
   return (
     <div
       className="idle-cube-slot"
       style={{ left: `${spec.x}%`, top: `${spec.y}%` }}
     >
-      <motion.button
-        type="button"
-        aria-label={`${COLOR_LABEL[spec.id]} color cube`}
-        className={`idle-cube${flash ? " is-flash" : ""}${phase !== "idle" ? ` is-${phase}` : ""}`}
-        style={{
-          width: spec.size,
-          height: spec.size,
-          ["--cube" as string]: softHex(COLOR_HEX[spec.id]),
-          ["--cube-size" as string]: `${spec.size}px`,
-          ["--cube-half" as string]: `${half}px`,
-        }}
-        onClick={onClick}
-        onPointerEnter={enterHover}
-        onPointerLeave={leaveHover}
-        initial={false}
-        animate={
+      <motion.div
+        className="idle-cube-parallax"
+        animate={{ x: parallaxX, y: parallaxY, rotate: nudge.rot }}
+        transition={
           reduced
-            ? {
-                x: baseX,
-                y: baseY,
-                rotate: spec.rot * 0.2 + nudge.rot,
-                scale: phase === "character" ? 1.08 : 1,
-              }
-            : {
-                x: [baseX, baseX + spec.driftX],
-                y: [baseY, baseY + spec.driftY],
-                rotate: [spec.rot * 0.35 + nudge.rot, -spec.rot * 0.35 + nudge.rot],
-              }
+            ? { duration: 0 }
+            : { type: "spring", stiffness: 38, damping: 18, mass: 0.85 }
         }
-        transition={{
-          x: driftTransition,
-          y: driftTransition,
-          rotate: driftTransition,
-          scale: { duration: 0.28, ease: "easeOut" },
-        }}
-        whileTap={reduced ? undefined : { scale: 0.96 }}
       >
-        <span className="idle-cube-scene" aria-hidden>
-          <span
-            className={`idle-die${isRolling ? " is-rolling" : ""}${isReturning ? " is-returning" : ""}${showCharacter ? " is-morphed" : ""}`}
-          >
-            {FACE_NAMES.map((name, i) => (
-              <span
-                key={name}
-                className={`idle-die-face idle-die-face--${name}`}
-                style={{
-                  ["--face" as string]: softHex(COLOR_HEX[faces[i]!]),
-                }}
-              />
-            ))}
-          </span>
-
-          <span
-            className={`idle-cube-char${showCharacter ? " is-visible" : ""}${dieActive && isRolling ? " is-waiting" : ""}`}
-          >
-            <PixelIcon
-              grid={IDLE_CUBE_CHARS[spec.id]}
-              palette={charPalette}
-              px={2}
-              className="idle-cube-char-icon"
-              style={{ width: spec.size * 0.92, height: spec.size * 0.92 }}
-            />
-          </span>
-        </span>
-
-        <span
-          className={`idle-cube-label${showCharacter ? " is-hidden" : ""}`}
+        <motion.button
+          type="button"
+          aria-label={`${COLOR_LABEL[spec.id]} color cube`}
+          className={`idle-cube${flash ? " is-flash" : ""}${phase !== "idle" ? ` is-${phase}` : ""}`}
+          style={{
+            width: spec.size,
+            height: spec.size,
+            ["--cube" as string]: softHex(COLOR_HEX[spec.id]),
+            ["--cube-size" as string]: `${spec.size}px`,
+            ["--cube-half" as string]: `${half}px`,
+          }}
+          onClick={onClick}
+          onPointerEnter={enterHover}
+          onPointerLeave={leaveHover}
+          initial={false}
+          animate={
+            reduced
+              ? {
+                  x: 0,
+                  y: 0,
+                  rotate: r * 0.2,
+                  scale: phase === "character" ? 1.08 : 1,
+                }
+              : {
+                  // Stable multi-point path — values must not depend on pointer.
+                  x: [0, dx * 0.55, dx, dx * 0.25, -dx * 0.3, 0],
+                  y: [0, dy * 0.35, dy * 0.85, dy, -dy * 0.2, 0],
+                  rotate: [r * 0.2, -r * 0.15, r * 0.35, -r * 0.25, r * 0.1, r * 0.2],
+                }
+          }
+          transition={{
+            x: driftTransition(spec.duration),
+            y: driftTransition(spec.duration * 1.18),
+            rotate: driftTransition(spec.duration * 1.35),
+            scale: { duration: 0.28, ease: "easeOut" },
+          }}
+          whileTap={reduced ? undefined : { scale: 0.96 }}
         >
-          {COLOR_LABEL[spec.id]}
-        </span>
-      </motion.button>
+          <span className="idle-cube-scene" aria-hidden>
+            <span
+              className={`idle-die${isRolling ? " is-rolling" : ""}${isReturning ? " is-returning" : ""}${showCharacter ? " is-morphed" : ""}`}
+            >
+              {FACE_NAMES.map((name, i) => (
+                <span
+                  key={name}
+                  className={`idle-die-face idle-die-face--${name}`}
+                  style={{
+                    ["--face" as string]: softHex(COLOR_HEX[faces[i]!]),
+                  }}
+                />
+              ))}
+            </span>
+
+            <span
+              className={`idle-cube-char${showCharacter ? " is-visible" : ""}${dieActive && isRolling ? " is-waiting" : ""}`}
+            >
+              <PixelIcon
+                grid={IDLE_CUBE_CHARS[spec.id]}
+                palette={charPalette}
+                px={2}
+                className="idle-cube-char-icon"
+                style={{ width: spec.size * 0.92, height: spec.size * 0.92 }}
+              />
+            </span>
+          </span>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }
