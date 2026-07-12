@@ -7,6 +7,7 @@ import {
 import { AmbientSound } from "@/components/os/AmbientSound";
 import { OsProvider } from "@/components/os/OsContext";
 import { DitherFilter } from "@/components/os/DitherFilter";
+import { ArcadeMusicBridge } from "@/components/os/ArcadeMusicBridge";
 import { SolanaProviderGate } from "@/components/wallet/SolanaProviderGate";
 import "../globals.css";
 
@@ -46,11 +47,13 @@ export default function ArcadeLayout({
       <DitherFilter />
       <SolanaProviderGate>
         <OsProvider>
-          <AmbientSound />
-          <div className="crt-scanlines" aria-hidden />
-          <div className="crt-vignette" aria-hidden />
-          <div className="crt-grain" aria-hidden />
-          {children}
+          <ArcadeMusicBridge>
+            <AmbientSound />
+            <div className="crt-scanlines" aria-hidden />
+            <div className="crt-vignette" aria-hidden />
+            <div className="crt-grain" aria-hidden />
+            {children}
+          </ArcadeMusicBridge>
         </OsProvider>
       </SolanaProviderGate>
     </div>

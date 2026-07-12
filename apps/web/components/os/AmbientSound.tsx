@@ -3,14 +3,18 @@
 import { useEffect, useRef } from "react";
 import { AMBIENT_SRC } from "@/lib/ambientAudio";
 import { useOs } from "./OsContext";
+import { useSpotifyOptional } from "./SpotifyContext";
 
 /**
  * Single looping ambient bed for the arcade shell.
  * Starts only after sound is enabled (user gesture via mute toggle / menu).
+ * Yields to Spotify Web Playback while Spotify is actively playing.
  */
 export function AmbientSound() {
   const { sound, volume } = useOs();
+  const spotify = useSpotifyOptional();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const spotifyPlaying = Boolean(spotify?.spotifyActive);
 
   useEffect(() => {
     const el = new Audio(AMBIENT_SRC);
@@ -37,7 +41,7 @@ export function AmbientSound() {
     const el = audioRef.current;
     if (!el) return;
 
-    if (!sound || volume <= 0) {
+    if (!sound || volume <= 0 || spotifyPlaying) {
       el.pause();
       el.muted = true;
       return;
@@ -50,7 +54,7 @@ export function AmbientSound() {
         /* Autoplay blocked until a later gesture — mute toggle retries. */
       });
     }
-  }, [sound, volume]);
+  }, [sound, volume, spotifyPlaying]);
 
   return null;
 }
