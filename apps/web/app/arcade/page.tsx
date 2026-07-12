@@ -54,7 +54,8 @@ function tileLayout(
   const colGap = gap;
   const mainW = Math.floor(workW * 0.62);
   const sideW = workW - mainW - colGap;
-  const sideH = Math.floor((workH - gap) / 2);
+  const loopH = Math.floor(workH * 0.56);
+  const treasuryH = workH - loopH - gap;
 
   return {
     colors: {
@@ -67,13 +68,13 @@ function tileLayout(
       x: workX + mainW + colGap,
       y: workY,
       width: sideW,
-      height: sideH,
+      height: loopH,
     },
     treasury: {
       x: workX + mainW + colGap,
-      y: workY + sideH + gap,
+      y: workY + loopH + gap,
       width: sideW,
-      height: workH - sideH - gap,
+      height: treasuryH,
     },
     info: {
       x: workX + Math.round(workW * 0.1),
@@ -114,8 +115,8 @@ function Desktop() {
     if (typeof window === "undefined") {
       return {
         colors: { x: 100, y: 8, width: 780, height: 640 },
-        loop: { x: 900, y: 8, width: 420, height: 310 },
-        treasury: { x: 900, y: 326, width: 420, height: 310 },
+        loop: { x: 900, y: 8, width: 420, height: 380 },
+        treasury: { x: 900, y: 396, width: 420, height: 260 },
         info: { x: 180, y: 40, width: 500, height: 520 },
         fairness: { x: 240, y: 120, width: 480, height: 320 },
         soon: { x: 280, y: 160, width: 360, height: 260 },
@@ -141,7 +142,7 @@ function Desktop() {
           title="LOOP.EXE"
           default={winDefaults.loop}
           minWidth={280}
-          minHeight={220}
+          minHeight={300}
         >
           <TheLoop />
         </Win>
