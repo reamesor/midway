@@ -471,6 +471,10 @@ html.dark .desktop-wallpaper {
     transform 0.45s cubic-bezier(0.22, 0.82, 0.28, 1);
   opacity: 1;
 }
+.idle-die.is-rolling,
+.idle-die.is-returning {
+  transition: none;
+}
 .idle-die.is-rolling {
   animation: idle-die-roll 0.72s cubic-bezier(0.22, 0.7, 0.28, 1) forwards;
 }
@@ -482,6 +486,7 @@ html.dark .desktop-wallpaper {
   transform: rotateX(12deg) rotateY(-8deg) scale(0.55);
   pointer-events: none;
   animation: none;
+  transition: opacity 0.28s ease, transform 0.28s ease;
 }
 .idle-die-face {
   position: absolute;

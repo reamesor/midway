@@ -165,10 +165,10 @@ function IdleCube({
     };
   }, [clearPhaseTimer]);
 
-  const showCharacter = phase === "character" || (reduced && phase === "character");
+  const showCharacter = phase === "character";
   const isRolling = phase === "rolling";
   const isReturning = phase === "returning";
-  const dieActive = phase !== "idle" && !reduced;
+  const dieActive = !reduced && (isRolling || showCharacter);
 
   return (
     <div
@@ -228,7 +228,7 @@ function IdleCube({
           </span>
 
           <span
-            className={`idle-cube-char${showCharacter || (reduced && phase === "character") ? " is-visible" : ""}${dieActive && isRolling ? " is-waiting" : ""}`}
+            className={`idle-cube-char${showCharacter ? " is-visible" : ""}${dieActive && isRolling ? " is-waiting" : ""}`}
           >
             <PixelIcon
               grid={IDLE_CUBE_CHARS[spec.id]}
