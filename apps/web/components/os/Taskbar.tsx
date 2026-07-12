@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PixelIcon, GLYPHS, inkPalette } from "@/lib/pixel";
 import { WalletConnectControl } from "@/components/wallet/WalletConnectControl";
 import { Marquee } from "./Marquee";
+import { MusicTrayControl } from "./MusicTrayControl";
 import { useOs, type WinId } from "./OsContext";
 
 const TABS: { id: WinId; label: string }[] = [
@@ -219,6 +220,8 @@ export function Taskbar({
         />
         <span className="hidden sm:inline">{theme === "light" ? "DARK" : "LIGHT"}</span>
       </button>
+
+      <MusicTrayControl />
 
       <button
         type="button"

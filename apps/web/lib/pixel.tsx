@@ -286,6 +286,26 @@ export const GLYPHS = {
   check: ["......K", ".....K.", "K...K..", ".K.K...", "..K...."],
   box: ["KKKKKK", "K....K", "K....K", "K....K", "K....K", "KKKKKK"],
   boxOn: ["KKKKKK", "KYYYYK", "KYYYYK", "KYYYYK", "KYYYYK", "KKKKKK"],
+  speaker: [
+    "K.......",
+    "KYK.....",
+    "KYYK..K.",
+    "KYYYKK.K",
+    "KYYYKK.K",
+    "KYYK..K.",
+    "KYK.....",
+    "K.......",
+  ],
+  speakerOff: [
+    "K......K",
+    "KYK...K.",
+    "KYYK.K..",
+    "KYYYKK..",
+    "KYYYKK..",
+    "KYYK.K..",
+    "KYK...K.",
+    "K......K",
+  ],
 } as const;
 
 export type GlyphId = keyof typeof GLYPHS;

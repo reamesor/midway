@@ -46,6 +46,27 @@
   .hero .btn:active{transform:translate(2px,2px);box-shadow:0 0 0 #1f3e26;}
   .hero .mini-mark{width:56px;height:56px;margin-bottom:4px;}
 
+  /* Ambient music — fixed top-right, clear of CTA */
+  .music-dock{position:fixed;top:16px;right:16px;z-index:5;display:flex;flex-direction:column;
+    align-items:flex-end;gap:6px;pointer-events:auto;opacity:0;}
+  body.run .music-dock{animation:heroIn 1s ease 3.15s forwards;}
+  body.intro-done .music-dock{opacity:1;animation:none;}
+  .music-dock .music-btn{display:inline-flex;align-items:center;gap:6px;background:var(--btn);color:var(--ink);
+    border:1.5px solid var(--ink);border-radius:6px;padding:7px 10px;font-family:'Space Mono',monospace;
+    font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;
+    box-shadow:2px 2px 0 #1f3e26;text-decoration:none;}
+  .music-dock .music-btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1f3e26;}
+  .music-dock .music-btn:active{transform:translate(1px,1px);box-shadow:0 0 0 #1f3e26;}
+  .music-dock .music-panel{background:var(--btn);border:1.5px solid var(--ink);border-radius:8px;
+    box-shadow:2px 2px 0 #1f3e26;padding:10px;min-width:180px;text-align:left;}
+  .music-dock .music-panel label{display:flex;flex-direction:column;gap:4px;font-size:10px;
+    letter-spacing:1px;text-transform:uppercase;color:var(--ink-dim);font-family:'Space Mono',monospace;}
+  .music-dock .music-panel input[type=range]{width:100%;accent-color:var(--ink);}
+  .music-dock .music-hint{margin:8px 0 0;font-size:10px;line-height:1.35;color:var(--ink-dim);
+    font-family:'Instrument Sans',system-ui,sans-serif;text-transform:none;letter-spacing:0;}
+  .music-dock .music-spotify{display:inline-flex;margin-top:8px;font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--ink);font-family:'Space Mono',monospace;}
+
   /* Colors mascot parade — orderly march along the hero bottom edge */
   .hero-parade{position:fixed;left:56px;right:56px;bottom:14px;height:34px;z-index:3;
     pointer-events:none;overflow:hidden;opacity:0;}
@@ -230,6 +251,7 @@
   @media (prefers-reduced-motion: reduce){
     body.run .hero{animation:none;opacity:1;transform:scale(1);}
     body.run .intro{display:none!important;}
+    body.run .music-dock,body.intro-done .music-dock{opacity:1;animation:none;}
     .walker{animation:none!important;opacity:.85;transform:translateX(-50%);}
     .walker.w1{left:28%;bottom:10%;}
     .walker.w2{left:62%;bottom:8%;}
@@ -248,6 +270,15 @@
   <div class="hero">
     <div class="side-l"><span>Midway · Alpha</span><span>07.12.2026</span></div>
     <div class="side-r"><span>Every Cut Comes Home</span><span>v3.1</span></div>
+    <div class="music-dock" id="music-dock">
+      <button type="button" class="music-btn" id="music-toggle" aria-expanded="false" aria-controls="music-panel" title="Ambient music">♪ MUSIC</button>
+      <div class="music-panel" id="music-panel" hidden>
+        <button type="button" class="music-btn" id="music-mute" style="width:100%;justify-content:center;margin-bottom:8px">UNMUTE</button>
+        <label>Volume <input type="range" id="music-vol" min="0" max="100" value="40" aria-label="Ambient volume"></label>
+        <a class="music-spotify" id="music-spotify" href="https://open.spotify.com/search/midway%20arcade%20ambient" target="_blank" rel="noopener noreferrer">Connect Spotify ↗</a>
+        <p class="music-hint">In-app loop is local. Spotify opens the full Midway playlist.</p>
+      </div>
+    </div>
     <div class="tent-stage tent-stage--sm" id="hero-tent-stage">
       <div class="tent-stage-inner">
         <div class="tent-door-void" aria-hidden="true"></div>
@@ -442,6 +473,104 @@ glyph('btn-glyph');
     document.body.classList.add('run');
     setTimeout(markSeen, 4200);
   }
+})();
+
+/* Ambient music — shared localStorage with arcade OsContext */
+(function(){
+  var SOUND_KEY = 'midway-os-sound';
+  var VOLUME_KEY = 'midway-os-volume';
+  var SRC = '/audio/ambient-loop.wav';
+  var DEFAULT_VOL = 0.4;
+  /* Mirror NEXT_PUBLIC_SPOTIFY_URL at build time if you inject; default search fallback. */
+  var SPOTIFY = 'https://open.spotify.com/search/midway%20arcade%20ambient';
+
+  var sound = false;
+  var volume = DEFAULT_VOL;
+  try {
+    var s = localStorage.getItem(SOUND_KEY);
+    if (s === '1') sound = true;
+    if (s === '0') sound = false;
+    var v = Number(localStorage.getItem(VOLUME_KEY));
+    if (Number.isFinite(v)) volume = Math.min(1, Math.max(0, v));
+  } catch (e) {}
+
+  var audio = new Audio(SRC);
+  audio.loop = true;
+  audio.preload = 'auto';
+  audio.volume = volume;
+
+  var dock = document.getElementById('music-dock');
+  var toggle = document.getElementById('music-toggle');
+  var panel = document.getElementById('music-panel');
+  var muteBtn = document.getElementById('music-mute');
+  var vol = document.getElementById('music-vol');
+  var spotify = document.getElementById('music-spotify');
+  if (!dock || !toggle || !panel || !muteBtn || !vol) return;
+
+  if (spotify) spotify.href = SPOTIFY;
+  vol.value = String(Math.round(volume * 100));
+
+  function persist(){
+    try {
+      localStorage.setItem(SOUND_KEY, sound ? '1' : '0');
+      localStorage.setItem(VOLUME_KEY, String(volume));
+    } catch (e) {}
+  }
+
+  function syncUi(){
+    var muted = !sound || volume <= 0;
+    muteBtn.textContent = sound ? 'MUTE' : 'UNMUTE';
+    toggle.textContent = muted ? '♪ MUTED' : '♪ MUSIC';
+    vol.disabled = !sound;
+  }
+
+  function syncPlay(){
+    if (!sound || volume <= 0) {
+      audio.pause();
+      audio.muted = true;
+      return;
+    }
+    audio.muted = false;
+    audio.volume = volume;
+    var p = audio.play();
+    if (p && typeof p.catch === 'function') p.catch(function(){});
+  }
+
+  toggle.addEventListener('click', function(){
+    var open = panel.hasAttribute('hidden');
+    if (open) {
+      panel.removeAttribute('hidden');
+      toggle.setAttribute('aria-expanded', 'true');
+    } else {
+      panel.setAttribute('hidden', '');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  muteBtn.addEventListener('click', function(){
+    sound = !sound;
+    persist();
+    syncUi();
+    syncPlay();
+  });
+
+  vol.addEventListener('input', function(){
+    volume = Math.min(1, Math.max(0, Number(vol.value) / 100));
+    audio.volume = volume;
+    persist();
+    syncUi();
+    syncPlay();
+  });
+
+  document.addEventListener('mousedown', function(e){
+    if (!dock.contains(e.target)) {
+      panel.setAttribute('hidden', '');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  syncUi();
+  /* Do not autoplay — wait for unmute gesture (browser policy). */
 })();
 </script>
 </body>

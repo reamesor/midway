@@ -4,6 +4,7 @@ import {
   Silkscreen,
   VT323,
 } from "next/font/google";
+import { AmbientSound } from "@/components/os/AmbientSound";
 import { OsProvider } from "@/components/os/OsContext";
 import { DitherFilter } from "@/components/os/DitherFilter";
 import { SolanaProviderGate } from "@/components/wallet/SolanaProviderGate";
@@ -45,6 +46,7 @@ export default function ArcadeLayout({
       <DitherFilter />
       <SolanaProviderGate>
         <OsProvider>
+          <AmbientSound />
           <div className="crt-scanlines" aria-hidden />
           <div className="crt-vignette" aria-hidden />
           <div className="crt-grain" aria-hidden />

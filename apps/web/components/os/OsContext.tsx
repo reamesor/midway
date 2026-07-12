@@ -9,6 +9,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  DEFAULT_VOLUME,
+  readStoredSound,
+  readStoredVolume,
+  writeStoredSound,
+  writeStoredVolume,
+} from "@/lib/ambientAudio";
 
 export type WinId =
   | "loop"
@@ -34,6 +41,7 @@ type OsContextValue = {
   calm: boolean;
   oneBit: boolean;
   sound: boolean;
+  volume: number;
   theme: OsTheme;
   booted: boolean;
   zCounter: number;
@@ -47,6 +55,7 @@ type OsContextValue = {
   setCalm: (v: boolean) => void;
   setOneBit: (v: boolean) => void;
   setSound: (v: boolean) => void;
+  setVolume: (v: number) => void;
   setTheme: (v: OsTheme) => void;
   toggleTheme: () => void;
   finishBoot: () => void;
@@ -76,7 +85,8 @@ const THEME_KEY = "midway-os-theme";
 export function OsProvider({ children }: { children: ReactNode }) {
   const [calm, setCalmState] = useState(false);
   const [oneBit, setOneBitState] = useState(false);
-  const [sound, setSound] = useState(false);
+  const [sound, setSoundState] = useState(false);
+  const [volume, setVolumeState] = useState(DEFAULT_VOLUME);
   const [theme, setThemeState] = useState<OsTheme>("light");
   const [booted, setBooted] = useState(false);
   const [open, setOpen] = useState(DEFAULT_OPEN);
@@ -102,6 +112,19 @@ export function OsProvider({ children }: { children: ReactNode }) {
     if (sessionStorage.getItem("midway-booted") === "1") setBooted(true);
     const saved = localStorage.getItem(THEME_KEY);
     if (saved === "light" || saved === "dark") setThemeState(saved);
+    setSoundState(readStoredSound(false));
+    setVolumeState(readStoredVolume(DEFAULT_VOLUME));
+  }, []);
+
+  const setSound = useCallback((v: boolean) => {
+    setSoundState(v);
+    writeStoredSound(v);
+  }, []);
+
+  const setVolume = useCallback((v: number) => {
+    const next = Math.min(1, Math.max(0, v));
+    setVolumeState(next);
+    writeStoredVolume(next);
   }, []);
 
   useEffect(() => {
@@ -197,6 +220,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
       calm,
       oneBit,
       sound,
+      volume,
       theme,
       booted,
       zCounter,
@@ -210,6 +234,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
       setCalm,
       setOneBit,
       setSound,
+      setVolume,
       setTheme,
       toggleTheme,
       finishBoot,
@@ -224,6 +249,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
       calm,
       oneBit,
       sound,
+      volume,
       theme,
       booted,
       zCounter,
@@ -235,6 +261,8 @@ export function OsProvider({ children }: { children: ReactNode }) {
       lastFairness,
       setCalm,
       setOneBit,
+      setSound,
+      setVolume,
       setTheme,
       toggleTheme,
       finishBoot,

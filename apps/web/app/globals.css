@@ -1329,6 +1329,40 @@ html.dark .win-titlebar.focused {
   vertical-align: middle;
 }
 
+/* Ambient music volume — arcade bevel track */
+.music-vol-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--bevel-lo);
+  cursor: pointer;
+}
+.music-vol-slider:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.music-vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 14px;
+  background: var(--btn);
+  border: 1.5px solid var(--ink);
+  box-shadow: 1px 1px 0 var(--shadow-cut);
+  cursor: pointer;
+}
+.music-vol-slider::-moz-range-thumb {
+  width: 12px;
+  height: 14px;
+  background: var(--btn);
+  border: 1.5px solid var(--ink);
+  box-shadow: 1px 1px 0 var(--shadow-cut);
+  border-radius: 0;
+  cursor: pointer;
+}
+
 /* Wallet adapter / Midway connect modal — above boot (200), OS dialogs, window stack.
    NOTE: `.wallet-adapter-modal` is the FULLSCREEN overlay; `.wallet-adapter-modal-wrapper`
    is the card. Do not swap those backgrounds. */
