@@ -8,6 +8,7 @@ import { useSolBalance } from "@/hooks/useSolBalance";
 import { useMidwayWallet } from "@/hooks/useMidwayWallet";
 import { truncateAddress } from "@/lib/solana/address";
 import { getSolanaNetworkLabel } from "@/lib/solana/cluster";
+import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
 import type { MidwayAsset } from "@/lib/midway-wallet/types";
 
 const PRESETS = [0.05, 0.1, 0.25, 0.5, 1] as const;
@@ -25,6 +26,7 @@ export function MidwayWalletPanel() {
     midwayTokenReady,
     deposit,
     withdraw,
+    resetDemo,
     refresh,
   } = useMidwayWallet();
 
@@ -42,10 +44,19 @@ export function MidwayWalletPanel() {
     }
     setStatus(
       kind === "deposit"
-        ? `Deposited ${fmt(amount)} ${asset} into Midway play balance.`
-        : `Withdrew ${fmt(amount)} ${asset} toward your main wallet.`,
+        ? `Demo ledger +${fmt(amount)} ${asset} (no real funds moved).`
+        : `Demo ledger −${fmt(amount)} ${asset} (no real funds moved).`,
     );
-    void refreshMain();
+  };
+
+  const onReset = () => {
+    setStatus(null);
+    const res = resetDemo();
+    if (!res.ok) {
+      setStatus(res.error);
+      return;
+    }
+    setStatus(`Demo pot reset to ${DEMO_PLAY_SOL} SOL. No real funds moved.`);
   };
 
   return (
@@ -54,7 +65,7 @@ export function MidwayWalletPanel() {
         <div>
           <div className="chroma text-sm text-hot">EXCHANGE.EXE</div>
           <div className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-            MIDWAY.WALLET — deposit → play → withdraw
+            MIDWAY.WALLET — demo play pot
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -66,11 +77,22 @@ export function MidwayWalletPanel() {
         </div>
       </div>
 
+      <div className="bevel-inset border-2 border-acid/40 bg-acid/10 p-3 font-sans text-[13px] normal-case tracking-normal text-ink">
+        <strong className="font-heading text-[11px] tracking-wide text-acid">
+          DEMO · NO REAL FUNDS MOVE
+        </strong>
+        <p className="mt-1 text-ink-dim">
+          Play balance is a fixed <strong className="text-ink">{DEMO_PLAY_SOL} SOL</strong>{" "}
+          demo pot. Deposits / withdraws only change local ledger numbers. Phantom /
+          Solflare is for identity and address display only.
+        </p>
+      </div>
+
       {!connected && (
         <div className="bevel-inset p-3 font-sans text-[13px] normal-case tracking-normal text-ink-dim">
           Connect <strong className="text-ink">Phantom</strong> or{" "}
-          <strong className="text-ink">Solflare</strong> to move SOL into your
-          Midway play balance for Colors.
+          <strong className="text-ink">Solflare</strong> to unlock your{" "}
+          {DEMO_PLAY_SOL} SOL demo play pot for Colors.
           <button
             type="button"
             className="bevel-btn bevel-btn-hot mt-2 block w-full py-2 font-heading text-[11px] tracking-wide"
@@ -83,7 +105,7 @@ export function MidwayWalletPanel() {
 
       {connected && publicKey && (
         <div className="bevel-inset p-2 font-mono text-[12px] text-ink-dim break-all">
-          main · {truncateAddress(publicKey.toBase58(), 6, 6)}
+          identity · {truncateAddress(publicKey.toBase58(), 6, 6)}
         </div>
       )}
 
@@ -94,20 +116,20 @@ export function MidwayWalletPanel() {
           hint="on-chain · read-only"
         />
         <BalanceCard
-          label="MIDWAY PLAY"
+          label="MIDWAY PLAY · DEMO"
           value={fmt(play.sol)}
-          hint="Colors bets use this"
+          hint={`${DEMO_PLAY_SOL} SOL pot · local`}
           accent
         />
         <BalanceCard
           label="MIDWAY TOKEN"
           value={midwayTokenReady ? fmt(play.midway) : "—"}
-          hint={midwayTokenReady ? "play balance" : "mint not set"}
+          hint={midwayTokenReady ? "demo play token" : "mint not set"}
         />
       </div>
 
       <div className="bevel p-3 space-y-2">
-        <div className="text-ink-dim">AMOUNT</div>
+        <div className="text-ink-dim">DEMO AMOUNT</div>
         <div className="flex gap-1">
           <button
             type="button"
@@ -148,16 +170,6 @@ export function MidwayWalletPanel() {
           <button
             type="button"
             className="bevel-btn px-2 py-1"
-            disabled={mainSol == null || asset !== "SOL"}
-            onClick={() => {
-              if (mainSol != null) setAmount(roundAmt(mainSol));
-            }}
-          >
-            MAX MAIN
-          </button>
-          <button
-            type="button"
-            className="bevel-btn px-2 py-1"
             onClick={() =>
               setAmount(asset === "SOL" ? roundAmt(play.sol) : roundAmt(play.midway))
             }
@@ -173,7 +185,7 @@ export function MidwayWalletPanel() {
             disabled={!connected || busy || (asset === "MIDWAY" && !midwayTokenReady)}
             onClick={() => void run("deposit")}
           >
-            DEPOSIT {asset}
+            DEMO + {asset}
           </button>
           <button
             type="button"
@@ -181,9 +193,17 @@ export function MidwayWalletPanel() {
             disabled={!connected || busy || (asset === "MIDWAY" && !midwayTokenReady)}
             onClick={() => void run("withdraw")}
           >
-            WITHDRAW {asset}
+            DEMO − {asset}
           </button>
         </div>
+        <button
+          type="button"
+          className="bevel-btn bevel-btn-acid w-full py-2"
+          disabled={!connected || busy}
+          onClick={onReset}
+        >
+          RESET DEMO TO {DEMO_PLAY_SOL} SOL
+        </button>
       </div>
 
       {status && (
@@ -193,9 +213,8 @@ export function MidwayWalletPanel() {
       )}
 
       <p className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-        {mode === "DEMO"
-          ? "Demo escrow is local to this browser + wallet pubkey until the on-chain vault is live. No real SOL leaves your main wallet in DEMO mode."
-          : "LIVE mode will move SOL / MIDWAY into the Midway vault PDA. Transfers are not enabled yet."}
+        DEMO escrow is local to this browser + wallet pubkey. No real SOL leaves your
+        main wallet. LIVE vault transfers are disabled.
       </p>
 
       <div className="flex gap-1">
@@ -213,7 +232,7 @@ export function MidwayWalletPanel() {
 
       {ledger.length > 0 && (
         <details className="bevel-inset p-2">
-          <summary className="cursor-pointer text-cyber">recent ledger</summary>
+          <summary className="cursor-pointer text-cyber">recent demo ledger</summary>
           <ul className="mt-2 max-h-32 space-y-1 overflow-auto font-mono text-[11px] text-ink-dim">
             {ledger.slice(0, 12).map((e) => (
               <li key={e.id}>

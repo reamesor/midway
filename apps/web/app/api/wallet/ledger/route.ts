@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
 import type { MidwayPlayBalance, MidwayWalletLedgerEntry } from "@/lib/midway-wallet/types";
 
 /**
  * API-shaped Midway play wallet mirror.
- * DEMO: ephemeral process memory (client localStorage is source of truth).
- * LIVE: replace with vault PDA / durable store.
+ * DEMO only: ephemeral process memory (client localStorage is source of truth).
+ * Never moves chain funds.
  */
 type Row = {
   balance: MidwayPlayBalance;
@@ -12,6 +13,7 @@ type Row = {
 };
 
 const memory = new Map<string, Row>();
+const MODE = "DEMO" as const;
 
 export async function GET(req: Request) {
   const pubkey = new URL(req.url).searchParams.get("pubkey");
@@ -20,9 +22,15 @@ export async function GET(req: Request) {
   }
   const row = memory.get(pubkey);
   return NextResponse.json({
-    mode: process.env.NEXT_PUBLIC_WALLET_ESCROW || "DEMO",
+    mode: MODE,
+    demoPlaySol: DEMO_PLAY_SOL,
+    realTransfers: false,
     pubkey,
-    balance: row?.balance ?? { sol: 0, midway: 0, updatedAt: 0 },
+    balance: row?.balance ?? {
+      sol: DEMO_PLAY_SOL,
+      midway: 0,
+      updatedAt: 0,
+    },
     log: row?.log ?? [],
   });
 }
@@ -50,5 +58,11 @@ export async function POST(req: Request) {
     } as MidwayWalletLedgerEntry);
   }
   memory.set(pubkey, { balance, log: log.slice(0, 40) });
-  return NextResponse.json({ ok: true, balance, mode: process.env.NEXT_PUBLIC_WALLET_ESCROW || "DEMO" });
+  return NextResponse.json({
+    ok: true,
+    balance,
+    mode: MODE,
+    demoPlaySol: DEMO_PLAY_SOL,
+    realTransfers: false,
+  });
 }

@@ -9,7 +9,7 @@ type DockIcon =
       id: WinId;
       label: string;
       glyph: GlyphId;
-      badge?: "LIVE" | "SOON";
+      badge?: "LIVE" | "DEMO" | "SOON";
     }
   | {
       kind: "soon";
@@ -21,8 +21,8 @@ type DockIcon =
     };
 
 const ICONS: DockIcon[] = [
-  { kind: "app", id: "colors", label: "Colors", glyph: "palette", badge: "LIVE" },
-  { kind: "app", id: "wallet", label: "Wallet", glyph: "wallet", badge: "LIVE" },
+  { kind: "app", id: "colors", label: "Colors", glyph: "palette", badge: "DEMO" },
+  { kind: "app", id: "wallet", label: "Wallet", glyph: "wallet", badge: "DEMO" },
   { kind: "app", id: "treasury", label: "Treasury", glyph: "treasury", badge: "LIVE" },
   { kind: "app", id: "info", label: "Info", glyph: "readme" },
   { kind: "app", id: "token", label: "Token", glyph: "coin" },
@@ -88,7 +88,9 @@ export function DesktopIcons() {
                   className={`absolute -right-2 -top-2 px-1 text-[8px] ${
                     badge === "LIVE"
                       ? "bg-win text-[var(--btn)] blink"
-                      : "bg-chrome text-ink-dim border border-line"
+                      : badge === "DEMO"
+                        ? "bg-acid text-[var(--btn)]"
+                        : "bg-chrome text-ink-dim border border-line"
                   }`}
                 >
                   {badge}

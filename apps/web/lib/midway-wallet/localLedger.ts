@@ -1,11 +1,14 @@
+import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
 import {
+  DEMO_PLAY_BALANCE,
   EMPTY_PLAY_BALANCE,
   type MidwayPlayBalance,
   type MidwayWalletLedgerEntry,
 } from "./types";
 
-const KEY = (pubkey: string) => `midway-play-wallet:v1:${pubkey}`;
-const LOG_KEY = (pubkey: string) => `midway-play-wallet-log:v1:${pubkey}`;
+/** v2 = seed / migrate to fixed 10 SOL demo pot. */
+const KEY = (pubkey: string) => `midway-play-wallet:v2:${pubkey}`;
+const LOG_KEY = (pubkey: string) => `midway-play-wallet-log:v2:${pubkey}`;
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -29,7 +32,11 @@ function writeJson(key: string, value: unknown) {
 
 export function loadPlayBalance(pubkey: string): MidwayPlayBalance {
   const stored = readJson<MidwayPlayBalance | null>(KEY(pubkey), null);
-  if (!stored || typeof stored.sol !== "number") return EMPTY_PLAY_BALANCE();
+  if (!stored || typeof stored.sol !== "number") {
+    const seeded = DEMO_PLAY_BALANCE();
+    writeJson(KEY(pubkey), seeded);
+    return seeded;
+  }
   return {
     sol: Math.max(0, stored.sol),
     midway: Math.max(0, stored.midway ?? 0),
@@ -39,6 +46,12 @@ export function loadPlayBalance(pubkey: string): MidwayPlayBalance {
 
 export function savePlayBalance(pubkey: string, balance: MidwayPlayBalance) {
   writeJson(KEY(pubkey), { ...balance, updatedAt: Date.now() });
+}
+
+export function resetPlayBalance(pubkey: string): MidwayPlayBalance {
+  const next = DEMO_PLAY_BALANCE();
+  writeJson(KEY(pubkey), next);
+  return next;
 }
 
 export function appendLedger(
@@ -64,4 +77,13 @@ export function loadLedger(pubkey: string): MidwayWalletLedgerEntry[] {
 
 export function roundPlay(n: number) {
   return Math.round(Math.max(0, n) * 1e6) / 1e6;
+}
+
+/** Cap demo SOL deposits so the pot stays at DEMO_PLAY_SOL max from top-ups. */
+export function remainingDemoDepositCap(currentSol: number): number {
+  return roundPlay(Math.max(0, DEMO_PLAY_SOL - currentSol));
+}
+
+export function clearDisconnectedBalance(): MidwayPlayBalance {
+  return EMPTY_PLAY_BALANCE();
 }

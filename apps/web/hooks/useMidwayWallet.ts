@@ -3,14 +3,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
+  DEMO_PLAY_SOL,
   getMidwayMint,
   getWalletEscrowMode,
-  isEscrowDemo,
+  isLiveEscrowEnabled,
 } from "@/lib/solana/escrow";
 import {
   appendLedger,
   loadLedger,
   loadPlayBalance,
+  remainingDemoDepositCap,
+  resetPlayBalance,
   roundPlay,
   savePlayBalance,
 } from "@/lib/midway-wallet/localLedger";
@@ -27,7 +30,7 @@ type TxResult =
 
 /**
  * Midway play escrow keyed by connected wallet pubkey.
- * DEMO: local ledger (+ optional API mirror). LIVE: transfer prep stubs.
+ * DEMO only: local 10 SOL pot + ledger. Never signs spend txs.
  */
 export function useMidwayWallet() {
   const { publicKey, connected } = useWallet();
@@ -59,7 +62,7 @@ export function useMidwayWallet() {
       appendLedger(pubkey, entry);
       setPlay(next);
       setLedger(loadLedger(pubkey));
-      // Fire-and-forget API-shaped mirror (serverless memory; local is source of truth in DEMO)
+      // Fire-and-forget API-shaped mirror (serverless memory; local is source of truth)
       void fetch("/api/wallet/ledger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,30 +81,49 @@ export function useMidwayWallet() {
       if (!connected || !pubkey) {
         return { ok: false, error: "Connect Phantom or Solflare first." };
       }
+      if (isLiveEscrowEnabled()) {
+        return { ok: false, error: "Live escrow is disabled. Demo ledger only." };
+      }
       const amt = roundPlay(amount);
       if (amt <= 0) return { ok: false, error: "Enter an amount greater than 0." };
       if (asset === "MIDWAY" && !mint) {
         return { ok: false, error: "MIDWAY mint not configured yet." };
       }
-      if (!isEscrowDemo()) {
-        return {
-          ok: false,
-          error: "LIVE vault transfers are not wired yet. Set NEXT_PUBLIC_WALLET_ESCROW=DEMO.",
-        };
-      }
       setBusy(true);
       try {
         const cur = loadPlayBalance(pubkey);
+        if (asset === "SOL") {
+          const room = remainingDemoDepositCap(cur.sol);
+          if (room <= 0) {
+            return {
+              ok: false,
+              error: `Demo pot is capped at ${DEMO_PLAY_SOL} SOL. Reset or withdraw first.`,
+            };
+          }
+          const credit = Math.min(amt, room);
+          const next: MidwayPlayBalance = {
+            sol: roundPlay(cur.sol + credit),
+            midway: cur.midway,
+            updatedAt: Date.now(),
+          };
+          persist(next, {
+            kind: "deposit",
+            asset,
+            amount: credit,
+            note: "demo ledger top-up (no chain transfer)",
+          });
+          return { ok: true, balance: next };
+        }
         const next: MidwayPlayBalance = {
-          sol: asset === "SOL" ? roundPlay(cur.sol + amt) : cur.sol,
-          midway: asset === "MIDWAY" ? roundPlay(cur.midway + amt) : cur.midway,
+          sol: cur.sol,
+          midway: roundPlay(cur.midway + amt),
           updatedAt: Date.now(),
         };
         persist(next, {
           kind: "deposit",
           asset,
           amount: amt,
-          note: "demo escrow deposit",
+          note: "demo ledger top-up (no chain transfer)",
         });
         return { ok: true, balance: next };
       } finally {
@@ -116,16 +138,13 @@ export function useMidwayWallet() {
       if (!connected || !pubkey) {
         return { ok: false, error: "Connect Phantom or Solflare first." };
       }
+      if (isLiveEscrowEnabled()) {
+        return { ok: false, error: "Live escrow is disabled. Demo ledger only." };
+      }
       const amt = roundPlay(amount);
       if (amt <= 0) return { ok: false, error: "Enter an amount greater than 0." };
       if (asset === "MIDWAY" && !mint) {
         return { ok: false, error: "MIDWAY mint not configured yet." };
-      }
-      if (!isEscrowDemo()) {
-        return {
-          ok: false,
-          error: "LIVE vault transfers are not wired yet. Set NEXT_PUBLIC_WALLET_ESCROW=DEMO.",
-        };
       }
       setBusy(true);
       try {
@@ -143,7 +162,7 @@ export function useMidwayWallet() {
           kind: "withdraw",
           asset,
           amount: amt,
-          note: "demo escrow withdraw → main wallet",
+          note: "demo ledger debit only (no chain transfer)",
         });
         return { ok: true, balance: next };
       } finally {
@@ -153,7 +172,22 @@ export function useMidwayWallet() {
     [connected, mint, persist, pubkey],
   );
 
-  /** Debit play SOL for a Colors (or future) bet stake. */
+  /** Reset demo pot to the fixed 10 SOL starting balance. */
+  const resetDemo = useCallback((): TxResult => {
+    if (!connected || !pubkey) {
+      return { ok: false, error: "Connect Phantom or Solflare first." };
+    }
+    const next = resetPlayBalance(pubkey);
+    persist(next, {
+      kind: "reset",
+      asset: "SOL",
+      amount: DEMO_PLAY_SOL,
+      note: `demo pot reset to ${DEMO_PLAY_SOL} SOL`,
+    });
+    return { ok: true, balance: next };
+  }, [connected, persist, pubkey]);
+
+  /** Debit play SOL for a Colors (or future) bet stake — local ledger only. */
   const debitPlaySol = useCallback(
     (amount: number, note?: string): TxResult => {
       if (!connected || !pubkey) {
@@ -162,7 +196,10 @@ export function useMidwayWallet() {
       const amt = roundPlay(amount);
       const cur = loadPlayBalance(pubkey);
       if (amt > cur.sol) {
-        return { ok: false, error: "Not enough Midway play SOL. Deposit in MIDWAY.WALLET." };
+        return {
+          ok: false,
+          error: "Not enough Midway play SOL. Reset demo pot in MIDWAY.WALLET.",
+        };
       }
       const next: MidwayPlayBalance = {
         ...cur,
@@ -199,6 +236,7 @@ export function useMidwayWallet() {
     connected,
     pubkey,
     mode,
+    demoPlaySol: DEMO_PLAY_SOL,
     mint,
     midwayTokenReady: Boolean(mint),
     play,
@@ -207,6 +245,7 @@ export function useMidwayWallet() {
     refresh,
     deposit,
     withdraw,
+    resetDemo,
     debitPlaySol,
     creditPlaySol,
   };

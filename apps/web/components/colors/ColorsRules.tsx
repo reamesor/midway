@@ -90,17 +90,18 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
             </ul>
           </Section>
 
-          <Section title="SOLANA">
+          <Section title="SOLANA · DEMO">
             <div className="space-y-2 rounded border border-line/60 bg-paper-2/80 p-3">
               <p>
-                Colors is <strong className="text-cyber">SOL only</strong>. Connect{" "}
-                <strong className="text-ink">Phantom</strong> or{" "}
-                <strong className="text-ink">Solflare</strong>, then deposit into{" "}
-                <strong className="text-hot">MIDWAY.WALLET</strong> (EXCHANGE.EXE).
+                Colors uses a <strong className="text-cyber">10 SOL demo pot</strong>.
+                Connect <strong className="text-ink">Phantom</strong> or{" "}
+                <strong className="text-ink">Solflare</strong> for identity only —
+                no real funds move.
               </p>
               <p className="text-[13px] text-ink-dim">
-                Bets debit your Midway play balance — not your main wallet each roll.
-                Demo escrow is local until the on-chain vault is live.
+                Bets debit Midway play (local ledger). Reset the pot anytime in{" "}
+                <strong className="text-hot">MIDWAY.WALLET</strong>. LIVE vault
+                transfers are disabled.
               </p>
             </div>
           </Section>

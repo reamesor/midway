@@ -41,7 +41,7 @@ export function BetPanel({
   const placeLabel = !walletConnected
     ? "WALLET REQUIRED"
     : needsDeposit
-      ? "DEPOSIT TO PLAY"
+      ? "RESET DEMO POT"
       : "PLACE BET";
 
   const canClickPlace =
@@ -52,7 +52,7 @@ export function BetPanel({
     <div className="space-y-3 font-heading text-[11px]">
       <div className="bevel-inset p-3">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-ink-dim">MIDWAY PLAY</div>
+          <div className="text-ink-dim">MIDWAY PLAY · DEMO</div>
           <WalletConnectControl size="panel" />
         </div>
         <div className="num text-2xl text-acid">
@@ -61,19 +61,19 @@ export function BetPanel({
         </div>
         {!walletConnected ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Connect Phantom / Solflare, then deposit into MIDWAY.WALLET to play.
+            Connect Phantom / Solflare for identity — play money is a local demo pot.
           </p>
         ) : needsDeposit ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Play balance empty —{" "}
+            Demo pot empty —{" "}
             <button type="button" className="text-hot underline" onClick={onOpenWallet}>
-              deposit SOL
+              reset to 10 SOL
             </button>{" "}
-            in EXCHANGE.EXE.
+            in MIDWAY.WALLET. No real funds move.
           </p>
         ) : (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Bets debit Midway play SOL (not your main wallet directly).
+            DEMO bets debit the local play pot — no real SOL leaves your wallet.
           </p>
         )}
       </div>

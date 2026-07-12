@@ -13,6 +13,7 @@ import type { ColorKey } from "@/lib/colors/engine";
 import { PAYOUT_MODE, settleRoll, splitCut } from "@/lib/colors/engine";
 import { useMidwayWallet } from "@/hooks/useMidwayWallet";
 import { useColorsBetTx } from "@/hooks/useColorsBetTx";
+import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
 
 const DiceStage = dynamic(
   () => import("./DiceStage").then((m) => m.DiceStage),
@@ -34,7 +35,7 @@ type Fairness = {
 
 const AUTOBET_OPTIONS = [0, 5, 10, 20, 50, 100, -1] as const;
 /** Preview buffer only when disconnected — bets stay gated. */
-const DEMO_SOL_BALANCE = 1;
+const PREVIEW_SOL_BALANCE = DEMO_PLAY_SOL;
 
 type ColorsGameProps = {
   onHouseCut: (houseCut: number) => void;
@@ -48,7 +49,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     useMidwayWallet();
   const { placeBetOnChain } = useColorsBetTx();
 
-  const balance = connected ? play.sol : DEMO_SOL_BALANCE;
+  const balance = connected ? play.sol : PREVIEW_SOL_BALANCE;
   const needsDeposit = connected && play.sol <= 0;
 
   const [bet, setBet] = useState(0.05);
@@ -132,7 +133,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       return false;
     }
     if (cost > balanceRef.current || cost <= 0) {
-      setPrompt("NOT ENOUGH PLAY SOL — DEPOSIT IN MIDWAY.WALLET");
+      setPrompt("NOT ENOUGH DEMO SOL — RESET POT IN MIDWAY.WALLET");
       openWin("wallet");
       return false;
     }
@@ -149,7 +150,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     const cost = currentBet * currentPicked.size;
     if (!ensureWalletAndBalance(cost)) return false;
 
-    // Prepare hook for future on-chain escrow; demo settlement continues.
+    // Stub only — never signs/sends; settlement stays on demo ledger.
     void placeBetOnChain({ bet: currentBet, picked: Array.from(currentPicked) });
 
     const debit = debitPlaySol(cost, "colors stake");
@@ -339,7 +340,10 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b-2 border-line pb-2">
         <div className="chroma text-sm text-hot">COLORS.EXE</div>
         <div className="flex items-center gap-1">
-          <span className="bevel-inset px-2 py-1 text-[10px] text-acid">SOL</span>
+          <span className="bevel-inset px-2 py-1 text-[10px] text-acid">DEMO</span>
+          <span className="bevel-inset px-2 py-1 text-[10px] text-ink-dim">
+            {DEMO_PLAY_SOL} SOL POT
+          </span>
           <button
             type="button"
             className="bevel-btn px-2 py-1"
@@ -356,6 +360,14 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
             ?
           </button>
         </div>
+      </div>
+
+      <div className="mb-3 bevel-inset border border-acid/40 bg-acid/10 px-3 py-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+        <strong className="font-heading text-[10px] tracking-wide text-acid">
+          DEMO · NO REAL FUNDS MOVE
+        </strong>
+        {" — "}
+        Bets use a local {DEMO_PLAY_SOL} SOL play pot. Wallet connect is identity only.
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
@@ -463,8 +475,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         body={
           result
             ? result.matches > 0
-              ? `+${fmt(result.winnings)} SOL returned to Midway play.`
-              : `−${fmt(result.stake)} SOL from Midway play. The cut still comes home.`
+              ? `+${fmt(result.winnings)} demo SOL returned to Midway play.`
+              : `−${fmt(result.stake)} demo SOL from Midway play. The cut still comes home.`
             : ""
         }
         detail={
