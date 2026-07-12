@@ -3,14 +3,14 @@
 export const SOUND_KEY = "midway-os-sound";
 export const VOLUME_KEY = "midway-os-volume";
 
-/** Local looping boardwalk bed — royalty-free procedural loop. */
+/** Local looping boardwalk bed — cheerful chiptune/arcade procedural loop. */
 export const AMBIENT_SRC = "/audio/ambient-loop.wav";
 
 export const DEFAULT_VOLUME = 0.4;
 
 /** Fallback when NEXT_PUBLIC_SPOTIFY_URL is unset. */
 export const SPOTIFY_FALLBACK_URL =
-  "https://open.spotify.com/search/midway%20arcade%20ambient";
+  "https://open.spotify.com/search/midway%20arcade%20chiptune";
 
 export function readStoredSound(fallback = false): boolean {
   if (typeof window === "undefined") return fallback;
