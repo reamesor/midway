@@ -627,6 +627,46 @@ html.dark .desktop-wallpaper {
   display: grid;
   place-items: center;
   pointer-events: none;
+  /* CSS float stays independent of hatch/hover transforms on children. */
+  --fx: 40;
+  --fy: 32;
+  --frot: 18;
+  --fdur: 11s;
+  --fdelay: 0s;
+  animation: idle-cube-drift var(--fdur) ease-in-out var(--fdelay) infinite;
+  will-change: transform;
+}
+@keyframes idle-cube-drift {
+  0% {
+    transform:
+      translate(0, 0)
+      rotate(calc(var(--frot) * 0.15deg));
+  }
+  18% {
+    transform:
+      translate(calc(var(--fx) * 0.9px), calc(var(--fy) * -0.65px))
+      rotate(calc(var(--frot) * -0.9deg));
+  }
+  38% {
+    transform:
+      translate(calc(var(--fx) * 0.2px), calc(var(--fy) * 0.95px))
+      rotate(calc(var(--frot) * 0.55deg));
+  }
+  58% {
+    transform:
+      translate(calc(var(--fx) * -0.85px), calc(var(--fy) * 0.25px))
+      rotate(calc(var(--frot) * -0.4deg));
+  }
+  78% {
+    transform:
+      translate(calc(var(--fx) * -0.2px), calc(var(--fy) * -0.85px))
+      rotate(calc(var(--frot) * 0.75deg));
+  }
+  100% {
+    transform:
+      translate(0, 0)
+      rotate(calc(var(--frot) * 0.15deg));
+  }
 }
 .idle-cube {
   position: relative;
@@ -999,6 +1039,7 @@ html.dark .desktop-wallpaper {
   }
   .idle-cube-float {
     /* Static depth field — no autonomous orbit when motion is reduced. */
+    animation: none !important;
     transform: none !important;
   }
 }

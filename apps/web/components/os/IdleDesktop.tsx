@@ -6,14 +6,11 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type MouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import {
-  motion,
-  useReducedMotion,
-  type Transition,
-} from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { PixelIcon, TENT, P_TENT } from "@/lib/pixel";
 import { COLOR_HEX, type ColorKey } from "@/lib/colors/engine";
 import {
@@ -61,41 +58,50 @@ type CubeSpec = {
 };
 
 /**
- * Space field around the tent brand — 26 cubes in near/mid/far layers.
+ * Space field around the tent brand — 34 cubes in near/mid/far layers.
  * Clear of MIDWAY mark (~40–60% × 32–58%). Depth via size + opacity + z-index.
+ * Drift amplitudes are large enough to read as floating at a glance.
  */
 const CUBE_LAYOUT: CubeSpec[] = [
-  /* ── Near — larger, opaque, slow heavy drift ── */
-  { id: "c0", color: "blue", x: 8, y: 28, size: 50, driftX: 14, driftY: 11, rot: 12, duration: 28, delay: 0, behavior: "wobbler", wobbleEvery: 14000, wobbleOffset: 1600, depth: "near", opacity: 1 },
-  { id: "c1", color: "pink", x: 92, y: 26, size: 48, driftX: -13, driftY: 10, rot: -11, duration: 30, delay: 0.4, behavior: "wobbler", wobbleEvery: 12500, wobbleOffset: 5200, depth: "near", opacity: 0.98 },
-  { id: "c2", color: "orange", x: 94, y: 72, size: 46, driftX: -12, driftY: -11, rot: 10, duration: 27, delay: 1.1, behavior: "wobbler", wobbleEvery: 16000, wobbleOffset: 2400, depth: "near", opacity: 1 },
-  { id: "c3", color: "green", x: 6, y: 74, size: 48, driftX: 13, driftY: -10, rot: -12, duration: 29, delay: 0.7, behavior: "wobbler", wobbleEvery: 14800, wobbleOffset: 9000, depth: "near", opacity: 0.97 },
-  { id: "c4", color: "red", x: 50, y: 6, size: 44, driftX: 10, driftY: 12, rot: 9, duration: 26, delay: 1.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "near", opacity: 0.96 },
-  { id: "c5", color: "yellow", x: 50, y: 94, size: 46, driftX: -11, driftY: -9, rot: -10, duration: 31, delay: 2.0, behavior: "wobbler", wobbleEvery: 13500, wobbleOffset: 7000, depth: "near", opacity: 1 },
-  { id: "c6", color: "blue", x: 18, y: 50, size: 42, driftX: 11, driftY: 8, rot: 8, duration: 25, delay: 0.9, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "near", opacity: 0.95 },
-  { id: "c7", color: "orange", x: 82, y: 52, size: 44, driftX: -12, driftY: -8, rot: -9, duration: 28, delay: 1.4, behavior: "wobbler", wobbleEvery: 17000, wobbleOffset: 11000, depth: "near", opacity: 0.98 },
+  /* ── Near — larger, opaque, heavy float ── */
+  { id: "c0", color: "blue", x: 8, y: 28, size: 52, driftX: 42, driftY: 34, rot: 20, duration: 11, delay: 0, behavior: "wobbler", wobbleEvery: 14000, wobbleOffset: 1600, depth: "near", opacity: 1 },
+  { id: "c1", color: "pink", x: 92, y: 26, size: 50, driftX: -40, driftY: 32, rot: -18, duration: 12.5, delay: 0.4, behavior: "wobbler", wobbleEvery: 12500, wobbleOffset: 5200, depth: "near", opacity: 0.98 },
+  { id: "c2", color: "orange", x: 94, y: 72, size: 48, driftX: -38, driftY: -34, rot: 19, duration: 10.5, delay: 1.1, behavior: "wobbler", wobbleEvery: 16000, wobbleOffset: 2400, depth: "near", opacity: 1 },
+  { id: "c3", color: "green", x: 6, y: 74, size: 50, driftX: 40, driftY: -30, rot: -20, duration: 11.5, delay: 0.7, behavior: "wobbler", wobbleEvery: 14800, wobbleOffset: 9000, depth: "near", opacity: 0.97 },
+  { id: "c4", color: "red", x: 50, y: 6, size: 46, driftX: 34, driftY: 38, rot: 16, duration: 9.5, delay: 1.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "near", opacity: 0.96 },
+  { id: "c5", color: "yellow", x: 50, y: 94, size: 48, driftX: -36, driftY: -28, rot: -17, duration: 12, delay: 2.0, behavior: "wobbler", wobbleEvery: 13500, wobbleOffset: 7000, depth: "near", opacity: 1 },
+  { id: "c6", color: "blue", x: 16, y: 50, size: 44, driftX: 36, driftY: 26, rot: 15, duration: 10, delay: 0.9, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "near", opacity: 0.95 },
+  { id: "c7", color: "orange", x: 84, y: 52, size: 46, driftX: -38, driftY: -24, rot: -16, duration: 11, delay: 1.4, behavior: "wobbler", wobbleEvery: 17000, wobbleOffset: 11000, depth: "near", opacity: 0.98 },
+  { id: "c8", color: "pink", x: 30, y: 8, size: 44, driftX: 32, driftY: 36, rot: 18, duration: 10.8, delay: 2.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "near", opacity: 0.94 },
+  { id: "c9", color: "green", x: 70, y: 92, size: 44, driftX: -34, driftY: -32, rot: -15, duration: 11.2, delay: 0.2, behavior: "wobbler", wobbleEvery: 15500, wobbleOffset: 3800, depth: "near", opacity: 0.95 },
 
   /* ── Mid — readable ring + fillers ── */
-  { id: "c8", color: "yellow", x: 24, y: 14, size: 36, driftX: 10, driftY: 13, rot: 14, duration: 22, delay: 0.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.86 },
-  { id: "c9", color: "green", x: 76, y: 14, size: 34, driftX: -10, driftY: 12, rot: -13, duration: 21, delay: 1.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.84 },
-  { id: "c10", color: "red", x: 96, y: 48, size: 38, driftX: -14, driftY: 9, rot: 11, duration: 24, delay: 1.2, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.88 },
-  { id: "c11", color: "pink", x: 72, y: 86, size: 36, driftX: -9, driftY: -12, rot: 12, duration: 23, delay: 2.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.85 },
-  { id: "c12", color: "blue", x: 28, y: 86, size: 38, driftX: 11, driftY: -11, rot: -10, duration: 25, delay: 0.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.87 },
-  { id: "c13", color: "orange", x: 4, y: 50, size: 36, driftX: 13, driftY: 7, rot: 9, duration: 26, delay: 2.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.86 },
-  { id: "c14", color: "yellow", x: 20, y: 42, size: 32, driftX: 9, driftY: 8, rot: -8, duration: 24, delay: 1.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.8 },
-  { id: "c15", color: "pink", x: 80, y: 40, size: 34, driftX: -10, driftY: 9, rot: 10, duration: 22, delay: 0.8, behavior: "wobbler", wobbleEvery: 15200, wobbleOffset: 4500, depth: "mid", opacity: 0.82 },
-  { id: "c16", color: "green", x: 34, y: 18, size: 30, driftX: 8, driftY: 11, rot: 11, duration: 20, delay: 2.1, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.78 },
-  { id: "c17", color: "red", x: 66, y: 18, size: 32, driftX: -8, driftY: 12, rot: -9, duration: 23, delay: 1.0, behavior: "wobbler", wobbleEvery: 14200, wobbleOffset: 6000, depth: "mid", opacity: 0.8 },
+  { id: "c10", color: "yellow", x: 24, y: 16, size: 36, driftX: 38, driftY: 40, rot: 22, duration: 9, delay: 0.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.86 },
+  { id: "c11", color: "green", x: 76, y: 16, size: 34, driftX: -36, driftY: 38, rot: -20, duration: 8.5, delay: 1.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.84 },
+  { id: "c12", color: "red", x: 96, y: 48, size: 38, driftX: -44, driftY: 28, rot: 18, duration: 9.8, delay: 1.2, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.88 },
+  { id: "c13", color: "pink", x: 72, y: 84, size: 36, driftX: -32, driftY: -38, rot: 20, duration: 9.2, delay: 2.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.85 },
+  { id: "c14", color: "blue", x: 28, y: 84, size: 38, driftX: 36, driftY: -34, rot: -17, duration: 10.2, delay: 0.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.87 },
+  { id: "c15", color: "orange", x: 4, y: 48, size: 36, driftX: 42, driftY: 24, rot: 16, duration: 10.6, delay: 2.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.86 },
+  { id: "c16", color: "yellow", x: 20, y: 40, size: 32, driftX: 34, driftY: 28, rot: -14, duration: 9.4, delay: 1.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.8 },
+  { id: "c17", color: "pink", x: 80, y: 38, size: 34, driftX: -36, driftY: 30, rot: 17, duration: 8.8, delay: 0.8, behavior: "wobbler", wobbleEvery: 15200, wobbleOffset: 4500, depth: "mid", opacity: 0.82 },
+  { id: "c18", color: "green", x: 36, y: 20, size: 30, driftX: 30, driftY: 36, rot: 19, duration: 8.2, delay: 2.1, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.78 },
+  { id: "c19", color: "red", x: 64, y: 20, size: 32, driftX: -28, driftY: 38, rot: -16, duration: 9.6, delay: 1.0, behavior: "wobbler", wobbleEvery: 14200, wobbleOffset: 6000, depth: "mid", opacity: 0.8 },
+  { id: "c20", color: "blue", x: 12, y: 62, size: 34, driftX: 40, driftY: -22, rot: 15, duration: 9.1, delay: 1.7, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.83 },
+  { id: "c21", color: "orange", x: 88, y: 64, size: 32, driftX: -38, driftY: -26, rot: -18, duration: 8.7, delay: 2.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.81 },
 
-  /* ── Far — tiny, faded field dust ── */
-  { id: "c18", color: "blue", x: 14, y: 10, size: 24, driftX: 16, driftY: 14, rot: 18, duration: 34, delay: 0.2, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.52 },
-  { id: "c19", color: "yellow", x: 38, y: 4, size: 22, driftX: 12, driftY: 16, rot: -16, duration: 36, delay: 1.9, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.48 },
-  { id: "c20", color: "pink", x: 62, y: 5, size: 26, driftX: -14, driftY: 15, rot: 15, duration: 32, delay: 0.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.55 },
-  { id: "c21", color: "green", x: 88, y: 12, size: 22, driftX: -15, driftY: 13, rot: -17, duration: 35, delay: 2.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.5 },
-  { id: "c22", color: "orange", x: 98, y: 60, size: 24, driftX: -16, driftY: -12, rot: 14, duration: 33, delay: 1.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.54 },
-  { id: "c23", color: "red", x: 86, y: 90, size: 26, driftX: -12, driftY: -14, rot: -15, duration: 37, delay: 0.1, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.5 },
-  { id: "c24", color: "blue", x: 12, y: 90, size: 22, driftX: 14, driftY: -15, rot: 16, duration: 34, delay: 2.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.48 },
-  { id: "c25", color: "yellow", x: 2, y: 38, size: 24, driftX: 15, driftY: 10, rot: -14, duration: 31, delay: 1.7, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.53 },
+  /* ── Far — tiny, faded field dust (larger travel so motion still reads) ── */
+  { id: "c22", color: "blue", x: 14, y: 10, size: 24, driftX: 48, driftY: 42, rot: 26, duration: 14, delay: 0.2, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.55 },
+  { id: "c23", color: "yellow", x: 38, y: 3, size: 22, driftX: 40, driftY: 48, rot: -24, duration: 15, delay: 1.9, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.5 },
+  { id: "c24", color: "pink", x: 62, y: 4, size: 26, driftX: -44, driftY: 46, rot: 22, duration: 13.5, delay: 0.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.58 },
+  { id: "c25", color: "green", x: 88, y: 12, size: 22, driftX: -46, driftY: 40, rot: -25, duration: 14.5, delay: 2.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.52 },
+  { id: "c26", color: "orange", x: 98, y: 58, size: 24, driftX: -50, driftY: -36, rot: 21, duration: 13.8, delay: 1.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.56 },
+  { id: "c27", color: "red", x: 86, y: 90, size: 26, driftX: -40, driftY: -44, rot: -23, duration: 15.5, delay: 0.1, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.52 },
+  { id: "c28", color: "blue", x: 12, y: 90, size: 22, driftX: 44, driftY: -46, rot: 24, duration: 14.2, delay: 2.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.5 },
+  { id: "c29", color: "yellow", x: 2, y: 36, size: 24, driftX: 46, driftY: 32, rot: -22, duration: 13, delay: 1.7, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.54 },
+  { id: "c30", color: "pink", x: 44, y: 96, size: 20, driftX: 36, driftY: -40, rot: 20, duration: 14.8, delay: 0.9, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.48 },
+  { id: "c31", color: "green", x: 56, y: 2, size: 20, driftX: -34, driftY: 44, rot: -19, duration: 15.2, delay: 2.2, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.5 },
+  { id: "c32", color: "red", x: 2, y: 58, size: 22, driftX: 42, driftY: -28, rot: 23, duration: 13.2, delay: 1.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.53 },
+  { id: "c33", color: "orange", x: 98, y: 34, size: 22, driftX: -48, driftY: 30, rot: -21, duration: 14.6, delay: 0.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.51 },
 ];
 
 const DEPTH_Z: Record<DepthLayer, number> = {
@@ -116,23 +122,6 @@ const HOVER_NUDGE_PX = 12;
 
 function softHex(hex: string) {
   return `color-mix(in srgb, ${hex} 72%, var(--paper))`;
-}
-
-/** Closed-loop float path — slow orbit + bob, not a simple A↔B mirror. */
-function floatKeyframes(spec: CubeSpec) {
-  const { driftX: dx, driftY: dy, rot } = spec;
-  return {
-    x: [0, dx * 0.85, dx * 0.25, -dx * 0.7, -dx * 0.15, 0],
-    y: [0, -dy * 0.55, dy * 0.9, dy * 0.2, -dy * 0.75, 0],
-    rotate: [
-      rot * 0.15,
-      -rot * 0.85,
-      rot * 0.45,
-      -rot * 0.35,
-      rot * 0.7,
-      rot * 0.15,
-    ],
-  };
 }
 
 function IdleCube({
@@ -172,7 +161,6 @@ function IdleCube({
   const half = spec.size / 2;
   const usesWalkFrames =
     motionStyle === "walk" || motionStyle === "strut" || motionStyle === "bounce";
-  const float = useMemo(() => floatKeyframes(spec), [spec]);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -203,19 +191,6 @@ function IdleCube({
       wobbleTimer.current = null;
     }
   }, []);
-
-  const axisTransition = useCallback(
-    (durationMul: number): Transition =>
-      reduced
-        ? { duration: 0 }
-        : {
-            duration: spec.duration * durationMul,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: spec.delay,
-          },
-    [reduced, spec.delay, spec.duration],
-  );
 
   const finishReturn = useCallback(() => {
     if (!hovered.current) {
@@ -500,24 +475,20 @@ function IdleCube({
         opacity: spec.opacity,
       }}
     >
-      {/* Autonomous space float — independent of cursor / scene parallax */}
-      <motion.div
+      {/* CSS float — never shares transform with hatch (.idle-die) or hover nudge */}
+      <div
         className="idle-cube-float"
-        initial={false}
-        animate={
+        style={
           reduced
-            ? { x: 0, y: 0, rotate: spec.rot * 0.12 }
-            : {
-                x: float.x,
-                y: float.y,
-                rotate: float.rotate,
-              }
+            ? { animation: "none" }
+            : ({
+                ["--fx" as string]: spec.driftX,
+                ["--fy" as string]: spec.driftY,
+                ["--frot" as string]: spec.rot,
+                ["--fdur" as string]: `${spec.duration}s`,
+                ["--fdelay" as string]: `${spec.delay}s`,
+              } as CSSProperties)
         }
-        transition={{
-          x: axisTransition(1.05),
-          y: axisTransition(0.82),
-          rotate: axisTransition(1.35),
-        }}
       >
         <motion.button
           type="button"
@@ -573,7 +544,7 @@ function IdleCube({
             </span>
           </span>
         </motion.button>
-      </motion.div>
+      </div>
     </div>
   );
 }
