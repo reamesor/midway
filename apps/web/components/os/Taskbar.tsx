@@ -31,6 +31,7 @@ export function Taskbar({
     focused,
     toggleWin,
     openWin,
+    focusWin,
     calm,
     setCalm,
     oneBit,
@@ -187,7 +188,11 @@ export function Taskbar({
           <button
             key={t.id}
             type="button"
-            onClick={() => toggleWin(t.id)}
+            onClick={() => {
+              // Unfocused open tab → bring to front; focused → minimize/close.
+              if (focused === t.id) toggleWin(t.id);
+              else focusWin(t.id);
+            }}
             className={`bevel-inset px-2 py-1 whitespace-nowrap ${
               focused === t.id ? "bg-ink text-[var(--btn)]" : "bg-chrome text-ink"
             }`}

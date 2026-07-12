@@ -49,7 +49,8 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
             </p>
             <p className="mt-2 rounded border border-line/60 bg-paper-2/80 px-3 py-2 text-[13px] text-ink-dim">
               Example: bet Blue + Green; dice show Blue, Blue, Red → you win on
-              Blue (2 matches).
+              Blue (2 matches). PLACE BET arms the lever (no debit); PULL LEVER
+              takes the stake. CANCEL BET undoes a placed bet for free.
             </p>
           </Section>
 

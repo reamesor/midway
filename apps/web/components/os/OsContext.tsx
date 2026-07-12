@@ -21,6 +21,15 @@ export type WinId =
   | "soon";
 export type OsTheme = "light" | "dark";
 
+/** Last Colors commit/reveal — FAIRNESS.LOG + verify API. */
+export type LastFairness = {
+  serverSeedHash: string;
+  serverSeed: string;
+  clientSeed: string;
+  nonce: number;
+  dice: string[];
+};
+
 type OsContextValue = {
   calm: boolean;
   oneBit: boolean;
@@ -33,6 +42,8 @@ type OsContextValue = {
   zMap: Record<WinId, number>;
   soonTitle: string;
   soonBlurb: string;
+  lastFairness: LastFairness | null;
+  setLastFairness: (v: LastFairness | null) => void;
   setCalm: (v: boolean) => void;
   setOneBit: (v: boolean) => void;
   setSound: (v: boolean) => void;
@@ -72,6 +83,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
   const [focused, setFocused] = useState<WinId | null>("colors");
   const [soonTitle, setSoonTitle] = useState("");
   const [soonBlurb, setSoonBlurb] = useState("");
+  const [lastFairness, setLastFairness] = useState<LastFairness | null>(null);
   // zCounter must be >= max(zMap) so focusWin/openWin always raise above peers.
   const [zMap, setZMap] = useState<Record<WinId, number>>({
     loop: 11,
@@ -193,6 +205,8 @@ export function OsProvider({ children }: { children: ReactNode }) {
       zMap,
       soonTitle,
       soonBlurb,
+      lastFairness,
+      setLastFairness,
       setCalm,
       setOneBit,
       setSound,
@@ -218,6 +232,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
       zMap,
       soonTitle,
       soonBlurb,
+      lastFairness,
       setCalm,
       setOneBit,
       setTheme,

@@ -23,6 +23,7 @@ type DockIcon =
 const ICONS: DockIcon[] = [
   { kind: "app", id: "colors", label: "Colors", glyph: "palette", badge: "DEMO" },
   { kind: "app", id: "wallet", label: "Wallet", glyph: "wallet", badge: "DEMO" },
+  { kind: "app", id: "loop", label: "Loop", glyph: "loop" },
   { kind: "app", id: "treasury", label: "Treasury", glyph: "treasury", badge: "LIVE" },
   { kind: "app", id: "info", label: "Info", glyph: "readme" },
   { kind: "app", id: "token", label: "Token", glyph: "coin" },

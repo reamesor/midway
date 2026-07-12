@@ -33,15 +33,13 @@ type Fairness = {
 };
 
 const AUTOBET_OPTIONS = [0, 5, 10, 20, 50, 100, -1] as const;
-/** Preview buffer only when disconnected — bets stay gated. */
-const PREVIEW_SOL_BALANCE = DEMO_PLAY_SOL;
 
 type ColorsGameProps = {
   onHouseCut: (houseCut: number) => void;
 };
 
 export function ColorsGame({ onHouseCut }: ColorsGameProps) {
-  const { openWin } = useOs();
+  const { openWin, setLastFairness } = useOs();
   const { setVisible } = useWalletModal();
   const {
     connected,
@@ -53,7 +51,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   } = useMidwayWallet();
   const { placeBetOnChain } = useColorsBetTx();
 
-  const balance = connected ? play.sol : PREVIEW_SOL_BALANCE;
+  /** Real play pot only when identity is unlocked — never show a fake spendable balance. */
+  const balance = connected ? play.sol : 0;
   const needsDeposit = connected && play.sol <= 0;
 
   const [bet, setBet] = useState(0.05);
@@ -81,6 +80,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   const nonceRef = useRef(nonce);
   const phaseRef = useRef(phase);
   const connectedRef = useRef(connected);
+  const dialogOpenRef = useRef(dialogOpen);
 
   useEffect(() => {
     pickedRef.current = picked;
@@ -100,6 +100,9 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   useEffect(() => {
     connectedRef.current = connected;
   }, [connected]);
+  useEffect(() => {
+    dialogOpenRef.current = dialogOpen;
+  }, [dialogOpen]);
 
   const locked = phase === "placed" || phase === "rolling";
 
@@ -111,6 +114,13 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     openWin("wallet");
   };
 
+  const clearBoard = useCallback(() => {
+    setResult(null);
+    setDialogOpen(false);
+    setDice(null);
+    setHits([false, false, false]);
+  }, []);
+
   const toggleColor = (c: ColorKey) => {
     if (locked) return;
     setPicked((prev) => {
@@ -119,21 +129,25 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       else if (next.size < 3) next.add(c);
       return next;
     });
-    setResult(null);
-    setDialogOpen(false);
-    setDice(null);
-    setHits([false, false, false]);
+    clearBoard();
   };
 
   useEffect(() => {
     if (phase !== "select") return;
-    // Keep stage clear while dice results / ERROR.EXE are still up.
     if (dialogOpen || dice) {
       setPrompt("");
       return;
     }
+    if (!connected) {
+      setPrompt(
+        picked.size
+          ? "CONNECT / DEMO TO PLACE BET"
+          : "SELECT UP TO 3 COLORS",
+      );
+      return;
+    }
     setPrompt(picked.size ? "PLACE YOUR BET" : "SELECT UP TO 3 COLORS");
-  }, [picked.size, phase, dialogOpen, dice]);
+  }, [picked.size, phase, dialogOpen, dice, connected]);
 
   const ensureWalletAndBalance = (cost: number) => {
     if (!connectedRef.current) {
@@ -148,6 +162,42 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     }
     return true;
   };
+
+  const settleRound = useCallback(
+    (
+      currentBet: number,
+      currentPicked: Set<ColorKey>,
+      rolled: ColorKey[],
+      data: { fairness?: Fairness; settlement?: ReturnType<typeof settleRoll> },
+    ) => {
+      const settlement =
+        data.settlement ??
+        settleRoll(currentBet, currentPicked, rolled, PAYOUT_MODE);
+      const hitFlags = rolled.map((c) => currentPicked.has(c));
+
+      setDice(rolled);
+      setHits(hitFlags);
+      if (data.fairness) {
+        setFairness(data.fairness);
+        setLastFairness(data.fairness);
+      }
+      if (settlement.winnings > 0) {
+        creditPlaySol(settlement.winnings, "colors payout");
+        refreshPlay();
+      }
+      setResult({
+        matches: settlement.matches,
+        winnings: settlement.winnings,
+        stake: settlement.stake,
+        houseCut: settlement.houseCut,
+      });
+      setDialogOpen(true);
+      onHouseCut(settlement.houseCut);
+      setNonce((n) => n + 1);
+      setPhase("done");
+    },
+    [creditPlaySol, onHouseCut, refreshPlay, setLastFairness],
+  );
 
   const runRound = useCallback(async () => {
     const currentPicked = pickedRef.current;
@@ -172,10 +222,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
     setPhase("rolling");
     setPrompt("");
-    setDice(null);
-    setHits([false, false, false]);
-    setResult(null);
-    setDialogOpen(false);
+    clearBoard();
 
     try {
       const res = await fetch("/api/colors/roll", {
@@ -194,28 +241,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       await wait(1100);
 
       const rolled = data.dice as ColorKey[];
-      const settlement =
-        data.settlement ??
-        settleRoll(currentBet, currentPicked, rolled, PAYOUT_MODE);
-      const hitFlags = rolled.map((c) => currentPicked.has(c));
-
-      setDice(rolled);
-      setHits(hitFlags);
-      setFairness(data.fairness);
-      if (settlement.winnings > 0) {
-        creditPlaySol(settlement.winnings, "colors payout");
-        refreshPlay();
-      }
-      setResult({
-        matches: settlement.matches,
-        winnings: settlement.winnings,
-        stake: settlement.stake,
-        houseCut: settlement.houseCut,
-      });
-      setDialogOpen(true);
-      onHouseCut(settlement.houseCut);
-      setNonce((n) => n + 1);
-      setPhase("done");
+      settleRound(currentBet, currentPicked, rolled, data);
       await wait(150);
       setPhase("select");
       return true;
@@ -229,14 +255,16 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- ensureWallet uses stable openWin/setVisible
   }, [
+    clearBoard,
     creditPlaySol,
     debitPlaySol,
-    onHouseCut,
     openWin,
     placeBetOnChain,
     refreshPlay,
+    settleRound,
   ]);
 
+  /** Arm the lever — does NOT debit. Stake leaves the pot only when the lever is pulled. */
   const placeOnly = () => {
     if (phaseRef.current !== "select") return;
     const currentPicked = pickedRef.current;
@@ -250,20 +278,15 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
     void placeBetOnChain({ bet: currentBet, picked: Array.from(currentPicked) });
 
-    const debit = debitPlaySol(cost, "colors stake");
-    if (!debit.ok) {
-      setPrompt(debit.error.toUpperCase());
-      openWin("wallet");
-      return;
-    }
-    refreshPlay();
-
     setPhase("placed");
     setPrompt("READY — PULL THE LEVER");
-    setDice(null);
-    setHits([false, false, false]);
-    setResult(null);
-    setDialogOpen(false);
+    clearBoard();
+  };
+
+  const cancelPlaced = () => {
+    if (phaseRef.current !== "placed") return;
+    setPhase("select");
+    setPrompt(pickedRef.current.size ? "PLACE YOUR BET" : "SELECT UP TO 3 COLORS");
   };
 
   const rollOnly = async () => {
@@ -271,6 +294,20 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     const currentPicked = pickedRef.current;
     const currentBet = betRef.current;
     const cost = currentBet * currentPicked.size;
+    if (!ensureWalletAndBalance(cost)) {
+      setPhase("select");
+      return;
+    }
+
+    const debit = debitPlaySol(cost, "colors stake");
+    if (!debit.ok) {
+      setPrompt(debit.error.toUpperCase());
+      openWin("wallet");
+      setPhase("select");
+      return;
+    }
+    refreshPlay();
+
     setPhase("rolling");
     setPrompt("");
     try {
@@ -288,26 +325,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       if (!res.ok) throw new Error(data.error || "Roll failed");
       await wait(1100);
       const rolled = data.dice as ColorKey[];
-      const settlement =
-        data.settlement ??
-        settleRoll(currentBet, currentPicked, rolled, PAYOUT_MODE);
-      setDice(rolled);
-      setHits(rolled.map((c) => currentPicked.has(c)));
-      setFairness(data.fairness);
-      if (settlement.winnings > 0) {
-        creditPlaySol(settlement.winnings, "colors payout");
-        refreshPlay();
-      }
-      setResult({
-        matches: settlement.matches,
-        winnings: settlement.winnings,
-        stake: settlement.stake,
-        houseCut: settlement.houseCut,
-      });
-      setDialogOpen(true);
-      onHouseCut(settlement.houseCut);
-      setNonce((n) => n + 1);
-      setPhase("done");
+      settleRound(currentBet, currentPicked, rolled, data);
       await wait(120);
       setPhase("select");
     } catch (err) {
@@ -322,11 +340,12 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   useEffect(() => {
     if (autoLeft === 0) return;
     if (phase !== "select") return;
+    if (dialogOpen) return;
     if (picked.size === 0) return;
     let cancelled = false;
     (async () => {
-      await wait(200);
-      if (cancelled) return;
+      await wait(280);
+      if (cancelled || dialogOpenRef.current) return;
       const ok = await runRound();
       if (cancelled) return;
       if (ok) setAutoLeft((n) => (n < 0 ? n : n - 1));
@@ -338,7 +357,12 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     return () => {
       cancelled = true;
     };
-  }, [autoLeft, phase, picked.size, runRound]);
+  }, [autoLeft, phase, picked.size, dialogOpen, runRound]);
+
+  const dismissResult = () => {
+    clearBoard();
+    setPhase("select");
+  };
 
   const dialogVariant =
     result?.matches === 3 ? "jackpot" : (result?.matches ?? 0) > 0 ? "win" : "lose";
@@ -434,6 +458,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
             needsDeposit={needsDeposit}
             onBetChange={setBet}
             onPlace={placeOnly}
+            onCancelPlace={cancelPlaced}
             onPullLever={() => void rollOnly()}
             onOpenWallet={openWalletFlow}
             onMax={() => {
@@ -509,11 +534,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
               )}`
             : undefined
         }
-        onRetry={() => {
-          setDialogOpen(false);
-          setResult(null);
-        }}
-        onClose={() => setDialogOpen(false)}
+        onRetry={dismissResult}
+        onClose={dismissResult}
       />
 
       <ColorsRules open={rulesOpen} onClose={() => setRulesOpen(false)} />

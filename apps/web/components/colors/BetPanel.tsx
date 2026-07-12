@@ -17,6 +17,7 @@ type BetPanelProps = {
   needsDeposit: boolean;
   onBetChange: (v: number) => void;
   onPlace: () => void;
+  onCancelPlace: () => void;
   onPullLever: () => void;
   onMax: () => void;
   onOpenWallet: () => void;
@@ -33,6 +34,7 @@ export function BetPanel({
   needsDeposit,
   onBetChange,
   onPlace,
+  onCancelPlace,
   onPullLever,
   onMax,
   onOpenWallet,
@@ -56,12 +58,12 @@ export function BetPanel({
           <WalletConnectControl size="panel" />
         </div>
         <div className="num text-2xl text-acid">
-          {fmtSol(balance)}{" "}
+          {walletConnected ? fmtSol(balance) : "—"}{" "}
           <span className="text-sm text-ink-dim">SOL</span>
         </div>
         {!walletConnected ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Connect Phantom / Solflare, or play demo without a wallet — local 10 SOL pot.
+            Connect Phantom / Solflare, or play demo without a wallet — unlocks a local 10 SOL pot.
           </p>
         ) : needsDeposit ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
@@ -73,7 +75,7 @@ export function BetPanel({
           </p>
         ) : (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            DEMO bets debit the local play pot — no real SOL leaves your wallet.
+            DEMO bets debit the local play pot when you pull the lever — no real SOL leaves your wallet.
           </p>
         )}
       </div>
@@ -84,16 +86,18 @@ export function BetPanel({
           <button
             type="button"
             className="bevel-btn size-10"
+            disabled={leverArmed}
             onClick={() => onBetChange(roundSol(Math.max(0.01, bet - step)))}
           >
             −
           </button>
           <input
-            className="num bevel-inset h-10 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none"
+            className="num bevel-inset h-10 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none disabled:opacity-50"
             type="number"
             min={0.01}
             step={0.01}
             value={bet}
+            disabled={leverArmed}
             onChange={(e) =>
               onBetChange(roundSol(Math.max(0.01, Number(e.target.value) || 0.01)))
             }
@@ -101,6 +105,7 @@ export function BetPanel({
           <button
             type="button"
             className="bevel-btn size-10"
+            disabled={leverArmed}
             onClick={() => onBetChange(roundSol(bet + step))}
           >
             +
@@ -112,34 +117,50 @@ export function BetPanel({
               key={v}
               type="button"
               className="bevel-btn flex-1 py-1"
+              disabled={leverArmed}
               onClick={() => onBetChange(v)}
             >
               {v}
             </button>
           ))}
-          <button type="button" className="bevel-btn flex-1 py-1" onClick={onMax}>
+          <button
+            type="button"
+            className="bevel-btn flex-1 py-1"
+            disabled={leverArmed || !walletConnected}
+            onClick={onMax}
+          >
             MAX
           </button>
         </div>
         <p className="mt-2 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-          Each selected color costs the full bet in SOL.
+          Each selected color costs the full bet in SOL. Stake is taken when you pull the lever.
         </p>
       </div>
 
-      <button
-        type="button"
-        disabled={!canClickPlace}
-        onClick={() => {
-          if (!walletConnected || needsDeposit) {
-            onOpenWallet();
-            return;
-          }
-          onPlace();
-        }}
-        className="bevel-btn bevel-btn-hot w-full py-3 text-sm"
-      >
-        {placeLabel}
-      </button>
+      {leverArmed ? (
+        <button
+          type="button"
+          onClick={onCancelPlace}
+          className="bevel-btn w-full py-2 text-burn"
+        >
+          CANCEL BET
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={!canClickPlace}
+          onClick={() => {
+            if (!walletConnected || needsDeposit) {
+              onOpenWallet();
+              return;
+            }
+            onPlace();
+          }}
+          className="bevel-btn bevel-btn-hot w-full py-3 text-sm"
+        >
+          {placeLabel}
+        </button>
+      )}
 
       <button
         type="button"

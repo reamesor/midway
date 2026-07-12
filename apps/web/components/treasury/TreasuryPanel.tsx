@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { CountUp } from "@/components/CountUp";
 
 export function TreasuryPanel({
@@ -21,6 +21,18 @@ export function TreasuryPanel({
   onClaim?: () => void;
 }) {
   const max = Math.max(total, 0.0001);
+  const [claimMsg, setClaimMsg] = useState<string | null>(null);
+
+  const handleClaim = () => {
+    setClaimMsg(null);
+    if (yourShare <= 0) {
+      setClaimMsg("Nothing to claim yet — play Colors so the house cut can feed believers.");
+      return;
+    }
+    const amount = yourShare;
+    onClaim?.();
+    setClaimMsg(`Claimed ◎ ${amount.toFixed(4)} from Believers' Pool (Fun Mode).`);
+  };
 
   return (
     <div className="space-y-4 font-heading text-xs">
@@ -81,11 +93,16 @@ export function TreasuryPanel({
         <button
           type="button"
           className="bevel-btn bevel-btn-acid px-4 py-2"
-          onClick={onClaim}
+          onClick={handleClaim}
         >
           CLAIM SHARE
         </button>
       </div>
+      {claimMsg && (
+        <p className="font-sans text-[12px] normal-case tracking-normal text-cyber" role="status">
+          {claimMsg}
+        </p>
+      )}
     </div>
   );
 }

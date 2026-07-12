@@ -379,7 +379,8 @@ html.dark .desktop-wallpaper {
   inset: 0;
   bottom: 40px;
   z-index: 3;
-  pointer-events: auto;
+  /* Let dock / taskbar / wallpaper receive clicks; cubes opt back in. */
+  pointer-events: none;
   overflow: hidden;
   isolation: isolate;
 }

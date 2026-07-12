@@ -15,6 +15,7 @@ import { MidwayWalletPanel } from "@/components/wallet/MidwayWalletPanel";
 import { InfoPanel } from "@/components/os/InfoPanel";
 import { TokenInfoPanel } from "@/components/os/TokenInfoPanel";
 import { ComingSoonStub } from "@/components/os/ComingSoonStub";
+import { FairnessPanel } from "@/components/os/FairnessPanel";
 import { applyHouseCut, type TreasuryState } from "@/lib/treasury/split";
 
 type Rect = { x: number; y: number; width: number; height: number };
@@ -127,9 +128,6 @@ function Desktop() {
     burnedTokens: 0,
   });
   const [yourShare, setYourShare] = useState(0);
-  const [fairnessNote] = useState(
-    "Open COLORS.EXE, play a round, then expand VERIFY FAIRNESS for seeds + dice derivation.",
-  );
 
   const winDefaults = useMemo(() => {
     if (typeof window === "undefined") {
@@ -197,14 +195,7 @@ function Desktop() {
           <TreasuryPanel
             {...treasury}
             yourShare={yourShare}
-            onClaim={() => {
-              if (yourShare <= 0) {
-                alert("Nothing to claim yet — play a few rounds.");
-                return;
-              }
-              alert(`Claimed ◎ ${yourShare.toFixed(4)} from Believers' Pool (Fun Mode).`);
-              setYourShare(0);
-            }}
+            onClaim={() => setYourShare(0)}
           />
         </Win>
 
@@ -249,12 +240,7 @@ function Desktop() {
           minWidth={280}
           minHeight={200}
         >
-          <pre className="whitespace-pre-wrap font-mono text-[13px] text-ink-dim">
-            {fairnessNote}
-            {"\n\n"}
-            Play COLORS.EXE → expand &quot;seeds (inline)&quot; after a roll for
-            serverSeedHash, serverSeed, clientSeed, nonce, and dice.
-          </pre>
+          <FairnessPanel />
         </Win>
 
         <Win
