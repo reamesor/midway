@@ -35,14 +35,13 @@ export function ResultBreakdown({
         </div>
         <Row label="Bet cost" value={`−${fmt(stake)} ${unit}`} tone="dim" />
         <Row
-          label="Payout → Midway Play"
+          label="Returned to you"
           value={won ? `+${fmt(winnings)} ${unit}` : `+0 ${unit}`}
           tone={won ? "win" : "dim"}
-          hint={won ? "capital + profit" : "lost — nothing returned"}
         />
         <div className="border-t border-line/50 pt-1.5">
           <Row
-            label="Net change to play balance"
+            label={net >= 0 ? "Your profit" : "You lost"}
             value={`${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))} ${unit}`}
             tone={net > 0 ? "win" : net < 0 ? "lose" : "dim"}
             strong
