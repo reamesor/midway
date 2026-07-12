@@ -695,17 +695,20 @@ html.dark .win-titlebar.focused {
   vertical-align: middle;
 }
 
-/* Wallet adapter modal — warm paper arcade (override default purple) */
-.wallet-adapter-modal-wrapper {
-  background: color-mix(in srgb, var(--void) 55%, transparent) !important;
-  font-family: var(--font-heading), ui-monospace, monospace !important;
-}
+/* Wallet adapter modal — warm paper arcade (override default purple).
+   Keep above boot (200), OS dialogs (150–160), and window stack. */
 .wallet-adapter-modal {
+  z-index: 10000 !important;
   background: var(--panel) !important;
   color: var(--ink) !important;
   border: 2px solid var(--line) !important;
   border-radius: 0 !important;
   box-shadow: 4px 4px 0 var(--shadow-cut) !important;
+}
+.wallet-adapter-modal-wrapper {
+  z-index: 10001 !important;
+  background: color-mix(in srgb, var(--void) 55%, transparent) !important;
+  font-family: var(--font-heading), ui-monospace, monospace !important;
 }
 .wallet-adapter-modal-title {
   color: var(--ink) !important;

@@ -70,9 +70,9 @@ export function OsProvider({ children }: { children: ReactNode }) {
   const [booted, setBooted] = useState(false);
   const [open, setOpen] = useState(DEFAULT_OPEN);
   const [focused, setFocused] = useState<WinId | null>("colors");
-  const [zCounter, setZCounter] = useState(10);
   const [soonTitle, setSoonTitle] = useState("");
   const [soonBlurb, setSoonBlurb] = useState("");
+  // zCounter must be >= max(zMap) so focusWin/openWin always raise above peers.
   const [zMap, setZMap] = useState<Record<WinId, number>>({
     loop: 11,
     colors: 14,
@@ -83,6 +83,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
     fairness: 10,
     soon: 10,
   });
+  const [zCounter, setZCounter] = useState(14);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -135,10 +136,10 @@ export function OsProvider({ children }: { children: ReactNode }) {
 
   const focusWin = useCallback((id: WinId) => {
     setFocused(id);
-    setZCounter((z) => {
-      const next = z + 1;
-      setZMap((m) => ({ ...m, [id]: next }));
-      return next;
+    setZMap((m) => {
+      const next = Math.max(...Object.values(m)) + 1;
+      setZCounter(next);
+      return { ...m, [id]: next };
     });
   }, []);
 
