@@ -443,185 +443,40 @@ html.dark .desktop-wallpaper {
   cursor: pointer;
   display: grid;
   place-items: center;
-  perspective: 640px;
-  perspective-origin: 50% 45%;
 }
-.idle-cube.is-flash .idle-die-face--pz,
-.idle-cube.is-flash .idle-cube-char {
-  filter: brightness(1.08);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--gold) 70%, transparent),
-    3px 3px 0 color-mix(in srgb, var(--ink) 18%, transparent);
-}
-.idle-cube-scene {
-  position: relative;
+.idle-cube-body {
   width: 100%;
   height: 100%;
-  display: grid;
-  place-items: center;
-  transform-style: preserve-3d;
-}
-.idle-die {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transform: rotateX(-18deg) rotateY(22deg);
-  transition:
-    opacity 0.35s ease,
-    transform 0.45s cubic-bezier(0.22, 0.82, 0.28, 1);
-  opacity: 1;
-}
-.idle-die.is-rolling,
-.idle-die.is-returning {
-  transition: none;
-}
-.idle-die.is-rolling {
-  animation: idle-die-roll 0.72s cubic-bezier(0.22, 0.7, 0.28, 1) forwards;
-}
-.idle-die.is-returning {
-  animation: idle-die-return 0.52s cubic-bezier(0.33, 0.12, 0.25, 1) forwards;
-}
-.idle-die.is-morphed {
-  opacity: 0;
-  transform: rotateX(12deg) rotateY(-8deg) scale(0.55);
-  pointer-events: none;
-  animation: none;
-  transition: opacity 0.28s ease, transform 0.28s ease;
-}
-.idle-die-face {
-  position: absolute;
-  inset: 0;
   border: 2px solid color-mix(in srgb, var(--ink) 55%, transparent);
   background:
     linear-gradient(
       145deg,
-      color-mix(in srgb, var(--face) 88%, #fff) 0%,
-      var(--face) 48%,
-      color-mix(in srgb, var(--face) 78%, var(--ink)) 100%
+      color-mix(in srgb, var(--cube) 88%, #fff) 0%,
+      var(--cube) 48%,
+      color-mix(in srgb, var(--cube) 78%, var(--ink)) 100%
     );
   box-shadow:
+    3px 3px 0 color-mix(in srgb, var(--ink) 18%, transparent),
     inset 1px 1px 0 color-mix(in srgb, #fff 35%, transparent),
     inset -1px -1px 0 color-mix(in srgb, var(--ink) 12%, transparent);
   image-rendering: pixelated;
-  backface-visibility: hidden;
+  transition: box-shadow 0.35s ease, filter 0.35s ease;
 }
-.idle-die-face--pz { transform: rotateY(0deg) translateZ(var(--cube-half)); }
-.idle-die-face--nz { transform: rotateY(180deg) translateZ(var(--cube-half)); }
-.idle-die-face--px { transform: rotateY(90deg) translateZ(var(--cube-half)); }
-.idle-die-face--nx { transform: rotateY(-90deg) translateZ(var(--cube-half)); }
-.idle-die-face--py { transform: rotateX(90deg) translateZ(var(--cube-half)); }
-.idle-die-face--ny { transform: rotateX(-90deg) translateZ(var(--cube-half)); }
-
-.idle-cube-char {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  opacity: 0;
-  transform: scale(0.55) translateY(4px);
-  pointer-events: none;
-  transition:
-    opacity 0.32s ease,
-    transform 0.42s cubic-bezier(0.22, 0.82, 0.28, 1);
-  filter: drop-shadow(2px 3px 0 color-mix(in srgb, var(--ink) 14%, transparent));
-}
-.idle-cube-char.is-waiting {
-  opacity: 0;
-  transform: scale(0.4) translateY(6px);
-}
-.idle-cube-char.is-visible {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  animation: idle-char-bob 2.4s ease-in-out infinite;
-}
-.idle-cube-char-icon {
-  image-rendering: pixelated;
-}
-
-.idle-cube-label {
-  position: absolute;
-  bottom: 6px;
-  z-index: 2;
-  font-family: var(--font-heading);
-  font-size: 8px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--ink) 55%, transparent);
-  pointer-events: none;
-  opacity: 0.55;
-  transition: opacity 0.25s ease;
-}
-.idle-cube:hover .idle-cube-label,
-.idle-cube.is-rolling .idle-cube-label {
-  opacity: 0.9;
-}
-.idle-cube-label.is-hidden {
-  opacity: 0 !important;
+.idle-cube-body.is-flash {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--gold) 70%, transparent),
+    3px 3px 0 color-mix(in srgb, var(--ink) 18%, transparent),
+    inset 1px 1px 0 color-mix(in srgb, #fff 45%, transparent);
+  filter: brightness(1.08);
 }
 .idle-cube:focus-visible {
   outline: 1px dashed var(--ink);
   outline-offset: 3px;
 }
 
-/* Dice-like tumble: coupled X/Y spin + soft hop (COLORS.EXE feel) */
-@keyframes idle-die-roll {
-  0% {
-    transform: rotateX(-18deg) rotateY(22deg) translateY(0);
-  }
-  18% {
-    transform: rotateX(70deg) rotateY(110deg) translateY(-10px);
-  }
-  36% {
-    transform: rotateX(150deg) rotateY(200deg) translateY(-2px);
-  }
-  54% {
-    transform: rotateX(235deg) rotateY(290deg) translateY(-9px);
-  }
-  72% {
-    transform: rotateX(310deg) rotateY(340deg) translateY(-3px);
-  }
-  88% {
-    transform: rotateX(350deg) rotateY(355deg) translateY(-1px) scale(0.92);
-  }
-  100% {
-    transform: rotateX(12deg) rotateY(-8deg) translateY(0) scale(0.55);
-    opacity: 0.15;
-  }
-}
-@keyframes idle-die-return {
-  0% {
-    opacity: 0.2;
-    transform: rotateX(40deg) rotateY(-30deg) scale(0.7);
-  }
-  55% {
-    opacity: 1;
-    transform: rotateX(-28deg) rotateY(40deg) translateY(-4px) scale(1.02);
-  }
-  100% {
-    opacity: 1;
-    transform: rotateX(-18deg) rotateY(22deg) translateY(0) scale(1);
-  }
-}
-@keyframes idle-char-bob {
-  0%, 100% { transform: scale(1) translateY(0); }
-  50% { transform: scale(1) translateY(-3px); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .idle-die,
-  .idle-cube-char,
-  .idle-cube-label {
-    transition: opacity 0.2s ease, transform 0.2s ease !important;
-    animation: none !important;
-  }
-  .idle-die {
-    transform: rotateX(-12deg) rotateY(16deg);
-  }
-  .idle-die.is-morphed {
-    opacity: 0;
-  }
-  .idle-cube-char.is-visible {
-    animation: none !important;
+  .idle-cube-body {
+    transition: none;
   }
 }
 
@@ -908,8 +763,7 @@ html.dark .win-titlebar.focused {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blink, .marquee-track, .glitch-pulse, .bevel-btn:hover,
-  .idle-die, .idle-cube-char {
+  .blink, .marquee-track, .glitch-pulse, .bevel-btn:hover, .idle-cube-body {
     animation: none !important;
   }
 }
