@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:colors": "npx --yes tsx lib/colors/engine.check.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

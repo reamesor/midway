@@ -24,9 +24,9 @@ const STEPS: {
   {
     title: "2 · HOUSE CUT",
     glyph: "coin",
-    lead: "≈5% edge captured",
+    lead: "5% of stake, every roll",
     detail:
-      "Other houses pocket it. Midway routes the cut into the shared treasury.",
+      "Win or lose — Colors takes 5% of total cost. Other houses pocket it; Midway routes it home.",
   },
   {
     title: "3 · TREASURY",

@@ -66,13 +66,14 @@ export function InfoPanel() {
 
       <Header>Colors — the first ride</Header>
       <p className="font-sans text-ink-dim">
-        <strong className="font-semibold text-ink">Colors</strong> is a pick-3-of-6 dice
-        game. Choose three colors, roll, and win or lose against the house. Every roll
-        takes a small house cut (about 5%). That cut feeds the treasury live — you can
-        open TREASURY.MON and watch the meters move after you play.
+        <strong className="font-semibold text-ink">Colors</strong> is a pick-up-to-3-of-6
+        dice game with published ~5% house edge. Match and you are paid in full on the
+        unit bet: 1 match → Bet+(Bet×1.04), 2 → Bet+(Bet×1.04×2), jackpot →
+        Bet+(Bet×4.5). Every roll still takes a 5% cut of total stake into the treasury
+        — win or lose — so you can open TREASURY.MON and watch meters move.
       </p>
       <p className="font-sans text-ink-dim">
-        In Fun Mode you practice the loop without mainnet risk. Fairness details (seeds,
+        Demo uses a local 10 SOL play pot (no real transfers). Fairness details (seeds,
         hashes, dice derivation) live in FAIRNESS.LOG and inline after a roll.
       </p>
 

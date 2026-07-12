@@ -32,8 +32,9 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
           <header className="border-b-2 border-line pb-3">
             <div className="font-heading text-sm text-hot">COLORS GAME RULES</div>
             <p className="mt-1 text-[12px] text-ink-dim">
-              Play in SOL. Pick colors. Roll dice. Wins settle on the unit bet.
-              The 5% house cut always comes home.
+              Fair published odds · ~5% house edge · transparent cut. Match and
+              you get paid the formulas below. The edge is not pocketed — it
+              routes home as burn / believers / build.
             </p>
           </header>
 
@@ -55,7 +56,7 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
           <Section title="PAYOUTS">
             <div className="rounded border-2 border-line bg-paper-2/90 p-3">
               <p className="mb-2 font-heading text-[11px] text-acid">
-                5% HOUSE EDGE
+                5% HOUSE EDGE · LITERAL (UNIT BET)
               </p>
               <ul className="space-y-1.5 font-mono text-[13px]">
                 <li>
@@ -71,23 +72,44 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
                   <span className="text-ink-dim"> → 5.5×</span>
                 </li>
               </ul>
-              <p className="mt-3 border-t border-line/50 pt-2 text-[12px] text-ink-dim">
-                Each selected color costs the full bet in SOL (3 colors × 0.01 SOL
-                = 0.03 SOL). Payouts use the unit bet.
-              </p>
+              <div className="mt-3 space-y-1 border-t border-line/50 pt-2 text-[12px] text-ink-dim">
+                <p>
+                  Example at <strong className="text-ink">1 SOL</strong> unit bet
+                  (1 color → stake 1 SOL):
+                </p>
+                <ul className="font-mono text-[12px] space-y-0.5">
+                  <li>1 match → <span className="text-ink">2.04</span> SOL returned</li>
+                  <li>2 matches → <span className="text-ink">3.08</span> SOL returned</li>
+                  <li>3 matches → <span className="text-ink">5.50</span> SOL returned</li>
+                  <li>0 matches → lose stake; cut still comes home</li>
+                </ul>
+                <p className="pt-1">
+                  Each selected color costs the full bet (3 × 0.01 = 0.03 SOL).
+                  Payouts use the unit bet. Single-color RTP ≈ 95% — fair odds,
+                  sustainable edge.
+                </p>
+              </div>
             </div>
           </Section>
 
           <Section title="THE CUT → TREASURY">
             <p>
-              Every roll takes a <strong className="text-hot">5% house cut</strong>{" "}
-              of your total cost into the Midway treasury, then splits:
+              Every roll — win or lose — takes a{" "}
+              <strong className="text-hot">5% house cut</strong> of your total
+              cost into the Midway treasury, then splits:
             </p>
             <ul className="mt-2 grid grid-cols-3 gap-2 font-heading text-[11px]">
               <li className="bevel px-2 py-2 text-center text-burn">40% BURN</li>
               <li className="bevel px-2 py-2 text-center text-hot">40% BELIEVERS</li>
               <li className="bevel px-2 py-2 text-center text-acid">20% BUILD</li>
             </ul>
+            <p className="mt-2 text-[12px] text-ink-dim">
+              Example cut on 1 SOL stake:{" "}
+              <span className="font-mono text-ink">0.05</span> → burn{" "}
+              <span className="font-mono text-ink">0.02</span> · believers{" "}
+              <span className="font-mono text-ink">0.02</span> · build{" "}
+              <span className="font-mono text-ink">0.01</span>.
+            </p>
           </Section>
 
           <Section title="SOLANA · DEMO">
