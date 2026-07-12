@@ -735,6 +735,7 @@ html.dark .desktop-wallpaper {
     transform 0.45s cubic-bezier(0.22, 0.82, 0.28, 1);
   opacity: 1;
   transform-origin: 50% 70%;
+  image-rendering: pixelated;
 }
 .idle-die.is-shaking,
 .idle-die.is-soft-shake,
@@ -778,29 +779,67 @@ html.dark .desktop-wallpaper {
   animation: none;
   transition: opacity 0.28s ease, transform 0.28s ease;
 }
+/* Chunky 8-bit die faces — flat Colors palette, hard steps, no soft gradients. */
 .idle-die-face {
+  --face-fill: var(--face);
   position: absolute;
   inset: 0;
-  border: 2px solid color-mix(in srgb, var(--ink) 55%, transparent);
-  background:
+  border: 2px solid var(--ink);
+  background-color: var(--face-fill);
+  /* Pixel lattice + two hard shade bands (stepped, not blended). */
+  background-image:
     linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--face) 88%, #fff) 0%,
-      var(--face) 48%,
-      color-mix(in srgb, var(--face) 78%, var(--ink)) 100%
+      135deg,
+      color-mix(in srgb, #fff 30%, var(--face-fill)) 0 28%,
+      transparent 28% 100%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 0 62%,
+      color-mix(in srgb, var(--ink) 26%, var(--face-fill)) 62% 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      color-mix(in srgb, var(--ink) 10%, transparent) 3px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 3px,
+      color-mix(in srgb, var(--ink) 10%, transparent) 3px 4px
     );
-  box-shadow:
-    inset 1px 1px 0 color-mix(in srgb, #fff 35%, transparent),
-    inset -1px -1px 0 color-mix(in srgb, var(--ink) 12%, transparent);
+  box-shadow: none;
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
   backface-visibility: hidden;
+  outline: 1px solid var(--ink);
+  outline-offset: -1px;
 }
-.idle-die-face--pz { transform: rotateY(0deg) translateZ(var(--cube-half)); }
-.idle-die-face--nz { transform: rotateY(180deg) translateZ(var(--cube-half)); }
-.idle-die-face--px { transform: rotateY(90deg) translateZ(var(--cube-half)); }
-.idle-die-face--nx { transform: rotateY(-90deg) translateZ(var(--cube-half)); }
-.idle-die-face--py { transform: rotateX(90deg) translateZ(var(--cube-half)); }
-.idle-die-face--ny { transform: rotateX(-90deg) translateZ(var(--cube-half)); }
+/* Discrete face lighting — voxel sides, not smooth shading. */
+.idle-die-face--py {
+  --face-fill: color-mix(in srgb, var(--face) 78%, #fff);
+  transform: rotateX(90deg) translateZ(var(--cube-half));
+}
+.idle-die-face--pz {
+  --face-fill: var(--face);
+  transform: rotateY(0deg) translateZ(var(--cube-half));
+}
+.idle-die-face--px {
+  --face-fill: color-mix(in srgb, var(--face) 72%, var(--ink));
+  transform: rotateY(90deg) translateZ(var(--cube-half));
+}
+.idle-die-face--nx {
+  --face-fill: color-mix(in srgb, var(--face) 84%, var(--ink));
+  transform: rotateY(-90deg) translateZ(var(--cube-half));
+}
+.idle-die-face--ny {
+  --face-fill: color-mix(in srgb, var(--face) 55%, var(--ink));
+  transform: rotateX(-90deg) translateZ(var(--cube-half));
+}
+.idle-die-face--nz {
+  --face-fill: color-mix(in srgb, var(--face) 65%, var(--ink));
+  transform: rotateY(180deg) translateZ(var(--cube-half));
+}
 
 .idle-cube-char {
   position: absolute;

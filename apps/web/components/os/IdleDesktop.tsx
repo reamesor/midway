@@ -138,10 +138,6 @@ export type CubeReleasePayload = {
   size: number;
 };
 
-function softHex(hex: string) {
-  return `color-mix(in srgb, ${hex} 72%, var(--paper))`;
-}
-
 function IdleCube({
   spec,
   reduced,
@@ -621,7 +617,7 @@ function IdleCube({
           style={{
             width: spec.size,
             height: spec.size,
-            ["--cube" as string]: softHex(COLOR_HEX[spec.color]),
+            ["--cube" as string]: COLOR_HEX[spec.color],
             ["--cube-size" as string]: `${spec.size}px`,
             ["--cube-half" as string]: `${half}px`,
           }}
@@ -651,7 +647,7 @@ function IdleCube({
                   key={name}
                   className={`idle-die-face idle-die-face--${name}`}
                   style={{
-                    ["--face" as string]: softHex(COLOR_HEX[faces[i]!]),
+                    ["--face" as string]: COLOR_HEX[faces[i]!],
                   }}
                 />
               ))}
