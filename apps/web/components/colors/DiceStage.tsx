@@ -13,8 +13,113 @@ type DiceStageProps = {
   prompt: string;
 };
 
+/** Per-die idle face layout — mixed Colors palette, like desktop jewelry cubes. */
+const IDLE_FACES: ColorKey[][] = [
+  ["yellow", "orange", "pink", "blue", "green", "red"],
+  ["blue", "green", "yellow", "red", "orange", "pink"],
+  ["pink", "red", "blue", "orange", "yellow", "green"],
+];
+
+type FaceShade = "lit" | "mid" | "shade" | "deep";
+
+function mixHex(hex: string, other: string, t: number): string {
+  const parse = (h: string) => {
+    const n = h.replace("#", "");
+    return [
+      parseInt(n.slice(0, 2), 16),
+      parseInt(n.slice(2, 4), 16),
+      parseInt(n.slice(4, 6), 16),
+    ] as const;
+  };
+  const [r1, g1, b1] = parse(hex);
+  const [r2, g2, b2] = parse(other);
+  const m = (a: number, b: number) => Math.round(a + (b - a) * t);
+  return `#${[m(r1, r2), m(g1, g2), m(b1, b2)]
+    .map((v) => v.toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
+function shadeHex(hex: string, shade: FaceShade): string {
+  switch (shade) {
+    case "lit":
+      return mixHex(hex, "#ffffff", 0.28);
+    case "mid":
+      return hex;
+    case "shade":
+      return mixHex(hex, "#1a1a14", 0.28);
+    case "deep":
+      return mixHex(hex, "#1a1a14", 0.45);
+  }
+}
+
+/** Chunky 8-bit face — flat fill, stepped bands, pixel lattice, no soft gradients. */
+function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTexture {
+  const size = 32;
+  const canvas =
+    typeof document !== "undefined"
+      ? document.createElement("canvas")
+      : null;
+  const texture = new THREE.CanvasTexture(canvas ?? undefined);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  if (!canvas) return texture;
+
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  const fill = shadeHex(hex, shade);
+  const lit = mixHex(fill, "#ffffff", 0.32);
+  const dark = mixHex(fill, "#1a1a14", 0.28);
+  const ink = "#1a1a14";
+
+  ctx.fillStyle = fill;
+  ctx.fillRect(0, 0, size, size);
+
+  // Hard highlight band (top-left) — stepped, not blended.
+  ctx.fillStyle = lit;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if (x + y < size * 0.55) ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  // Hard shade band (bottom-right).
+  ctx.fillStyle = dark;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if (x + y > size * 1.2) ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  // Pixel lattice.
+  ctx.fillStyle = "rgba(26,26,20,0.14)";
+  for (let i = 0; i < size; i += 4) {
+    ctx.fillRect(i, 0, 1, size);
+    ctx.fillRect(0, i, size, 1);
+  }
+
+  // Ink rim.
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, size - 2, size - 2);
+
+  texture.needsUpdate = true;
+  return texture;
+}
+
+const FACE_SHADES: FaceShade[] = [
+  "shade", // +X
+  "shade", // -X
+  "lit", // +Y
+  "deep", // -Y
+  "mid", // +Z (result)
+  "deep", // -Z
+];
+
 export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
-  // Never show bet/select copy over rolling or settled dice (labels live only as solid faces).
   const showPrompt = Boolean(prompt) && !rolling && !dice;
 
   return (
@@ -28,29 +133,29 @@ export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
         aria-hidden
       />
       {showPrompt ? (
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-          <p className="font-heading text-[12px] tracking-[0.2em] text-acid blink">
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
+          <p className="rounded-sm border-2 border-black bg-[#f3ead8]/90 px-3 py-1 font-heading text-[11px] tracking-[0.18em] text-ink blink shadow-[2px_2px_0_#000]">
             {prompt}
           </p>
         </div>
       ) : null}
       <Canvas
-        camera={{ position: [0, 0.6, 7.5], fov: 40 }}
-        dpr={[1, 1.25]}
+        camera={{ position: [0, 1.1, 7.2], fov: 40 }}
+        dpr={[1, 1]}
         gl={{ antialias: false, alpha: true }}
         style={{ height: 300, imageRendering: "pixelated" }}
       >
-        <ambientLight intensity={0.9} />
-        <directionalLight position={[5, 8, 4]} intensity={1.15} />
-        <directionalLight position={[-5, 2, -3]} intensity={0.4} color="#e23bc8" />
+        {/* Flat arcade light — avoid soft PBR bloom */}
+        <ambientLight intensity={1} />
+        <directionalLight position={[4, 6, 5]} intensity={0.35} />
         {[-2.15, 0, 2.15].map((x, i) => (
           <DieMesh
             key={i}
+            index={i}
             x={x}
             color={dice?.[i] ?? null}
             rolling={rolling}
             hit={Boolean(hits[i])}
-            visible={Boolean(dice) || rolling}
           />
         ))}
       </Canvas>
@@ -59,20 +164,21 @@ export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
 }
 
 function DieMesh({
+  index,
   x,
   color,
   rolling,
   hit,
-  visible,
 }: {
+  index: number;
   x: number;
   color: ColorKey | null;
   rolling: boolean;
   hit: boolean;
-  visible: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
-  const [spin, setSpin] = useState<ColorKey>("blue");
+  const [spin, setSpin] = useState<ColorKey>(IDLE_FACES[index]![4]!);
+  const idleFaces = IDLE_FACES[index]!;
 
   useEffect(() => {
     if (!rolling) return;
@@ -83,60 +189,101 @@ function DieMesh({
   }, [rolling]);
 
   useFrame((state) => {
-    if (!group.current || !visible) return;
+    if (!group.current) return;
+    const t = state.clock.elapsedTime;
+    const phase = index * 1.7;
+
     if (rolling) {
       group.current.rotation.x += 0.32;
       group.current.rotation.y += 0.38;
-      group.current.position.y = Math.sin(state.clock.elapsedTime * 18) * 0.22;
-    } else {
-      group.current.rotation.x *= 0.78;
-      group.current.rotation.y *= 0.78;
-      group.current.rotation.z *= 0.78;
-      group.current.position.y *= 0.8;
+      group.current.position.y = Math.sin(t * 18 + phase) * 0.22;
+      return;
     }
+
+    if (color) {
+      // Settle toward a readable isometric pose; tiny victory bob on hits.
+      group.current.rotation.x +=
+        (-0.28 - group.current.rotation.x) * 0.12;
+      group.current.rotation.y +=
+        (0.42 - group.current.rotation.y) * 0.12;
+      group.current.rotation.z += (0 - group.current.rotation.z) * 0.12;
+      const bob = hit ? Math.sin(t * 3.2 + phase) * 0.06 : Math.sin(t * 1.6 + phase) * 0.03;
+      group.current.position.y += (bob - group.current.position.y) * 0.15;
+      return;
+    }
+
+    // Pre-bet idle: soft tumble + bob — cubes always on stage.
+    group.current.rotation.x = -0.22 + Math.sin(t * 0.55 + phase) * 0.18;
+    group.current.rotation.y = 0.55 + t * 0.22 + Math.sin(t * 0.35 + phase) * 0.12;
+    group.current.rotation.z = Math.sin(t * 0.4 + phase) * 0.08;
+    group.current.position.y = Math.sin(t * 1.35 + phase) * 0.14;
   });
 
-  const face = rolling ? spin : (color ?? "yellow");
+  const faceKeys = useMemo((): ColorKey[] => {
+    if (rolling) {
+      // Spinning: keep side faces fixed, flash the front.
+      return [
+        idleFaces[0]!,
+        idleFaces[1]!,
+        idleFaces[2]!,
+        idleFaces[3]!,
+        spin,
+        idleFaces[5]!,
+      ];
+    }
+    if (color) {
+      return [
+        idleFaces[0]!,
+        idleFaces[1]!,
+        idleFaces[2]!,
+        idleFaces[3]!,
+        color,
+        idleFaces[5]!,
+      ];
+    }
+    return idleFaces;
+  }, [rolling, spin, color, idleFaces]);
 
   const materials = useMemo(() => {
-    const mk = (hex: string, emissive = false) =>
-      new THREE.MeshStandardMaterial({
-        color: hex,
-        roughness: 0.32,
-        metalness: 0.14,
-        emissive: emissive ? "#f5c542" : "#000000",
-        emissiveIntensity: emissive ? 0.4 : 0,
+    return faceKeys.map((key, i) => {
+      const tex = makePixelFaceTexture(COLOR_HEX[key], FACE_SHADES[i]!);
+      const mat = new THREE.MeshBasicMaterial({
+        map: tex,
+        toneMapped: false,
       });
+      if (hit && !rolling && i === 4) {
+        mat.color = new THREE.Color("#fff4b0");
+      }
+      return mat;
+    });
+  }, [faceKeys, hit, rolling]);
 
-    // +X -X +Y -Y +Z -Z — front (+Z) is the result face
-    return [
-      mk(COLOR_HEX.blue),
-      mk(COLOR_HEX.orange),
-      mk(COLOR_HEX.yellow),
-      mk(COLOR_HEX.red),
-      mk(COLOR_HEX[face], hit && !rolling),
-      mk(COLOR_HEX.pink),
-    ];
-  }, [face, hit, rolling]);
+  useEffect(() => {
+    return () => {
+      for (const mat of materials) {
+        mat.map?.dispose();
+        mat.dispose();
+      }
+    };
+  }, [materials]);
 
-  if (!visible) return null;
+  const edges = useMemo(() => new THREE.EdgesGeometry(new THREE.BoxGeometry(1.42, 1.42, 1.42)), []);
 
   return (
     <group ref={group} position={[x, 0, 0]}>
-      <mesh castShadow>
+      <mesh>
         <boxGeometry args={[1.4, 1.4, 1.4]} />
         {materials.map((mat, i) => (
           <primitive key={i} object={mat} attach={`material-${i}`} />
         ))}
       </mesh>
+      <lineSegments geometry={edges}>
+        <lineBasicMaterial color="#1a1a14" linewidth={2} />
+      </lineSegments>
       {hit && !rolling && (
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-          <torusGeometry args={[1.05, 0.05, 12, 48]} />
-          <meshStandardMaterial
-            color="#f5c542"
-            emissive="#f5c542"
-            emissiveIntensity={0.8}
-          />
+          <torusGeometry args={[1.05, 0.06, 4, 16]} />
+          <meshBasicMaterial color="#f5c542" toneMapped={false} />
         </mesh>
       )}
     </group>

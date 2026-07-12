@@ -30,12 +30,9 @@ export function ColorPicker({ picked, locked, onToggle }: ColorPickerProps) {
               style={active ? { outlineColor: "var(--acid)" } : undefined}
             >
               <span
-                className="mx-auto mb-2 block size-7 border-2 border-black"
-                style={{
-                  background: COLOR_HEX[c],
-                  boxShadow: "2px 2px 0 #000",
-                  imageRendering: "pixelated",
-                }}
+                className="colors-swatch-cube mx-auto mb-2 block"
+                style={{ ["--swatch" as string]: COLOR_HEX[c] }}
+                aria-hidden
               />
               {c}
             </button>
