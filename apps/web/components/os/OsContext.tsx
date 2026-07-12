@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type WinId = "loop" | "colors" | "treasury" | "readme" | "fairness";
+export type WinId = "loop" | "colors" | "treasury" | "info" | "fairness" | "soon";
 export type OsTheme = "light" | "dark";
 
 type OsContextValue = {
@@ -23,6 +23,8 @@ type OsContextValue = {
   open: Record<WinId, boolean>;
   focused: WinId | null;
   zMap: Record<WinId, number>;
+  soonTitle: string;
+  soonBlurb: string;
   setCalm: (v: boolean) => void;
   setOneBit: (v: boolean) => void;
   setSound: (v: boolean) => void;
@@ -30,6 +32,7 @@ type OsContextValue = {
   toggleTheme: () => void;
   finishBoot: () => void;
   openWin: (id: WinId) => void;
+  openSoon: (title: string, blurb: string) => void;
   closeWin: (id: WinId) => void;
   focusWin: (id: WinId) => void;
   toggleWin: (id: WinId) => void;
@@ -42,8 +45,9 @@ const DEFAULT_OPEN: Record<WinId, boolean> = {
   loop: true,
   colors: true,
   treasury: true,
-  readme: false,
+  info: false,
   fairness: false,
+  soon: false,
 };
 
 const THEME_KEY = "midway-os-theme";
@@ -57,12 +61,15 @@ export function OsProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(DEFAULT_OPEN);
   const [focused, setFocused] = useState<WinId | null>("colors");
   const [zCounter, setZCounter] = useState(10);
+  const [soonTitle, setSoonTitle] = useState("");
+  const [soonBlurb, setSoonBlurb] = useState("");
   const [zMap, setZMap] = useState<Record<WinId, number>>({
     loop: 11,
     colors: 14,
     treasury: 12,
-    readme: 10,
+    info: 10,
     fairness: 10,
+    soon: 10,
   });
 
   useEffect(() => {
@@ -131,6 +138,16 @@ export function OsProvider({ children }: { children: ReactNode }) {
     [focusWin],
   );
 
+  const openSoon = useCallback(
+    (title: string, blurb: string) => {
+      setSoonTitle(title);
+      setSoonBlurb(blurb);
+      setOpen((o) => ({ ...o, soon: true }));
+      focusWin("soon");
+    },
+    [focusWin],
+  );
+
   const closeWin = useCallback((id: WinId) => {
     setOpen((o) => ({ ...o, [id]: false }));
     setFocused((f) => (f === id ? null : f));
@@ -161,6 +178,8 @@ export function OsProvider({ children }: { children: ReactNode }) {
       open,
       focused,
       zMap,
+      soonTitle,
+      soonBlurb,
       setCalm,
       setOneBit,
       setSound,
@@ -168,6 +187,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
       toggleTheme,
       finishBoot,
       openWin,
+      openSoon,
       closeWin,
       focusWin,
       toggleWin,
@@ -183,12 +203,15 @@ export function OsProvider({ children }: { children: ReactNode }) {
       open,
       focused,
       zMap,
+      soonTitle,
+      soonBlurb,
       setCalm,
       setOneBit,
       setTheme,
       toggleTheme,
       finishBoot,
       openWin,
+      openSoon,
       closeWin,
       focusWin,
       toggleWin,

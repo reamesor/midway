@@ -169,6 +169,16 @@ export const GLYPHS = {
     "K......K",
     "KK....KK",
   ],
+  nft: [
+    ".KKKKKK.",
+    "KYYYYYYK",
+    "KY.KK.YK",
+    "KYKYYKYK",
+    "KY.YY.YK",
+    "KY....YK",
+    "KYYYYYYK",
+    ".KKKKKK.",
+  ],
   readme: [
     ".KKKKKK.",
     "KYYYYYYK",

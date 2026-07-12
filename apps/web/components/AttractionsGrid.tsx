@@ -12,12 +12,11 @@ const attractions = [
     href: "#colors",
   },
   {
-    status: "live" as const,
+    status: "soon" as const,
     icon: "🥊",
     title: "Glitch Pits",
     body: "8-bit rumble royale. enter fighters, win the pot. the house rake routes straight into the same loop.",
     feeds: "→ feeds treasury: rake on every rumble",
-    href: "https://glitchpits.com",
   },
   {
     status: "soon" as const,

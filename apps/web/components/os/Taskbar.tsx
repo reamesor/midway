@@ -9,7 +9,7 @@ const TABS: { id: WinId; label: string }[] = [
   { id: "colors", label: "COLORS.EXE" },
   { id: "loop", label: "LOOP.EXE" },
   { id: "treasury", label: "TREASURY.MON" },
-  { id: "readme", label: "README.TXT" },
+  { id: "info", label: "INFO.TXT" },
 ];
 
 type TaskbarProps = {
