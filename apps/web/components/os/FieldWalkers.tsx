@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { PixelIcon } from "@/lib/pixel";
 import type { ColorKey } from "@/lib/colors/engine";
@@ -45,6 +45,7 @@ function FieldWalkerSprite({
   onDone: (id: string) => void;
 }) {
   const [frame, setFrame] = useState(0);
+  const doneRef = useRef(false);
   const palette = useMemo(
     () => idleCharPalette(walker.color, ink),
     [walker.color, ink],
@@ -76,9 +77,19 @@ function FieldWalkerSprite({
 
   useEffect(() => {
     if (!reduced) return;
-    const id = window.setTimeout(() => onDone(walker.id), 1600);
+    const id = window.setTimeout(() => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+      onDone(walker.id);
+    }, 1600);
     return () => window.clearTimeout(id);
   }, [onDone, reduced, walker.id]);
+
+  const finish = () => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    onDone(walker.id);
+  };
 
   if (reduced) {
     return (
@@ -157,7 +168,7 @@ function FieldWalkerSprite({
         ease: "easeInOut",
         times: keyframes.times,
       }}
-      onAnimationComplete={() => onDone(walker.id)}
+      onAnimationComplete={finish}
       aria-hidden
     >
       <motion.span
