@@ -25,6 +25,7 @@ const ICONS: DockIcon[] = [
   { kind: "app", id: "wallet", label: "Wallet", glyph: "wallet", badge: "LIVE" },
   { kind: "app", id: "treasury", label: "Treasury", glyph: "treasury", badge: "LIVE" },
   { kind: "app", id: "info", label: "Info", glyph: "readme" },
+  { kind: "app", id: "token", label: "Token", glyph: "coin" },
   {
     kind: "soon",
     soonId: "glitch",
@@ -40,14 +41,6 @@ const ICONS: DockIcon[] = [
     glyph: "nft",
     title: "NFT.LAUNCH",
     blurb: "Mint drops where fees and royalties feed burn · believers · build. Booth under construction.",
-  },
-  {
-    kind: "soon",
-    soonId: "token",
-    label: "Token",
-    glyph: "coin",
-    title: "TOKEN.TOOLS",
-    blurb: "Launch and swap through Midway rails so every fee comes home. Coming to the boardwalk.",
   },
 ];
 

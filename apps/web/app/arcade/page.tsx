@@ -13,6 +13,7 @@ import { ColorsGame } from "@/components/colors/ColorsGame";
 import { TreasuryPanel } from "@/components/treasury/TreasuryPanel";
 import { MidwayWalletPanel } from "@/components/wallet/MidwayWalletPanel";
 import { InfoPanel } from "@/components/os/InfoPanel";
+import { TokenInfoPanel } from "@/components/os/TokenInfoPanel";
 import { ComingSoonStub } from "@/components/os/ComingSoonStub";
 import { applyHouseCut, type TreasuryState } from "@/lib/treasury/split";
 
@@ -22,7 +23,7 @@ function tileLayout(
   w: number,
   h: number,
 ): Record<
-  "colors" | "loop" | "treasury" | "wallet" | "info" | "fairness" | "soon",
+  "colors" | "loop" | "treasury" | "wallet" | "info" | "token" | "fairness" | "soon",
   Rect
 > {
   const task = 44;
@@ -45,6 +46,7 @@ function tileLayout(
       treasury: { ...full, x: pad + 16, y: pad + dock + 16 },
       wallet: { ...full, x: pad + 10, y: pad + dock + 10 },
       info: { ...full, x: pad + 12, y: pad + dock + 12 },
+      token: { ...full, x: pad + 14, y: pad + dock + 14 },
       fairness: { ...full, x: pad + 20, y: pad + dock + 20 },
       soon: { ...full, x: pad + 24, y: pad + dock + 24 },
     };
@@ -94,6 +96,12 @@ function tileLayout(
       width: Math.min(520, Math.round(workW * 0.58)),
       height: Math.min(520, Math.round(workH * 0.82)),
     },
+    token: {
+      x: workX + Math.round(workW * 0.12),
+      y: workY + Math.round(workH * 0.08),
+      width: Math.min(500, Math.round(workW * 0.55)),
+      height: Math.min(540, Math.round(workH * 0.84)),
+    },
     fairness: {
       x: workX + Math.round(workW * 0.18),
       y: workY + Math.round(workH * 0.14),
@@ -131,6 +139,7 @@ function Desktop() {
         treasury: { x: 900, y: 396, width: 420, height: 260 },
         wallet: { x: 220, y: 48, width: 420, height: 520 },
         info: { x: 180, y: 40, width: 500, height: 520 },
+        token: { x: 200, y: 48, width: 480, height: 540 },
         fairness: { x: 240, y: 120, width: 480, height: 320 },
         soon: { x: 280, y: 160, width: 360, height: 260 },
       };
@@ -219,6 +228,17 @@ function Desktop() {
           minHeight={280}
         >
           <InfoPanel />
+        </Win>
+
+        <Win
+          key={`token-${layoutKey}`}
+          id="token"
+          title="TOKEN.INFO — MIDWAY TOKEN"
+          default={winDefaults.token}
+          minWidth={300}
+          minHeight={280}
+        >
+          <TokenInfoPanel />
         </Win>
 
         <Win

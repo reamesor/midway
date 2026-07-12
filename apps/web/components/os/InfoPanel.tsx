@@ -113,12 +113,21 @@ export function InfoPanel() {
 
       <Header>Play · mint · trade</Header>
       <p className="font-sans text-ink-dim">
-        Colors is the first live attraction. Dock icons marked SOON — Glitch, NFT,
-        Token — are placeholders for booths that will plug into the same treasury
-        loop: NFT drops (mint fees + royalties), token tools (swap and launch fees),
-        and more games. One engine, many booths — each feeds the same three-way
-        split so the ecosystem compounds instead of fragmenting into unrelated silos.
+        Colors is the first live attraction. Open{" "}
+        <strong className="font-semibold text-ink">TOKEN.INFO</strong> for mint,
+        buy links, and socials. Dock icons marked SOON — Glitch, NFT — are
+        placeholders for booths that will plug into the same treasury loop: NFT
+        drops (mint fees + royalties), more games, and trade rails. One engine,
+        many booths — each feeds the same three-way split so the ecosystem
+        compounds instead of fragmenting into unrelated silos.
       </p>
+      <button
+        type="button"
+        className="bevel-btn px-3 py-2 font-heading text-[11px]"
+        onClick={() => openWin("token")}
+      >
+        OPEN TOKEN.INFO
+      </button>
 
       <Header>Honest &amp; fair</Header>
       <p className="font-sans text-ink-dim">

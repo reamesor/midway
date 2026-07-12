@@ -16,6 +16,7 @@ export type WinId =
   | "treasury"
   | "wallet"
   | "info"
+  | "token"
   | "fairness"
   | "soon";
 export type OsTheme = "light" | "dark";
@@ -54,6 +55,7 @@ const DEFAULT_OPEN: Record<WinId, boolean> = {
   treasury: true,
   wallet: false,
   info: false,
+  token: false,
   fairness: false,
   soon: false,
 };
@@ -77,6 +79,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
     treasury: 12,
     wallet: 13,
     info: 10,
+    token: 10,
     fairness: 10,
     soon: 10,
   });
