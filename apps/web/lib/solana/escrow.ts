@@ -1,7 +1,7 @@
 /** Demo play ledger only. LIVE on-chain vault transfers are disabled. */
 export type WalletEscrowMode = "DEMO" | "LIVE";
 
-/** Fixed Midway play pot for DEMO (SOL units). */
+/** Fixed Midway wallet play balance seed for DEMO (SOL units). */
 export const DEMO_PLAY_SOL = 10;
 
 /**

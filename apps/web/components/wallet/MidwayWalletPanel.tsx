@@ -11,6 +11,7 @@ import { truncateAddress } from "@/lib/solana/address";
 import { getSolanaNetworkLabel } from "@/lib/solana/cluster";
 import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
 import type { MidwayAsset } from "@/lib/midway-wallet/types";
+import { DEMO_GUEST_PUBKEY } from "@/components/wallet/DemoGuestContext";
 
 const PRESETS = [0.05, 0.1, 0.25, 0.5, 1] as const;
 
@@ -26,6 +27,9 @@ export function MidwayWalletPanel() {
     demoGuest,
     mode,
     play,
+    midwayPlayBalance,
+    midwayWalletAddress,
+    mainWalletPubkey,
     ledger,
     busy,
     midwayTokenReady,
@@ -38,6 +42,23 @@ export function MidwayWalletPanel() {
   const [asset, setAsset] = useState<MidwayAsset>("SOL");
   const [amount, setAmount] = useState(0.1);
   const [status, setStatus] = useState<string | null>(null);
+  const [copied, setCopied] = useState<"main" | "midway" | null>(null);
+
+  const mainAddress =
+    publicKey?.toBase58() ??
+    (mainWalletPubkey && mainWalletPubkey !== DEMO_GUEST_PUBKEY
+      ? mainWalletPubkey
+      : null);
+
+  const copyAddr = async (kind: "main" | "midway", value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(kind);
+      window.setTimeout(() => setCopied(null), 1500);
+    } catch {
+      setStatus("Copy failed — select the address manually.");
+    }
+  };
 
   const run = async (kind: "deposit" | "withdraw") => {
     setStatus(null);
@@ -49,8 +70,8 @@ export function MidwayWalletPanel() {
     }
     setStatus(
       kind === "deposit"
-        ? `Demo ledger +${fmt(amount)} ${asset} (no real funds moved).`
-        : `Demo ledger −${fmt(amount)} ${asset} (no real funds moved).`,
+        ? `DEMO deposit +${fmt(amount)} ${asset} → Midway wallet (no real funds moved).`
+        : `DEMO withdraw −${fmt(amount)} ${asset} → main wallet (no real funds moved).`,
     );
   };
 
@@ -61,16 +82,20 @@ export function MidwayWalletPanel() {
       setStatus(res.error);
       return;
     }
-    setStatus(`Demo pot reset to ${DEMO_PLAY_SOL} SOL. No real funds moved.`);
+    setStatus(
+      `Midway wallet DEMO reset to ${DEMO_PLAY_SOL} SOL. No real funds moved.`,
+    );
   };
+
+  const playSol = midwayPlayBalance?.sol ?? play.sol;
 
   return (
     <div className="font-heading text-xs space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-line pb-2">
         <div>
-          <div className="chroma text-sm text-hot">EXCHANGE.EXE</div>
+          <div className="chroma text-sm text-hot">WALLET.EXE</div>
           <div className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-            MIDWAY.WALLET — demo play pot
+            Midway wallet · play funds + main wallet
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -84,139 +109,188 @@ export function MidwayWalletPanel() {
 
       <div className="bevel-inset border-2 border-acid/40 bg-acid/10 p-3 font-sans text-[13px] normal-case tracking-normal text-ink">
         <strong className="font-heading text-[11px] tracking-wide text-acid">
-          DEMO · NO REAL FUNDS MOVE
+          DEMO · PLAY FUNDS ARE NOT REAL SOL YET
         </strong>
         <p className="mt-1 text-ink-dim">
-          Play balance is a fixed <strong className="text-ink">{DEMO_PLAY_SOL} SOL</strong>{" "}
-          demo pot. Deposits / withdraws only change local ledger numbers. Phantom /
-          Solflare is for identity and address display only.
+          Your <strong className="text-ink">Midway wallet</strong> holds the play
+          balance used for Colors bets. Deposit / Withdraw simulate Main ↔ Midway
+          transfers in this browser. Main wallet SOL is read live from RPC when
+          connected — nothing is signed or sent on-chain for play.
         </p>
       </div>
 
       {!connected && (
         <div className="bevel-inset p-3 font-sans text-[13px] normal-case tracking-normal text-ink-dim">
           Connect <strong className="text-ink">Phantom</strong> or{" "}
-          <strong className="text-ink">Solflare</strong> to unlock your{" "}
-          {DEMO_PLAY_SOL} SOL demo play pot for Colors — or choose{" "}
-          <strong className="text-ink">Play demo without wallet</strong> in the
-          connect modal.
+          <strong className="text-ink">Solflare</strong> to create your Midway
+          wallet + username path — or choose{" "}
+          <strong className="text-ink">Play demo without wallet</strong> for an
+          ephemeral Midway wallet.
           <button
             type="button"
             className="bevel-btn bevel-btn-hot mt-2 block w-full py-2 font-heading text-[11px] tracking-wide"
             onClick={() => setVisible(true)}
           >
-            CONNECT WALLET
+            CONNECT MAIN WALLET
           </button>
         </div>
       )}
 
-      {walletConnected && publicKey && (
-        <div className="bevel-inset p-2 font-mono text-[12px] text-ink-dim break-all">
-          identity · {truncateAddress(publicKey.toBase58(), 6, 6)}
-        </div>
-      )}
-      {demoGuest && !walletConnected && (
-        <div className="bevel-inset p-2 font-mono text-[12px] text-ink-dim">
-          identity · DEMO · GUEST (local 10 SOL pot)
-        </div>
-      )}
+      {connected && (
+        <>
+          <section className="grid gap-2 sm:grid-cols-2">
+            <WalletCard
+              title="MAIN WALLET"
+              subtitle="connected · external"
+              address={mainAddress}
+              balanceLabel="SOL on-chain"
+              balance={
+                !walletConnected
+                  ? "—"
+                  : mainLoading
+                    ? "…"
+                    : mainSol == null
+                      ? "—"
+                      : fmt(mainSol)
+              }
+              hint={
+                walletConnected
+                  ? "read-only via RPC"
+                  : demoGuest
+                    ? "guest — connect to withdraw"
+                    : "not connected"
+              }
+              onCopy={
+                mainAddress
+                  ? () => void copyAddr("main", mainAddress)
+                  : undefined
+              }
+              copied={copied === "main"}
+            />
+            <WalletCard
+              title="MIDWAY WALLET"
+              subtitle="play purse · DEMO"
+              address={midwayWalletAddress}
+              balanceLabel="play balance"
+              balance={fmt(playSol)}
+              hint={`seeded ${DEMO_PLAY_SOL} SOL · local ledger`}
+              accent
+              onCopy={
+                midwayWalletAddress
+                  ? () => void copyAddr("midway", midwayWalletAddress)
+                  : undefined
+              }
+              copied={copied === "midway"}
+            />
+          </section>
 
-      <div className="grid gap-2 sm:grid-cols-3">
-        <BalanceCard
-          label="MAIN SOL"
-          value={mainLoading ? "…" : mainSol == null ? "—" : fmt(mainSol)}
-          hint="on-chain · read-only"
-        />
-        <BalanceCard
-          label="MIDWAY PLAY · DEMO"
-          value={fmt(play.sol)}
-          hint={`${DEMO_PLAY_SOL} SOL pot · local`}
-          accent
-        />
-        <BalanceCard
-          label="MIDWAY TOKEN"
-          value={midwayTokenReady ? fmt(play.midway) : "—"}
-          hint={midwayTokenReady ? "demo play token" : "mint not set"}
-        />
-      </div>
+          {midwayTokenReady && (
+            <div className="bevel-inset px-3 py-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+              MIDWAY token play:{" "}
+              <span className="num text-ink">{fmt(play.midway)}</span>
+            </div>
+          )}
 
-      <div className="bevel p-3 space-y-2">
-        <div className="text-ink-dim">DEMO AMOUNT</div>
-        <div className="flex gap-1">
-          <button
-            type="button"
-            className={`bevel-btn flex-1 py-1 ${asset === "SOL" ? "bevel-btn-acid" : ""}`}
-            onClick={() => setAsset("SOL")}
-          >
-            SOL
-          </button>
-          <button
-            type="button"
-            className={`bevel-btn flex-1 py-1 ${asset === "MIDWAY" ? "bevel-btn-acid" : ""}`}
-            disabled={!midwayTokenReady}
-            title={midwayTokenReady ? "MIDWAY token" : "Set NEXT_PUBLIC_MIDWAY_MINT"}
-            onClick={() => setAsset("MIDWAY")}
-          >
-            MIDWAY{midwayTokenReady ? "" : " · SOON"}
-          </button>
-        </div>
-        <input
-          className="num bevel-inset h-10 w-full bg-[var(--void)] px-2 text-center text-lg text-ink outline-none"
-          type="number"
-          min={0.001}
-          step={0.01}
-          value={amount}
-          onChange={(e) => setAmount(Math.max(0, Number(e.target.value) || 0))}
-        />
-        <div className="flex flex-wrap gap-1">
-          {PRESETS.map((v) => (
+          <div className="bevel p-3 space-y-2">
+            <div className="text-ink-dim">DEPOSIT / WITHDRAW · DEMO</div>
+            <p className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+              Deposit moves play funds into Midway · Withdraw sends play funds back
+              toward your main wallet (simulated).
+            </p>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                className={`bevel-btn flex-1 py-1 ${asset === "SOL" ? "bevel-btn-acid" : ""}`}
+                onClick={() => setAsset("SOL")}
+              >
+                SOL
+              </button>
+              <button
+                type="button"
+                className={`bevel-btn flex-1 py-1 ${asset === "MIDWAY" ? "bevel-btn-acid" : ""}`}
+                disabled={!midwayTokenReady}
+                title={
+                  midwayTokenReady ? "MIDWAY token" : "Set NEXT_PUBLIC_MIDWAY_MINT"
+                }
+                onClick={() => setAsset("MIDWAY")}
+              >
+                MIDWAY{midwayTokenReady ? "" : " · SOON"}
+              </button>
+            </div>
+            <input
+              className="num bevel-inset h-10 w-full bg-[var(--void)] px-2 text-center text-lg text-ink outline-none"
+              type="number"
+              min={0.001}
+              step={0.01}
+              value={amount}
+              onChange={(e) => setAmount(Math.max(0, Number(e.target.value) || 0))}
+            />
+            <div className="flex flex-wrap gap-1">
+              {PRESETS.map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  className="bevel-btn px-2 py-1"
+                  onClick={() => setAmount(v)}
+                >
+                  {v}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="bevel-btn px-2 py-1"
+                onClick={() =>
+                  setAmount(
+                    asset === "SOL" ? roundAmt(playSol) : roundAmt(play.midway),
+                  )
+                }
+              >
+                MAX MIDWAY
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                className="bevel-btn bevel-btn-hot py-3"
+                disabled={
+                  !connected || busy || (asset === "MIDWAY" && !midwayTokenReady)
+                }
+                onClick={() => void run("deposit")}
+                title="Main → Midway (DEMO)"
+              >
+                DEPOSIT
+              </button>
+              <button
+                type="button"
+                className="bevel-btn py-3"
+                disabled={
+                  !connected ||
+                  busy ||
+                  !walletConnected ||
+                  (asset === "MIDWAY" && !midwayTokenReady)
+                }
+                onClick={() => void run("withdraw")}
+                title={
+                  walletConnected
+                    ? "Midway → Main (DEMO)"
+                    : "Connect main wallet to withdraw"
+                }
+              >
+                WITHDRAW
+              </button>
+            </div>
             <button
-              key={v}
               type="button"
-              className="bevel-btn px-2 py-1"
-              onClick={() => setAmount(v)}
+              className="bevel-btn bevel-btn-acid w-full py-2"
+              disabled={!connected || busy}
+              onClick={onReset}
             >
-              {v}
+              RESET MIDWAY TO {DEMO_PLAY_SOL} SOL
             </button>
-          ))}
-          <button
-            type="button"
-            className="bevel-btn px-2 py-1"
-            onClick={() =>
-              setAmount(asset === "SOL" ? roundAmt(play.sol) : roundAmt(play.midway))
-            }
-          >
-            MAX PLAY
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          <button
-            type="button"
-            className="bevel-btn bevel-btn-hot py-3"
-            disabled={!connected || busy || (asset === "MIDWAY" && !midwayTokenReady)}
-            onClick={() => void run("deposit")}
-          >
-            DEMO + {asset}
-          </button>
-          <button
-            type="button"
-            className="bevel-btn py-3"
-            disabled={!connected || busy || (asset === "MIDWAY" && !midwayTokenReady)}
-            onClick={() => void run("withdraw")}
-          >
-            DEMO − {asset}
-          </button>
-        </div>
-        <button
-          type="button"
-          className="bevel-btn bevel-btn-acid w-full py-2"
-          disabled={!connected || busy}
-          onClick={onReset}
-        >
-          RESET DEMO TO {DEMO_PLAY_SOL} SOL
-        </button>
-      </div>
+          </div>
+        </>
+      )}
 
       {status && (
         <p className="font-sans text-[13px] normal-case tracking-normal text-cyber">
@@ -225,14 +299,14 @@ export function MidwayWalletPanel() {
       )}
 
       <p className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-        DEMO escrow is local to this browser + wallet pubkey. No real SOL leaves your
-        main wallet. LIVE vault transfers are disabled. Profile hub tracks up to 5
-        linked wallets — open PROFILE.EXE to switch ledgers.
+        Midway wallet address is a generated Solana pubkey (identity only). Play
+        balance is local to this browser. LIVE custody / on-chain transfers are
+        not enabled. Open PROFILE.EXE for username + linked main wallets.
       </p>
 
       <div className="flex gap-1">
         <button type="button" className="bevel-btn px-2 py-1" onClick={() => refresh()}>
-          REFRESH PLAY
+          REFRESH MIDWAY
         </button>
         <button
           type="button"
@@ -252,11 +326,14 @@ export function MidwayWalletPanel() {
 
       {ledger.length > 0 && (
         <details className="bevel-inset p-2">
-          <summary className="cursor-pointer text-cyber">recent demo ledger</summary>
+          <summary className="cursor-pointer text-cyber">
+            recent Midway ledger
+          </summary>
           <ul className="mt-2 max-h-32 space-y-1 overflow-auto font-mono text-[11px] text-ink-dim">
             {ledger.slice(0, 12).map((e) => (
               <li key={e.id}>
                 {e.kind} · {e.asset} · {fmt(e.amount)}
+                {e.note ? ` · ${e.note}` : ""}
               </li>
             ))}
           </ul>
@@ -266,24 +343,68 @@ export function MidwayWalletPanel() {
   );
 }
 
-function BalanceCard({
-  label,
-  value,
+function WalletCard({
+  title,
+  subtitle,
+  address,
+  balanceLabel,
+  balance,
   hint,
   accent,
+  onCopy,
+  copied,
 }: {
-  label: string;
-  value: string;
+  title: string;
+  subtitle: string;
+  address: string | null;
+  balanceLabel: string;
+  balance: string;
   hint: string;
   accent?: boolean;
+  onCopy?: () => void;
+  copied?: boolean;
 }) {
   return (
-    <div className="bevel-inset p-3">
-      <div className="text-[10px] text-ink-dim">{label}</div>
-      <div className={`num text-xl ${accent ? "text-acid" : "text-ink"}`}>{value}</div>
-      <div className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-        {hint}
+    <div
+      className={`bevel-inset space-y-2 p-3 ${accent ? "border border-acid/50" : ""}`}
+    >
+      <div>
+        <div
+          className={`font-heading text-[10px] tracking-wide ${accent ? "text-acid" : "text-ink-dim"}`}
+        >
+          {title}
+        </div>
+        <div className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+          {subtitle}
+        </div>
       </div>
+      <div>
+        <div className="text-[10px] text-ink-dim">{balanceLabel}</div>
+        <div className={`num text-xl ${accent ? "text-acid" : "text-ink"}`}>
+          {balance}
+        </div>
+        <div className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+          {hint}
+        </div>
+      </div>
+      {address ? (
+        <div className="space-y-1">
+          <div className="break-all font-mono text-[10px] text-ink-dim">
+            {truncateAddress(address, 8, 8)}
+          </div>
+          {onCopy && (
+            <button
+              type="button"
+              className="bevel-btn px-2 py-1 text-[10px]"
+              onClick={onCopy}
+            >
+              {copied ? "COPIED" : "COPY ADDRESS"}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="font-mono text-[10px] text-ink-dim">—</div>
+      )}
     </div>
   );
 }

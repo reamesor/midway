@@ -124,8 +124,9 @@ export function InfoPanel() {
         — win or lose — so you can open TREASURY.MON and watch meters move.
       </p>
       <p className="font-sans text-ink-dim">
-        Demo uses a local 10 SOL play pot (no real transfers). Fairness details (seeds,
-        hashes, dice derivation) live in FAIRNESS.LOG and inline after a roll.
+        Demo uses a Midway wallet play balance (local ledger, no real transfers). Fairness
+        details (seeds, hashes, dice derivation) live in FAIRNESS.LOG and inline after a
+        roll.
       </p>
 
       <Header>House cut → treasury loop</Header>

@@ -179,7 +179,8 @@ function MidwayWalletModal({ onDemoGuest }: { onDemoGuest?: () => void }) {
           Connect Phantom or Solflare
         </h1>
         <p className="midway-wallet-modal__sub">
-          Identity only — Colors uses a local 10 SOL demo pot. No real funds move.
+          Connect main wallet → Midway wallet for play funds. Colors bets use a local
+          DEMO balance — no real funds move.
         </p>
         <ul className="midway-wallet-modal__list">
           {listed.map((w) => {

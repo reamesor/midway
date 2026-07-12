@@ -6,7 +6,7 @@ import {
   type MidwayWalletLedgerEntry,
 } from "./types";
 
-/** v2 = seed / migrate to fixed 10 SOL demo pot. */
+/** v2 = seed / migrate to fixed DEMO Midway wallet play balance. */
 const KEY = (pubkey: string) => `midway-play-wallet:v2:${pubkey}`;
 const LOG_KEY = (pubkey: string) => `midway-play-wallet-log:v2:${pubkey}`;
 
@@ -122,7 +122,7 @@ export function roundPlay(n: number) {
   return Math.round(Math.max(0, n) * 1e6) / 1e6;
 }
 
-/** Cap demo SOL deposits so the pot stays at DEMO_PLAY_SOL max from top-ups. */
+/** Cap demo SOL deposits so Midway wallet stays at DEMO_PLAY_SOL max from top-ups. */
 export function remainingDemoDepositCap(currentSol: number): number {
   return roundPlay(Math.max(0, DEMO_PLAY_SOL - currentSol));
 }

@@ -55,7 +55,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   } = useMidwayWallet();
   const { placeBetOnChain } = useColorsBetTx();
 
-  /** Real play pot only when identity is unlocked — never show a fake spendable balance. */
+  /** Midway play balance only when identity is unlocked — never show a fake spendable balance. */
   const balance = connected ? play.sol : 0;
   const needsDeposit = connected && play.sol <= 0;
 
@@ -160,7 +160,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       return false;
     }
     if (cost > balanceRef.current || cost <= 0) {
-      setPrompt("NOT ENOUGH DEMO SOL — RESET POT IN MIDWAY.WALLET");
+      setPrompt("NOT ENOUGH MIDWAY BALANCE — DEPOSIT OR RESET IN WALLET");
       openWin("wallet");
       return false;
     }
@@ -389,7 +389,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
             {demoGuest ? "DEMO · GUEST" : "DEMO"}
           </span>
           <span className="bevel-inset px-2 py-1 text-[10px] text-ink-dim">
-            {DEMO_PLAY_SOL} SOL POT
+            MIDWAY · {DEMO_PLAY_SOL} SOL
           </span>
           <button
             type="button"
@@ -422,7 +422,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           DEMO · NO REAL FUNDS MOVE
         </strong>
         {" — "}
-        Bets use a local {DEMO_PLAY_SOL} SOL play pot. Wallet connect is identity only.
+        Bets debit your Midway wallet play balance ({DEMO_PLAY_SOL} SOL DEMO seed).
+        Main wallet is for connect / withdraw — not for betting.
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_280px]">

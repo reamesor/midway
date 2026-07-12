@@ -267,7 +267,7 @@ function Desktop() {
         <Win
           key={`wallet-${layoutKey}`}
           id="wallet"
-          title="EXCHANGE.EXE — MIDWAY.WALLET"
+          title="WALLET.EXE — MIDWAY WALLET"
           default={winDefaults.wallet}
           minWidth={300}
           minHeight={360}

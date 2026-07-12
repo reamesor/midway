@@ -1,9 +1,13 @@
-/** Local profile (username + avatar + session stamps) keyed by wallet pubkey or DEMO_GUEST. */
+/** Local profile (username + avatar + Midway wallet + session) keyed by main wallet or DEMO_GUEST. */
 
 import {
   normalizeAvatar,
   type ProfileAvatar,
 } from "@/lib/profile/avatar";
+import {
+  ensureMidwayWallet,
+  loadMidwayWalletIdentity,
+} from "@/lib/midway-wallet/midwayIdentity";
 
 export type MidwayProfile = {
   username: string;
@@ -14,6 +18,13 @@ export type MidwayProfile = {
   lastConnectedAt?: number;
   /** Display picture — Midway character or wallet NFT. */
   avatar?: ProfileAvatar;
+  /**
+   * Midway wallet public address (play purse). Created on connect / demo /
+   * username save. Not a funded on-chain account in DEMO — ledger only.
+   */
+  midwayWalletAddress?: string;
+  /** Main connected wallet this Midway wallet is linked to (real pubkey). */
+  mainWalletPubkey?: string;
 };
 
 export const USERNAME_MIN = 2;
@@ -81,8 +92,24 @@ export function loadProfile(pubkey: string): MidwayProfile | null {
     typeof stored.lastConnectedAt === "number" ? stored.lastConnectedAt : undefined;
   const avatar =
     stored.avatar != null ? normalizeAvatar(stored.avatar) : undefined;
-  // Empty username is only useful as a session / avatar stub.
-  if (!username && lastSessionAt == null && lastConnectedAt == null && !avatar) {
+  const midwayWalletAddress =
+    typeof stored.midwayWalletAddress === "string" && stored.midwayWalletAddress
+      ? stored.midwayWalletAddress
+      : loadMidwayWalletIdentity(pubkey)?.address;
+  const mainWalletPubkey =
+    typeof stored.mainWalletPubkey === "string" && stored.mainWalletPubkey
+      ? stored.mainWalletPubkey
+      : pubkey !== "DEMO_GUEST"
+        ? pubkey
+        : undefined;
+  // Empty username is only useful as a session / avatar / Midway-wallet stub.
+  if (
+    !username &&
+    lastSessionAt == null &&
+    lastConnectedAt == null &&
+    !avatar &&
+    !midwayWalletAddress
+  ) {
     return null;
   }
   return {
@@ -91,6 +118,8 @@ export function loadProfile(pubkey: string): MidwayProfile | null {
     lastSessionAt,
     lastConnectedAt,
     avatar,
+    midwayWalletAddress,
+    mainWalletPubkey,
   };
 }
 
@@ -108,12 +137,17 @@ export function saveProfile(
   const check = validateUsername(rawUsername);
   if (!check.ok) return check;
   const prev = loadProfile(pubkey);
+  const midway = ensureMidwayWallet(pubkey);
   const profile: MidwayProfile = {
     username: check.username,
     updatedAt: Date.now(),
     lastSessionAt: prev?.lastSessionAt,
     lastConnectedAt: prev?.lastConnectedAt,
     avatar: prev?.avatar,
+    midwayWalletAddress: midway.address,
+    mainWalletPubkey:
+      prev?.mainWalletPubkey ??
+      (pubkey !== "DEMO_GUEST" ? pubkey : undefined),
   };
   writeProfile(pubkey, profile);
   return { ok: true, profile };
@@ -125,30 +159,43 @@ export function saveAvatar(
 ): { ok: true; profile: MidwayProfile } | { ok: false; error: string } {
   const prev = loadProfile(pubkey);
   const next = normalizeAvatar(avatar);
+  const midway = ensureMidwayWallet(pubkey);
   const profile: MidwayProfile = {
     username: prev?.username ?? "",
     updatedAt: Date.now(),
     lastSessionAt: prev?.lastSessionAt,
     lastConnectedAt: prev?.lastConnectedAt,
     avatar: next,
+    midwayWalletAddress: prev?.midwayWalletAddress ?? midway.address,
+    mainWalletPubkey:
+      prev?.mainWalletPubkey ??
+      (pubkey !== "DEMO_GUEST" ? pubkey : undefined),
   };
   writeProfile(pubkey, profile);
   return { ok: true, profile };
 }
 
-/** Stamp last connected / session without requiring a username yet. */
+/**
+ * Stamp last connected / session and ensure a Midway wallet exists.
+ * Connect main wallet → Midway wallet created (username can follow).
+ */
 export function touchProfileSession(
   pubkey: string,
   opts?: { connected?: boolean },
 ): MidwayProfile {
   const prev = loadProfile(pubkey);
   const now = Date.now();
+  const midway = ensureMidwayWallet(pubkey);
   const profile: MidwayProfile = {
     username: prev?.username ?? "",
     updatedAt: prev?.updatedAt ?? now,
     lastSessionAt: now,
     lastConnectedAt: opts?.connected ? now : prev?.lastConnectedAt,
     avatar: prev?.avatar,
+    midwayWalletAddress: prev?.midwayWalletAddress ?? midway.address,
+    mainWalletPubkey:
+      prev?.mainWalletPubkey ??
+      (pubkey !== "DEMO_GUEST" ? pubkey : undefined),
   };
   // Only persist if we have a username or we're recording connect stamps in a stub.
   if (prev?.username) {
@@ -158,7 +205,7 @@ export function touchProfileSession(
     });
     return { ...profile, username: prev.username };
   }
-  // Keep a lightweight session stub so reconnect can show "last connected".
+  // Keep a lightweight session stub so reconnect can show Midway wallet + stamps.
   writeJson(KEY(pubkey), {
     ...profile,
     username: prev?.username ?? "",

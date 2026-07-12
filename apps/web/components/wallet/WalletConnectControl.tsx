@@ -124,7 +124,7 @@ export function WalletConnectControl({
               setMenu(false);
             }}
           >
-            MIDWAY.WALLET
+            WALLET.EXE
           </button>
           <button
             type="button"

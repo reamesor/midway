@@ -5,6 +5,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useOs } from "@/components/os/OsContext";
 import { WalletConnectControl } from "@/components/wallet/WalletConnectControl";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
+import { useSolBalance } from "@/hooks/useSolBalance";
 import { truncateAddress } from "@/lib/solana/address";
 import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
 import {
@@ -60,6 +61,9 @@ export function DashboardPanel() {
     demoGuest,
     pubkey,
     adapterPubkey,
+    walletConnected,
+    midwayWalletAddress,
+    midwayPlayBalance,
     play,
     username,
     profile,
@@ -78,6 +82,8 @@ export function DashboardPanel() {
     switchActive,
     renameSlot,
   } = usePlayerProfile();
+
+  const { balance: mainSol, loading: mainLoading } = useSolBalance();
 
   const [draft, setDraft] = useState(username ?? "");
   const [status, setStatus] = useState<string | null>(null);
@@ -156,7 +162,7 @@ export function DashboardPanel() {
           <div className="min-w-0">
             <div className="chroma text-sm text-hot">PROFILE.EXE</div>
             <div className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-              Identity hub · multi-wallet · local DEMO ledger
+              Username · Midway wallet · main wallets
             </div>
           </div>
         </div>
@@ -168,17 +174,19 @@ export function DashboardPanel() {
 
       <div className="bevel-inset border border-acid/40 bg-acid/10 px-3 py-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
         <strong className="font-heading text-[10px] tracking-wide text-acid">
-          LOCAL ONLY
+          MIDWAY WALLET · DEMO
         </strong>
         {" — "}
-        Username, avatar, play pot, tx log, and P/L persist per wallet pubkey in this
-        browser. Reconnect the same address to restore state.
+        Connect a main wallet → create username → Midway wallet is created for play
+        funds. Play balance is local (not real custody). Deposit / withdraw in
+        WALLET.EXE.
       </div>
 
       {!connected && hub.slots.length === 0 && (
         <div className="bevel-inset p-3 font-sans text-[13px] normal-case tracking-normal text-ink-dim">
-          Connect Phantom / Solflare (or play as demo guest) to open your profile.
-          Linked wallets attach here (max {maxWallets}).
+          Connect Phantom / Solflare to set up your Midway profile (username + Midway
+          wallet), or play demo for an ephemeral Midway wallet. Linked main wallets:
+          max {maxWallets}.
           <button
             type="button"
             className="bevel-btn bevel-btn-hot mt-2 block w-full py-2 font-heading text-[11px] tracking-wide"
@@ -201,13 +209,44 @@ export function DashboardPanel() {
                 <div className="break-all font-mono text-[12px] text-ink">
                   {username ? `@${username}` : "—"} · {identityLabel}
                 </div>
+                {midwayWalletAddress && (
+                  <div className="break-all font-mono text-[10px] text-acid">
+                    Midway · {truncateAddress(midwayWalletAddress, 6, 6)}
+                  </div>
+                )}
                 {pubkey && pubkey !== DEMO_GUEST_PUBKEY && (
                   <div className="break-all font-mono text-[10px] text-ink-dim">
-                    {pubkey}
+                    Main · {truncateAddress(pubkey, 6, 6)}
                   </div>
                 )}
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Stat
+                label="MAIN SOL"
+                value={
+                  !walletConnected
+                    ? "—"
+                    : mainLoading
+                      ? "…"
+                      : mainSol == null
+                        ? "—"
+                        : mainSol.toFixed(2)
+                }
+              />
+              <Stat
+                label="MIDWAY PLAY"
+                value={(midwayPlayBalance?.sol ?? play.sol).toFixed(2)}
+                accent="text-acid"
+              />
+            </div>
+            <button
+              type="button"
+              className="bevel-btn w-full py-1.5 text-[10px]"
+              onClick={() => openWin("wallet")}
+            >
+              DEPOSIT / WITHDRAW IN WALLET
+            </button>
             <div className="grid grid-cols-2 gap-2 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
               <div>
                 Last session:{" "}
@@ -226,7 +265,7 @@ export function DashboardPanel() {
             )}
             {demoGuest && (
               <p className="font-sans text-[11px] normal-case text-ink-dim">
-                Guest identity is separate from linked wallets.
+                Guest Midway wallet is ephemeral and separate from linked main wallets.
               </p>
             )}
           </section>
@@ -283,7 +322,10 @@ export function DashboardPanel() {
           />
 
           <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Stat label="PLAY SOL" value={play.sol.toFixed(2)} />
+            <Stat
+              label="MIDWAY SOL"
+              value={(midwayPlayBalance?.sol ?? play.sol).toFixed(2)}
+            />
             <Stat label="ROUNDS" value={String(stats?.rounds ?? 0)} />
             <Stat label="WINS" value={String(stats?.wins ?? 0)} />
             <Stat label="WIN RATE" value={`${winRate}%`} />
@@ -316,7 +358,7 @@ export function DashboardPanel() {
           <section className="bevel-inset space-y-2 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="font-heading text-[10px] tracking-wide text-ink-dim">
-                LINKED WALLETS · {hub.slots.length}/{maxWallets}
+                MAIN WALLETS · {hub.slots.length}/{maxWallets}
               </div>
               <button
                 type="button"
@@ -334,8 +376,8 @@ export function DashboardPanel() {
             </div>
             {hub.slots.length === 0 ? (
               <p className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-                No real wallets linked yet. Connect Phantom or Solflare to attach an
-                address (guest stays separate).
+                No main wallets linked yet. Connect Phantom or Solflare — that becomes
+                your cash-out target and creates a Midway wallet for play funds.
               </p>
             ) : (
               <ul className="space-y-2">
@@ -468,8 +510,8 @@ export function DashboardPanel() {
           )}
 
           <p className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Demo pot cap {DEMO_PLAY_SOL} SOL · wins = rounds with ≥1 color hit · net P/L
-            = wins returned − bets spent + shares claimed.
+            Midway play balance DEMO cap {DEMO_PLAY_SOL} SOL · wins = rounds with ≥1
+            color hit · net P/L = wins returned − bets spent + shares claimed.
           </p>
         </>
       )}

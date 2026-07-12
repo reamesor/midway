@@ -200,7 +200,7 @@ export function setPrimaryWallet(rawPubkey: string): AttachResult {
   };
 }
 
-/** Soft-switch which wallet's ledger / stats the PROFILE and play pot show. */
+/** Soft-switch which wallet's ledger / stats the PROFILE and Midway wallet show. */
 export function setActiveWallet(rawPubkey: string): AttachResult {
   const pubkey = normalizePubkey(rawPubkey);
   const hub = loadWalletHub();

@@ -9,7 +9,7 @@ import { useOs, type WinId } from "./OsContext";
 
 const TABS: { id: WinId; label: string }[] = [
   { id: "dashboard", label: "PROFILE.EXE" },
-  { id: "wallet", label: "EXCHANGE.EXE" },
+  { id: "wallet", label: "WALLET.EXE" },
   { id: "leaderboard", label: "BOARD.EXE" },
   { id: "colors", label: "COLORS.EXE" },
   { id: "loop", label: "LOOP.EXE" },

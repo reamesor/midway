@@ -116,15 +116,17 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
           <Section title="SOLANA · DEMO">
             <div className="space-y-2 rounded border border-line/60 bg-paper-2/80 p-3">
               <p>
-                Colors uses a <strong className="text-cyber">10 SOL demo pot</strong>.
-                Connect <strong className="text-ink">Phantom</strong> or{" "}
-                <strong className="text-ink">Solflare</strong> for identity only —
-                no real funds move.
+                Colors uses your{" "}
+                <strong className="text-cyber">Midway wallet</strong> play balance
+                (DEMO · 10 SOL seed). Connect{" "}
+                <strong className="text-ink">Phantom</strong> or{" "}
+                <strong className="text-ink">Solflare</strong> as your main wallet to
+                create a Midway wallet + username — no real funds move for bets.
               </p>
               <p className="text-[13px] text-ink-dim">
-                Bets debit Midway play (local ledger). Reset the pot anytime in{" "}
-                <strong className="text-hot">MIDWAY.WALLET</strong>. LIVE vault
-                transfers are disabled.
+                Bets debit Midway play funds (local ledger). Deposit / withdraw / reset
+                anytime in <strong className="text-hot">WALLET.EXE</strong>. LIVE
+                custody transfers are disabled.
               </p>
             </div>
           </Section>

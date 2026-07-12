@@ -54,7 +54,7 @@ export function BetPanel({
     <div className="space-y-3 font-heading text-[11px]">
       <div className="bevel-inset p-3">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-ink-dim">MIDWAY PLAY · DEMO</div>
+          <div className="text-ink-dim">MIDWAY WALLET · DEMO</div>
           <WalletConnectControl size="panel" />
         </div>
         <div className="num text-2xl text-acid">
@@ -67,15 +67,16 @@ export function BetPanel({
           </p>
         ) : needsDeposit ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Demo pot empty —{" "}
+            Midway wallet empty —{" "}
             <button type="button" className="text-hot underline" onClick={onOpenWallet}>
-              reset to 10 SOL
+              deposit or reset
             </button>{" "}
-            in MIDWAY.WALLET. No real funds move.
+            in WALLET. Play funds are DEMO — no real SOL moves.
           </p>
         ) : (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            DEMO bets debit the local play pot when you pull the lever — no real SOL leaves your wallet.
+            DEMO bets debit your Midway wallet when you pull the lever — no real SOL
+            leaves your main wallet.
           </p>
         )}
       </div>

@@ -31,7 +31,7 @@ export function ResultBreakdown({
     <div className="space-y-3 font-sans text-[13px] normal-case tracking-normal text-ink">
       <div className="bevel-inset space-y-1.5 p-3">
         <div className="font-heading text-[10px] tracking-wide text-ink-dim">
-          MIDWAY PLAY · THIS ROUND
+          MIDWAY WALLET · THIS ROUND
         </div>
         <Row label="Bet cost" value={`−${fmt(stake)} ${unit}`} tone="dim" />
         <Row
