@@ -10,7 +10,6 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
-  AnimatePresence,
   motion,
   useReducedMotion,
   type Transition,
@@ -346,6 +345,14 @@ export function IdleDesktop() {
 
   const empty = useMemo(() => Object.values(open).every((v) => !v), [open]);
 
+  // Hard stop: never keep idle cubes mounted under any open window.
+  useEffect(() => {
+    if (empty) return;
+    setCycleId(null);
+    setAttract(false);
+    setPointer({ x: 0.5, y: 0.5 });
+  }, [empty]);
+
   const cubes = useMemo<CubeSpec[]>(
     () =>
       COLOR_KEYS.map((id, i) => ({
@@ -400,9 +407,10 @@ export function IdleDesktop() {
       ? { K: "#e9e6df", R: "#a9c6a0", W: "#2f5a38", Y: "#c08a2e", D: "#1a241c" }
       : { ...P_TENT };
 
+  // Mount only when every OS window is closed — no exit linger under COLORS/dialogs.
+  if (!empty) return null;
+
   return (
-    <AnimatePresence>
-      {empty ? (
         <motion.div
           key="idle-desktop"
           ref={rootRef}
@@ -410,8 +418,7 @@ export function IdleDesktop() {
           aria-label="Idle desktop scene"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduced ? 0.15 : 0.55, ease: "easeOut" }}
+          transition={{ duration: reduced ? 0.12 : 0.35, ease: "easeOut" }}
           onPointerMove={onMove}
           onPointerEnter={() => setAttract(true)}
           onPointerLeave={() => {
@@ -471,7 +478,5 @@ export function IdleDesktop() {
             ))}
           </div>
         </motion.div>
-      ) : null}
-    </AnimatePresence>
   );
 }

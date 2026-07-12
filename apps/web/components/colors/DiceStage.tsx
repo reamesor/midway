@@ -1,11 +1,10 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { ColorKey } from "@/lib/colors/engine";
-import { COLOR_HEX, COLOR_KEYS, COLOR_LABEL } from "@/lib/colors/engine";
+import { COLOR_HEX, COLOR_KEYS } from "@/lib/colors/engine";
 
 type DiceStageProps = {
   dice: ColorKey[] | null;
@@ -16,7 +15,7 @@ type DiceStageProps = {
 
 export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
   return (
-    <div className="bevel-inset relative min-h-[300px] overflow-hidden bg-[#1a1a22]">
+    <div className="bevel-inset relative isolate min-h-[300px] overflow-hidden bg-[#1a1a22]">
       <div
         className="pointer-events-none absolute inset-0 dithered opacity-40"
         style={{
@@ -137,11 +136,6 @@ function DieMesh({
           />
         </mesh>
       )}
-      <Html center position={[0, -1.2, 0]} style={{ pointerEvents: "none" }}>
-        <div className="num text-[11px] font-extrabold tracking-wide text-[rgba(40,10,50,0.65)]">
-          {COLOR_LABEL[face]}
-        </div>
-      </Html>
     </group>
   );
 }

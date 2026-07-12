@@ -373,7 +373,7 @@ html.dark .desktop-wallpaper {
   opacity: 0.35;
 }
 
-/* Idle desktop — calm empty-workspace scene */
+/* Idle desktop — calm empty-workspace scene (only when all windows closed) */
 .idle-desktop {
   position: absolute;
   inset: 0;
@@ -381,6 +381,7 @@ html.dark .desktop-wallpaper {
   z-index: 3;
   pointer-events: auto;
   overflow: hidden;
+  isolation: isolate;
 }
 .idle-desktop-stage {
   position: absolute;
