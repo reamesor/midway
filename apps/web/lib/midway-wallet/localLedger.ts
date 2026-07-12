@@ -67,8 +67,51 @@ export function appendLedger(
     amount: entry.amount,
     note: entry.note,
   };
-  writeJson(LOG_KEY(pubkey), [next, ...log].slice(0, 40));
+  writeJson(LOG_KEY(pubkey), [next, ...log].slice(0, 100));
   return next;
+}
+
+/** Derive DEMO net P/L from ledger (wins − bets + claims − losses logged). */
+export function deriveLedgerPnL(pubkey: string): {
+  betSpent: number;
+  winsReturned: number;
+  losses: number;
+  claims: number;
+  net: number;
+} {
+  const log = loadLedger(pubkey);
+  let betSpent = 0;
+  let winsReturned = 0;
+  let losses = 0;
+  let claims = 0;
+  for (const e of log) {
+    if (e.asset !== "SOL") continue;
+    switch (e.kind) {
+      case "bet_debit":
+        betSpent += e.amount;
+        break;
+      case "bet_credit":
+        winsReturned += e.amount;
+        break;
+      case "bet_loss":
+        losses += e.amount;
+        break;
+      case "claim":
+        claims += e.amount;
+        break;
+      default:
+        break;
+    }
+  }
+  const round = (n: number) => Math.round(n * 1e6) / 1e6;
+  const net = round(winsReturned + claims - betSpent);
+  return {
+    betSpent: round(betSpent),
+    winsReturned: round(winsReturned),
+    losses: round(losses),
+    claims: round(claims),
+    net,
+  };
 }
 
 export function loadLedger(pubkey: string): MidwayWalletLedgerEntry[] {

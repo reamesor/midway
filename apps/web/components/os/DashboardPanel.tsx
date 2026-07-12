@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useOs } from "@/components/os/OsContext";
 import { WalletConnectControl } from "@/components/wallet/WalletConnectControl";
@@ -12,32 +11,88 @@ import {
   USERNAME_MAX,
   USERNAME_MIN,
 } from "@/lib/profile/localProfile";
+import { DEMO_GUEST_PUBKEY } from "@/components/wallet/DemoGuestContext";
+import type { MidwayWalletLedgerEntry } from "@/lib/midway-wallet/types";
+import type { WalletSlot } from "@/lib/profile/walletHub";
+
+function fmtTime(ts?: number) {
+  if (!ts) return "—";
+  try {
+    return new Date(ts).toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+function ledgerLabel(e: MidwayWalletLedgerEntry): string {
+  switch (e.kind) {
+    case "bet_debit":
+      return "BET SPENT";
+    case "bet_credit":
+      return "WIN RETURNED";
+    case "bet_loss":
+      return "LOSS";
+    case "claim":
+      return "SHARE CLAIMED";
+    case "deposit":
+      return "DEPOSIT";
+    case "withdraw":
+      return "WITHDRAW";
+    case "reset":
+      return "RESET";
+    default:
+      return e.kind;
+  }
+}
 
 export function DashboardPanel() {
   const { openWin } = useOs();
-  const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
   const {
     connected,
     demoGuest,
     pubkey,
+    adapterPubkey,
     play,
     username,
+    profile,
     stats,
+    hub,
+    maxWallets,
+    claimableShare,
+    txLog,
+    pnl,
+    winRate,
     setUsername,
+    unlinkWallet,
+    makePrimary,
+    switchActive,
+    renameSlot,
   } = usePlayerProfile();
 
   const [draft, setDraft] = useState(username ?? "");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [labelDrafts, setLabelDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setDraft(username ?? "");
   }, [username, pubkey]);
 
+  useEffect(() => {
+    const next: Record<string, string> = {};
+    for (const s of hub.slots) next[s.pubkey] = s.label;
+    setLabelDrafts(next);
+  }, [hub.slots]);
+
   const identityLabel = (() => {
-    if (publicKey) return truncateAddress(publicKey.toBase58(), 6, 6);
-    if (demoGuest) return "DEMO · GUEST";
+    if (pubkey === DEMO_GUEST_PUBKEY) return "DEMO · GUEST";
+    if (pubkey) return truncateAddress(pubkey, 6, 6);
     return "Not connected";
   })();
 
@@ -52,13 +107,41 @@ export function DashboardPanel() {
     setStatus("Username saved.");
   };
 
+  const onSwitch = (slot: WalletSlot) => {
+    setError(null);
+    const res = switchActive(slot.pubkey);
+    if (!res.ok) setError(res.error);
+    else setStatus(`Active ledger → ${truncateAddress(slot.pubkey, 4, 4)}`);
+  };
+
+  const onPrimary = (slot: WalletSlot) => {
+    setError(null);
+    const res = makePrimary(slot.pubkey);
+    if (!res.ok) setError(res.error);
+    else setStatus(`Primary set → ${truncateAddress(slot.pubkey, 4, 4)}`);
+  };
+
+  const onRemove = (slot: WalletSlot) => {
+    setError(null);
+    unlinkWallet(slot.pubkey);
+    setStatus(`Removed ${truncateAddress(slot.pubkey, 4, 4)}`);
+  };
+
+  const onSaveLabel = (slot: WalletSlot) => {
+    const res = renameSlot(slot.pubkey, labelDrafts[slot.pubkey] ?? "");
+    if (!res.ok) setError(res.error);
+    else setStatus("Label saved.");
+  };
+
+  const netTone = pnl.net > 0 ? "text-acid" : pnl.net < 0 ? "text-burn" : "text-ink";
+
   return (
     <div className="font-heading text-xs space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-line pb-2">
         <div>
-          <div className="chroma text-sm text-hot">DASHBOARD.EXE</div>
+          <div className="chroma text-sm text-hot">PROFILE.EXE</div>
           <div className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-            Profile · local demo stats
+            Identity hub · multi-wallet · local DEMO ledger
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -72,13 +155,14 @@ export function DashboardPanel() {
           LOCAL ONLY
         </strong>
         {" — "}
-        Username and scores stay in this browser until a live board ships.
+        Username, play pot, tx log, and P/L persist per wallet pubkey in this browser.
+        Reconnect the same address to restore state.
       </div>
 
-      {!connected && (
+      {!connected && hub.slots.length === 0 && (
         <div className="bevel-inset p-3 font-sans text-[13px] normal-case tracking-normal text-ink-dim">
-          Connect a wallet or play as demo guest to edit your username and track
-          Colors stats.
+          Connect Phantom / Solflare (or play as demo guest) to open your profile.
+          Linked wallets attach here (max {maxWallets}).
           <button
             type="button"
             className="bevel-btn bevel-btn-hot mt-2 block w-full py-2 font-heading text-[11px] tracking-wide"
@@ -89,19 +173,37 @@ export function DashboardPanel() {
         </div>
       )}
 
-      {connected && (
+      {(connected || hub.slots.length > 0) && (
         <>
           <section className="bevel-inset p-3 space-y-2">
             <div className="font-heading text-[10px] tracking-wide text-ink-dim">
-              IDENTITY
+              ACTIVE IDENTITY
             </div>
             <div className="font-mono text-[12px] text-ink break-all">
-              {identityLabel}
+              {username ? `@${username}` : "—"} · {identityLabel}
             </div>
-            {pubkey && pubkey !== "DEMO_GUEST" && publicKey && (
-              <div className="font-mono text-[10px] text-ink-dim break-all">
-                {publicKey.toBase58()}
+            {pubkey && pubkey !== DEMO_GUEST_PUBKEY && (
+              <div className="font-mono text-[10px] text-ink-dim break-all">{pubkey}</div>
+            )}
+            <div className="grid grid-cols-2 gap-2 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+              <div>
+                Last session:{" "}
+                <span className="text-ink">{fmtTime(profile?.lastSessionAt)}</span>
               </div>
+              <div>
+                Last connected:{" "}
+                <span className="text-ink">{fmtTime(profile?.lastConnectedAt)}</span>
+              </div>
+            </div>
+            {adapterPubkey && pubkey && adapterPubkey !== pubkey && (
+              <p className="font-sans text-[11px] normal-case text-cyber">
+                Viewing linked ledger · extension still {truncateAddress(adapterPubkey, 4, 4)}
+              </p>
+            )}
+            {demoGuest && (
+              <p className="font-sans text-[11px] normal-case text-ink-dim">
+                Guest identity is separate from linked wallets.
+              </p>
             )}
           </section>
 
@@ -115,7 +217,8 @@ export function DashboardPanel() {
                 value={draft}
                 maxLength={USERNAME_MAX}
                 placeholder="e.g. TentFox"
-                className="bevel-inset min-w-[140px] flex-1 bg-panel px-2 py-1.5 font-mono text-[13px] text-ink outline-none"
+                disabled={!pubkey}
+                className="bevel-inset min-w-[140px] flex-1 bg-panel px-2 py-1.5 font-mono text-[13px] text-ink outline-none disabled:opacity-50"
                 onChange={(e) => {
                   setDraft(e.target.value);
                   setError(null);
@@ -129,6 +232,7 @@ export function DashboardPanel() {
               <button
                 type="button"
                 className="bevel-btn bevel-btn-hot px-3 py-1.5"
+                disabled={!pubkey}
                 onClick={onSave}
               >
                 SAVE
@@ -137,26 +241,190 @@ export function DashboardPanel() {
             <p className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
               {USERNAME_MIN}–{USERNAME_MAX} chars · letters, numbers, _ -
             </p>
-            {error && (
-              <p className="font-sans text-[12px] normal-case text-burn">{error}</p>
-            )}
-            {status && (
-              <p className="font-sans text-[12px] normal-case text-acid">{status}</p>
-            )}
           </section>
 
           <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label="PLAY SOL" value={play.sol.toFixed(2)} />
             <Stat label="ROUNDS" value={String(stats?.rounds ?? 0)} />
             <Stat label="WINS" value={String(stats?.wins ?? 0)} />
-            <Stat
-              label="SOL WON"
-              value={(stats?.solWon ?? 0).toFixed(2)}
-            />
+            <Stat label="WIN RATE" value={`${winRate}%`} />
           </section>
 
+          <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <Stat label="BET SPENT" value={pnl.betSpent.toFixed(2)} />
+            <Stat label="WINS BACK" value={pnl.winsReturned.toFixed(2)} />
+            <Stat label="SHARES" value={(stats?.sharesClaimed ?? pnl.claims).toFixed(4)} />
+            <Stat label="NET P/L" value={pnl.net.toFixed(2)} accent={netTone} />
+          </section>
+
+          <section className="bevel-inset p-3 space-y-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="font-heading text-[10px] tracking-wide text-ink-dim">
+                BELIEVERS SHARE
+              </div>
+              <span className="num text-acid">◎ {claimableShare.toFixed(4)} claimable</span>
+            </div>
+            <p className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+              Accrues from Colors house cut · claim in TREASURY.MON
+            </p>
+          </section>
+
+          {/* Linked wallets */}
+          <section className="bevel-inset p-3 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="font-heading text-[10px] tracking-wide text-ink-dim">
+                LINKED WALLETS · {hub.slots.length}/{maxWallets}
+              </div>
+              <button
+                type="button"
+                className="bevel-btn px-2 py-1 text-[10px]"
+                onClick={() => setVisible(true)}
+                disabled={hub.slots.length >= maxWallets}
+                title={
+                  hub.slots.length >= maxWallets
+                    ? "Remove a wallet first"
+                    : "Connect Phantom / Solflare to attach"
+                }
+              >
+                + ADD VIA CONNECT
+              </button>
+            </div>
+            {hub.slots.length === 0 ? (
+              <p className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+                No real wallets linked yet. Connect Phantom or Solflare to attach an
+                address (guest stays separate).
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {hub.slots.map((slot) => {
+                  const isActive = hub.activePubkey === slot.pubkey;
+                  const isPrimary = hub.primaryPubkey === slot.pubkey;
+                  const isExtension = adapterPubkey === slot.pubkey;
+                  return (
+                    <li
+                      key={slot.pubkey}
+                      className={`border border-line bg-panel/40 p-2 ${
+                        isActive ? "border-acid/60" : ""
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-mono text-[11px] text-ink">
+                          {truncateAddress(slot.pubkey, 6, 6)}
+                        </span>
+                        {isPrimary && (
+                          <span className="bevel-inset px-1.5 py-0.5 text-[9px] text-acid">
+                            PRIMARY
+                          </span>
+                        )}
+                        {isActive && (
+                          <span className="bevel-inset px-1.5 py-0.5 text-[9px] text-hot">
+                            ACTIVE
+                          </span>
+                        )}
+                        {isExtension && (
+                          <span className="bevel-inset px-1.5 py-0.5 text-[9px] text-cyber">
+                            CONNECTED
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 font-mono text-[10px] text-ink-dim break-all">
+                        {slot.pubkey}
+                      </div>
+                      <div className="mt-1 grid grid-cols-2 gap-1 font-sans text-[10px] normal-case tracking-normal text-ink-dim">
+                        <span>Linked {fmtTime(slot.linkedAt)}</span>
+                        <span>Last connected {fmtTime(slot.lastConnectedAt)}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-1">
+                        <input
+                          type="text"
+                          value={labelDrafts[slot.pubkey] ?? ""}
+                          maxLength={24}
+                          placeholder="label"
+                          className="bevel-inset min-w-[80px] flex-1 bg-panel px-1.5 py-1 font-mono text-[11px] text-ink outline-none"
+                          onChange={(e) =>
+                            setLabelDrafts((d) => ({
+                              ...d,
+                              [slot.pubkey]: e.target.value,
+                            }))
+                          }
+                          aria-label={`Label for ${truncateAddress(slot.pubkey)}`}
+                        />
+                        <button
+                          type="button"
+                          className="bevel-btn px-2 py-1 text-[10px]"
+                          onClick={() => onSaveLabel(slot)}
+                        >
+                          LABEL
+                        </button>
+                        {!isActive && (
+                          <button
+                            type="button"
+                            className="bevel-btn bevel-btn-hot px-2 py-1 text-[10px]"
+                            onClick={() => onSwitch(slot)}
+                          >
+                            SET ACTIVE
+                          </button>
+                        )}
+                        {!isPrimary && (
+                          <button
+                            type="button"
+                            className="bevel-btn px-2 py-1 text-[10px]"
+                            onClick={() => onPrimary(slot)}
+                          >
+                            PRIMARY
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="bevel-btn px-2 py-1 text-[10px] text-burn"
+                          onClick={() => onRemove(slot)}
+                        >
+                          REMOVE
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          {/* Transaction log */}
+          <section className="bevel-inset p-3 space-y-2">
+            <div className="font-heading text-[10px] tracking-wide text-ink-dim">
+              TRANSACTIONS · LOCAL LOG
+            </div>
+            {txLog.length === 0 ? (
+              <p className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+                No bets, wins, losses, or claims yet for this wallet.
+              </p>
+            ) : (
+              <ul className="max-h-40 space-y-1 overflow-auto font-mono text-[10px] text-ink-dim">
+                {txLog.slice(0, 40).map((e) => (
+                  <li key={e.id} className="flex flex-wrap justify-between gap-2 border-b border-line/40 py-0.5">
+                    <span>
+                      <span className="text-ink">{ledgerLabel(e)}</span>
+                      {" · "}
+                      {e.asset} {e.amount.toFixed(4)}
+                      {e.note ? ` · ${e.note}` : ""}
+                    </span>
+                    <span>{fmtTime(e.at)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {error && (
+            <p className="font-sans text-[12px] normal-case text-burn">{error}</p>
+          )}
+          {status && (
+            <p className="font-sans text-[12px] normal-case text-acid">{status}</p>
+          )}
+
           <p className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Demo pot cap {DEMO_PLAY_SOL} SOL · wins = rounds with ≥1 color hit.
+            Demo pot cap {DEMO_PLAY_SOL} SOL · wins = rounds with ≥1 color hit · net P/L =
+            wins returned − bets spent + shares claimed.
           </p>
         </>
       )}
@@ -165,9 +433,16 @@ export function DashboardPanel() {
         <button
           type="button"
           className="bevel-btn px-3 py-2"
+          onClick={() => openWin("wallet")}
+        >
+          ▶ WALLET
+        </button>
+        <button
+          type="button"
+          className="bevel-btn px-3 py-2"
           onClick={() => openWin("leaderboard")}
         >
-          ▶ LEADERBOARD
+          ▶ BOARD
         </button>
         <button
           type="button"
@@ -179,20 +454,28 @@ export function DashboardPanel() {
         <button
           type="button"
           className="bevel-btn px-3 py-2"
-          onClick={() => openWin("wallet")}
+          onClick={() => openWin("treasury")}
         >
-          ▶ WALLET
+          ▶ TREASURY
         </button>
       </div>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: string;
+}) {
   return (
     <div className="bevel-inset px-2 py-2 text-center">
       <div className="font-heading text-[9px] tracking-wide text-ink-dim">{label}</div>
-      <div className="num mt-0.5 text-sm text-ink">{value}</div>
+      <div className={`num mt-0.5 text-sm ${accent ?? "text-ink"}`}>{value}</div>
     </div>
   );
 }

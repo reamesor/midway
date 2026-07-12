@@ -99,7 +99,7 @@ export function LeaderboardPanel() {
           className="bevel-btn px-3 py-2"
           onClick={() => openWin("dashboard")}
         >
-          ▶ DASHBOARD
+          ▶ PROFILE
         </button>
         <button
           type="button"

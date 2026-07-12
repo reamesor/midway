@@ -13,6 +13,10 @@ export type PlayerStats = {
   wins: number;
   /** Cumulative play SOL returned on winning rounds (gross payouts). */
   solWon: number;
+  /** Cumulative play SOL wagered (stake per round). */
+  solStaked: number;
+  /** Cumulative believers share claimed (DEMO SOL). */
+  sharesClaimed: number;
   updatedAt: number;
 };
 
@@ -100,6 +104,8 @@ export function loadPlayerStats(pubkey: string): PlayerStats {
       rounds: 0,
       wins: 0,
       solWon: 0,
+      solStaked: 0,
+      sharesClaimed: 0,
       updatedAt: 0,
     };
   }
@@ -108,6 +114,8 @@ export function loadPlayerStats(pubkey: string): PlayerStats {
     rounds: Math.max(0, Math.floor(stored.rounds)),
     wins: Math.max(0, Math.floor(stored.wins)),
     solWon: Math.max(0, Number(stored.solWon) || 0),
+    solStaked: Math.max(0, Number(stored.solStaked) || 0),
+    sharesClaimed: Math.max(0, Number(stored.sharesClaimed) || 0),
     updatedAt: typeof stored.updatedAt === "number" ? stored.updatedAt : 0,
   };
 }
@@ -120,11 +128,11 @@ function savePlayerStats(stats: PlayerStats) {
 
 /**
  * After a Colors round settles — bump rounds; count a win when matches > 0;
- * add gross winnings to solWon.
+ * add gross winnings to solWon and stake to solStaked.
  */
 export function recordColorsRound(
   pubkey: string,
-  opts: { matches: number; winnings: number },
+  opts: { matches: number; winnings: number; stake?: number },
 ): PlayerStats {
   const cur = loadPlayerStats(pubkey);
   const won = opts.matches > 0;
@@ -133,10 +141,33 @@ export function recordColorsRound(
     rounds: cur.rounds + 1,
     wins: cur.wins + (won ? 1 : 0),
     solWon: Math.round((cur.solWon + Math.max(0, opts.winnings)) * 1e6) / 1e6,
+    solStaked: Math.round((cur.solStaked + Math.max(0, opts.stake ?? 0)) * 1e6) / 1e6,
+    sharesClaimed: cur.sharesClaimed,
     updatedAt: Date.now(),
   };
   savePlayerStats(next);
   return next;
+}
+
+export function recordSharesClaimed(pubkey: string, amount: number): PlayerStats {
+  const cur = loadPlayerStats(pubkey);
+  const next: PlayerStats = {
+    ...cur,
+    sharesClaimed: Math.round((cur.sharesClaimed + Math.max(0, amount)) * 1e6) / 1e6,
+    updatedAt: Date.now(),
+  };
+  savePlayerStats(next);
+  return next;
+}
+
+/** Net DEMO P/L from stats: wins returned − stakes + shares claimed. */
+export function netPnlFromStats(stats: PlayerStats): number {
+  return Math.round((stats.solWon - stats.solStaked + stats.sharesClaimed) * 1e6) / 1e6;
+}
+
+export function winRatePct(stats: PlayerStats): number {
+  if (stats.rounds <= 0) return 0;
+  return Math.round((stats.wins / stats.rounds) * 1000) / 10;
 }
 
 function displayName(pubkey: string, seededUsername?: string): string {
@@ -170,6 +201,8 @@ export function getLeaderboard(currentPubkey: string | null): LeaderboardEntry[]
         rounds: seed.rounds,
         wins: seed.wins,
         solWon: seed.solWon,
+        solStaked: 0,
+        sharesClaimed: 0,
         updatedAt: 0,
       },
       username: seed.username,

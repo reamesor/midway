@@ -27,35 +27,83 @@ import {
   type MidwayPlayBalance,
   type MidwayWalletLedgerEntry,
 } from "@/lib/midway-wallet/types";
+import {
+  attachWallet,
+  loadWalletHub,
+  touchWalletActivity,
+  WALLET_HUB_EVENT,
+  type ProfileWalletHub,
+} from "@/lib/profile/walletHub";
+import { touchProfileSession } from "@/lib/profile/localProfile";
 
 type TxResult =
   | { ok: true; balance: MidwayPlayBalance }
   | { ok: false; error: string };
 
 /**
- * Midway play escrow keyed by connected wallet pubkey (or DEMO_GUEST).
- * DEMO only: local 10 SOL pot + ledger. Never signs spend txs.
+ * Midway play escrow keyed by active profile wallet (or DEMO_GUEST).
+ * Connecting Phantom/Solflare attaches that address into the profile hub (max 5).
+ * Soft-switching active hub wallet swaps which local ledger is shown.
+ * DEMO only: local pot + ledger. Never signs spend txs.
  */
 export function useMidwayWallet() {
   const { publicKey, connected: walletConnected } = useWallet();
   const { demoGuest, clearDemoGuest } = useDemoGuest();
-  const pubkey = walletConnected
-    ? (publicKey?.toBase58() ?? null)
-    : demoGuest
-      ? DEMO_GUEST_PUBKEY
-      : null;
-  /** Wallet extension OR local demo-guest identity — enough to play Colors. */
+  const [hub, setHub] = useState<ProfileWalletHub>(() =>
+    typeof window === "undefined" ? { primaryPubkey: null, activePubkey: null, slots: [], updatedAt: 0 } : loadWalletHub(),
+  );
+
+  const adapterPubkey = walletConnected ? (publicKey?.toBase58() ?? null) : null;
+
+  // Real wallet wins — drop guest flag, attach into hub, stamp session.
+  useEffect(() => {
+    if (!walletConnected || !publicKey) return;
+    clearDemoGuest();
+    const pk = publicKey.toBase58();
+    attachWallet(pk);
+    touchProfileSession(pk, { connected: true });
+    setHub(loadWalletHub());
+  }, [walletConnected, publicKey, clearDemoGuest]);
+
+  useEffect(() => {
+    if (!demoGuest || walletConnected) return;
+    touchProfileSession(DEMO_GUEST_PUBKEY, { connected: true });
+  }, [demoGuest, walletConnected]);
+
+  useEffect(() => {
+    const onHub = () => setHub(loadWalletHub());
+    window.addEventListener(WALLET_HUB_EVENT, onHub);
+    window.addEventListener("storage", onHub);
+    return () => {
+      window.removeEventListener(WALLET_HUB_EVENT, onHub);
+      window.removeEventListener("storage", onHub);
+    };
+  }, []);
+
+  /**
+   * Identity for play pot / stats:
+   * - Demo guest when no extension wallet
+   * - Linked active slot when the adapter address is in the hub (or soft-switch)
+   * - Else the currently connected adapter pubkey (even if hub is full)
+   */
+  const pubkey = (() => {
+    if (walletConnected && adapterPubkey) {
+      const linked = hub.slots.some((s) => s.pubkey === adapterPubkey);
+      if (linked) return hub.activePubkey ?? adapterPubkey;
+      return adapterPubkey;
+    }
+    if (demoGuest) return DEMO_GUEST_PUBKEY;
+    if (hub.activePubkey) return hub.activePubkey;
+    return null;
+  })();
+
+  /** Wallet extension OR local demo-guest OR linked soft-view identity. */
   const connected = Boolean(pubkey);
   const mode = getWalletEscrowMode();
   const mint = getMidwayMint();
   const [play, setPlay] = useState<MidwayPlayBalance>(EMPTY_PLAY_BALANCE());
   const [ledger, setLedger] = useState<MidwayWalletLedgerEntry[]>([]);
   const [busy, setBusy] = useState(false);
-
-  // Real wallet wins — drop guest flag so taskbar shows the address.
-  useEffect(() => {
-    if (walletConnected && publicKey) clearDemoGuest();
-  }, [walletConnected, publicKey, clearDemoGuest]);
 
   const refresh = useCallback(() => {
     if (!pubkey) {
@@ -76,9 +124,14 @@ export function useMidwayWallet() {
       if (!pubkey) return;
       savePlayBalance(pubkey, next);
       appendLedger(pubkey, entry);
+      if (pubkey !== DEMO_GUEST_PUBKEY) {
+        touchWalletActivity(pubkey);
+        touchProfileSession(pubkey);
+      } else {
+        touchProfileSession(DEMO_GUEST_PUBKEY);
+      }
       setPlay(next);
       setLedger(loadLedger(pubkey));
-      // Fire-and-forget API-shaped mirror (serverless memory; local is source of truth)
       void fetch("/api/wallet/ledger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -188,7 +241,6 @@ export function useMidwayWallet() {
     [connected, mint, persist, pubkey],
   );
 
-  /** Reset demo pot to the fixed 10 SOL starting balance. */
   const resetDemo = useCallback((): TxResult => {
     if (!connected || !pubkey) {
       return { ok: false, error: "Connect Phantom or Solflare first." };
@@ -203,7 +255,6 @@ export function useMidwayWallet() {
     return { ok: true, balance: next };
   }, [connected, persist, pubkey]);
 
-  /** Debit play SOL for a Colors (or future) bet — local ledger only. */
   const debitPlaySol = useCallback(
     (amount: number, note?: string): TxResult => {
       if (!connected || !pubkey) {
@@ -228,7 +279,6 @@ export function useMidwayWallet() {
     [connected, persist, pubkey],
   );
 
-  /** Credit play SOL after a win (demo settlement). */
   const creditPlaySol = useCallback(
     (amount: number, note?: string): TxResult => {
       if (!connected || !pubkey) {
@@ -248,11 +298,54 @@ export function useMidwayWallet() {
     [connected, persist, pubkey],
   );
 
+  /** Log a losing round (stake already debited) for PROFILE transaction history. */
+  const logBetLoss = useCallback(
+    (amount: number, note?: string) => {
+      if (!pubkey) return;
+      appendLedger(pubkey, {
+        kind: "bet_loss",
+        asset: "SOL",
+        amount: roundPlay(amount),
+        note: note ?? "colors loss",
+      });
+      touchWalletActivity(pubkey);
+      setLedger(loadLedger(pubkey));
+    },
+    [pubkey],
+  );
+
+  /** Credit play pot + log claim for believers share. */
+  const claimShare = useCallback(
+    (amount: number, note?: string): TxResult => {
+      if (!connected || !pubkey) {
+        return { ok: false, error: "Wallet required." };
+      }
+      const amt = roundPlay(amount);
+      if (amt <= 0) return { ok: true, balance: loadPlayBalance(pubkey) };
+      const cur = loadPlayBalance(pubkey);
+      const next: MidwayPlayBalance = {
+        ...cur,
+        sol: roundPlay(cur.sol + amt),
+        updatedAt: Date.now(),
+      };
+      persist(next, {
+        kind: "claim",
+        asset: "SOL",
+        amount: amt,
+        note: note ?? "believers share claimed",
+      });
+      return { ok: true, balance: next };
+    },
+    [connected, persist, pubkey],
+  );
+
   return {
     connected,
     walletConnected,
     demoGuest,
     pubkey,
+    adapterPubkey,
+    hub,
     mode,
     demoPlaySol: DEMO_PLAY_SOL,
     mint,
@@ -266,6 +359,8 @@ export function useMidwayWallet() {
     resetDemo,
     debitPlaySol,
     creditPlaySol,
+    logBetLoss,
+    claimShare,
     clearDemoGuest,
   };
 }

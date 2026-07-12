@@ -10,10 +10,19 @@ export type MidwayPlayBalance = {
   updatedAt: number;
 };
 
+export type MidwayLedgerKind =
+  | "deposit"
+  | "withdraw"
+  | "bet_debit"
+  | "bet_credit"
+  | "bet_loss"
+  | "claim"
+  | "reset";
+
 export type MidwayWalletLedgerEntry = {
   id: string;
   at: number;
-  kind: "deposit" | "withdraw" | "bet_debit" | "bet_credit" | "reset";
+  kind: MidwayLedgerKind;
   asset: MidwayAsset;
   amount: number;
   note?: string;

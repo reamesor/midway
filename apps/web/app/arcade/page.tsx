@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOs } from "@/components/os/OsContext";
 import { BootScreen } from "@/components/os/BootScreen";
 import { Taskbar } from "@/components/os/Taskbar";
@@ -20,6 +20,14 @@ import { FairnessPanel } from "@/components/os/FairnessPanel";
 import { DashboardPanel } from "@/components/os/DashboardPanel";
 import { LeaderboardPanel } from "@/components/os/LeaderboardPanel";
 import { applyHouseCut, type TreasuryState } from "@/lib/treasury/split";
+import { useMidwayWallet } from "@/hooks/useMidwayWallet";
+import {
+  addBelieversShare,
+  claimBelieversShare,
+  loadBelieversShare,
+  SHARE_EVENT,
+} from "@/lib/profile/believersShare";
+import { recordSharesClaimed } from "@/lib/leaderboard/localScores";
 
 type Rect = { x: number; y: number; width: number; height: number };
 
@@ -144,6 +152,7 @@ function tileLayout(w: number, h: number): Record<WinLayoutId, Rect> {
 function Desktop() {
   const { booted, soonTitle } = useOs();
   const isNftLaunch = soonTitle === "NFT.LAUNCH";
+  const { pubkey, claimShare } = useMidwayWallet();
   const [treasury, setTreasury] = useState<TreasuryState>({
     total: 0,
     burn: 0,
@@ -152,6 +161,22 @@ function Desktop() {
     burnedTokens: 0,
   });
   const [yourShare, setYourShare] = useState(0);
+
+  useEffect(() => {
+    if (!pubkey) {
+      setYourShare(0);
+      return;
+    }
+    setYourShare(loadBelieversShare(pubkey));
+  }, [pubkey]);
+
+  useEffect(() => {
+    const onShare = () => {
+      if (pubkey) setYourShare(loadBelieversShare(pubkey));
+    };
+    window.addEventListener(SHARE_EVENT, onShare);
+    return () => window.removeEventListener(SHARE_EVENT, onShare);
+  }, [pubkey]);
 
   const winDefaults = useMemo(() => {
     if (typeof window === "undefined") {
@@ -163,7 +188,7 @@ function Desktop() {
         info: { x: 180, y: 40, width: 500, height: 520 },
         token: { x: 200, y: 48, width: 480, height: 540 },
         fairness: { x: 240, y: 120, width: 480, height: 320 },
-        dashboard: { x: 200, y: 64, width: 440, height: 460 },
+        dashboard: { x: 180, y: 48, width: 480, height: 560 },
         leaderboard: { x: 260, y: 80, width: 460, height: 420 },
         soon: { x: 280, y: 160, width: 360, height: 260 },
       };
@@ -205,7 +230,10 @@ function Desktop() {
           <ColorsGame
             onHouseCut={(cut) => {
               setTreasury((t) => applyHouseCut(t, cut));
-              setYourShare((s) => s + cut * 0.4 * 0.02);
+              if (pubkey) {
+                const next = addBelieversShare(pubkey, cut * 0.4 * 0.02);
+                setYourShare(next);
+              }
             }}
           />
         </Win>
@@ -221,7 +249,18 @@ function Desktop() {
           <TreasuryPanel
             {...treasury}
             yourShare={yourShare}
-            onClaim={() => setYourShare(0)}
+            onClaim={() => {
+              if (!pubkey) {
+                setYourShare(0);
+                return;
+              }
+              const amount = claimBelieversShare(pubkey);
+              if (amount > 0) {
+                claimShare(amount, "believers share claimed");
+                recordSharesClaimed(pubkey, amount);
+              }
+              setYourShare(0);
+            }}
           />
         </Win>
 
@@ -272,7 +311,7 @@ function Desktop() {
         <Win
           key={`dashboard-${layoutKey}`}
           id="dashboard"
-          title="DASHBOARD.EXE — PROFILE"
+          title="PROFILE.EXE — IDENTITY"
           default={winDefaults.dashboard}
           minWidth={300}
           minHeight={320}

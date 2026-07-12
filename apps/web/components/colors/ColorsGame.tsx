@@ -50,6 +50,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     play,
     debitPlaySol,
     creditPlaySol,
+    logBetLoss,
     refresh: refreshPlay,
   } = useMidwayWallet();
   const { placeBetOnChain } = useColorsBetTx();
@@ -187,11 +188,14 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       if (settlement.winnings > 0) {
         creditPlaySol(settlement.winnings, "colors payout");
         refreshPlay();
+      } else if (settlement.stake > 0) {
+        logBetLoss(settlement.stake, "colors loss");
       }
       if (pubkey) {
         recordColorsRound(pubkey, {
           matches: settlement.matches,
           winnings: settlement.winnings,
+          stake: settlement.stake,
         });
       }
       setResult({
@@ -205,7 +209,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       setNonce((n) => n + 1);
       setPhase("done");
     },
-    [creditPlaySol, onHouseCut, pubkey, refreshPlay, setLastFairness],
+    [creditPlaySol, logBetLoss, onHouseCut, pubkey, refreshPlay, setLastFairness],
   );
 
   const runRound = useCallback(async () => {
@@ -401,7 +405,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
             onClick={() => openWin("dashboard")}
             title="Open dashboard"
           >
-            DASHBOARD
+            PROFILE
           </button>
           <button
             type="button"

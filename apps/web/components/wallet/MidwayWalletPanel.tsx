@@ -6,6 +6,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { WalletConnectControl } from "./WalletConnectControl";
 import { useSolBalance } from "@/hooks/useSolBalance";
 import { useMidwayWallet } from "@/hooks/useMidwayWallet";
+import { useOs } from "@/components/os/OsContext";
 import { truncateAddress } from "@/lib/solana/address";
 import { getSolanaNetworkLabel } from "@/lib/solana/cluster";
 import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
@@ -16,6 +17,7 @@ const PRESETS = [0.05, 0.1, 0.25, 0.5, 1] as const;
 export function MidwayWalletPanel() {
   const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
+  const { openWin } = useOs();
   const { balance: mainSol, loading: mainLoading, refresh: refreshMain } =
     useSolBalance();
   const {
@@ -224,7 +226,8 @@ export function MidwayWalletPanel() {
 
       <p className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
         DEMO escrow is local to this browser + wallet pubkey. No real SOL leaves your
-        main wallet. LIVE vault transfers are disabled.
+        main wallet. LIVE vault transfers are disabled. Profile hub tracks up to 5
+        linked wallets — open PROFILE.EXE to switch ledgers.
       </p>
 
       <div className="flex gap-1">
@@ -237,6 +240,13 @@ export function MidwayWalletPanel() {
           onClick={() => void refreshMain()}
         >
           REFRESH MAIN
+        </button>
+        <button
+          type="button"
+          className="bevel-btn px-2 py-1"
+          onClick={() => openWin("dashboard")}
+        >
+          PROFILE
         </button>
       </div>
 

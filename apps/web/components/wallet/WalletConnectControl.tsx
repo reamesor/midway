@@ -105,7 +105,7 @@ export function WalletConnectControl({
               setMenu(false);
             }}
           >
-            DASHBOARD
+            PROFILE
           </button>
           <button
             type="button"

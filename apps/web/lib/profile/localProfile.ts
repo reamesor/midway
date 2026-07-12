@@ -1,8 +1,12 @@
-/** Local profile (username) keyed by wallet pubkey or DEMO_GUEST. Ready for a future API. */
+/** Local profile (username + session stamps) keyed by wallet pubkey or DEMO_GUEST. */
 
 export type MidwayProfile = {
   username: string;
   updatedAt: number;
+  /** Last time this identity was active in the arcade. */
+  lastSessionAt?: number;
+  /** Last wallet connect / guest enable for this pubkey. */
+  lastConnectedAt?: number;
 };
 
 export const USERNAME_MIN = 2;
@@ -56,13 +60,33 @@ export function validateUsername(
 
 export function loadProfile(pubkey: string): MidwayProfile | null {
   const stored = readJson<MidwayProfile | null>(KEY(pubkey), null);
-  if (!stored || typeof stored.username !== "string") return null;
-  const check = validateUsername(stored.username);
-  if (!check.ok) return null;
+  if (!stored) return null;
+  const rawName = typeof stored.username === "string" ? stored.username : "";
+  let username = "";
+  if (rawName) {
+    const check = validateUsername(rawName);
+    if (!check.ok) return null;
+    username = check.username;
+  }
+  const lastSessionAt =
+    typeof stored.lastSessionAt === "number" ? stored.lastSessionAt : undefined;
+  const lastConnectedAt =
+    typeof stored.lastConnectedAt === "number" ? stored.lastConnectedAt : undefined;
+  // Empty username is only useful as a session stub.
+  if (!username && lastSessionAt == null && lastConnectedAt == null) return null;
   return {
-    username: check.username,
+    username,
     updatedAt: typeof stored.updatedAt === "number" ? stored.updatedAt : Date.now(),
+    lastSessionAt,
+    lastConnectedAt,
   };
+}
+
+function writeProfile(pubkey: string, profile: MidwayProfile) {
+  writeJson(KEY(pubkey), profile);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(PROFILE_EVENT, { detail: { pubkey } }));
+  }
 }
 
 export function saveProfile(
@@ -71,15 +95,47 @@ export function saveProfile(
 ): { ok: true; profile: MidwayProfile } | { ok: false; error: string } {
   const check = validateUsername(rawUsername);
   if (!check.ok) return check;
+  const prev = loadProfile(pubkey);
   const profile: MidwayProfile = {
     username: check.username,
     updatedAt: Date.now(),
+    lastSessionAt: prev?.lastSessionAt,
+    lastConnectedAt: prev?.lastConnectedAt,
   };
-  writeJson(KEY(pubkey), profile);
+  writeProfile(pubkey, profile);
+  return { ok: true, profile };
+}
+
+/** Stamp last connected / session without requiring a username yet. */
+export function touchProfileSession(
+  pubkey: string,
+  opts?: { connected?: boolean },
+): MidwayProfile {
+  const prev = loadProfile(pubkey);
+  const now = Date.now();
+  const profile: MidwayProfile = {
+    username: prev?.username ?? "",
+    updatedAt: prev?.updatedAt ?? now,
+    lastSessionAt: now,
+    lastConnectedAt: opts?.connected ? now : prev?.lastConnectedAt,
+  };
+  // Only persist if we have a username or we're recording connect stamps in a stub.
+  if (prev?.username) {
+    writeProfile(pubkey, {
+      ...profile,
+      username: prev.username,
+    });
+    return { ...profile, username: prev.username };
+  }
+  // Keep a lightweight session stub so reconnect can show "last connected".
+  writeJson(KEY(pubkey), {
+    ...profile,
+    username: prev?.username ?? "",
+  });
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(PROFILE_EVENT, { detail: { pubkey } }));
   }
-  return { ok: true, profile };
+  return profile;
 }
 
 export function clearProfile(pubkey: string) {
