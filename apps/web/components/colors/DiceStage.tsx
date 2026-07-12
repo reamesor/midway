@@ -44,20 +44,28 @@ const SHADE_INK = "#7a9a72";
 /** Cream / paper rim — must read in dark mode (not black). */
 const FACE_RIM = "#f7f5ef";
 
+/** Medium roll — readable tumble, not frantic blur or lazy drift. */
+const ROLL_SPIN_X = 0.2;
+const ROLL_SPIN_Y = 0.24;
+const ROLL_BOB_HZ = 11;
+const ROLL_BOB_AMP = 0.16;
+const ROLL_FACE_MS = 95;
+const SETTLE_LERP = 0.1;
+
 function shadeHex(hex: string, shade: FaceShade): string {
   switch (shade) {
     case "lit":
-      return mixHex(hex, "#ffffff", 0.32);
+      return mixHex(hex, "#ffffff", 0.2);
     case "mid":
-      return mixHex(hex, "#ffffff", 0.08);
+      return mixHex(hex, "#ffffff", 0.02);
     case "shade":
-      return mixHex(hex, SHADE_INK, 0.12);
+      return mixHex(hex, SHADE_INK, 0.08);
     case "deep":
-      return mixHex(hex, SHADE_INK, 0.2);
+      return mixHex(hex, SHADE_INK, 0.14);
   }
 }
 
-/** Chunky 8-bit face — pastel fill, soft bands, cream rim. */
+/** Pixel face — pastel fill, soft bands, thin cream rim. */
 function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTexture {
   const size = 32;
   const canvas =
@@ -76,8 +84,8 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
   const fill = shadeHex(hex, shade);
-  const lit = mixHex(fill, "#ffffff", 0.36);
-  const dark = mixHex(fill, SHADE_INK, 0.14);
+  const lit = mixHex(fill, "#ffffff", 0.28);
+  const dark = mixHex(fill, SHADE_INK, 0.1);
 
   ctx.fillStyle = fill;
   ctx.fillRect(0, 0, size, size);
@@ -98,19 +106,19 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
     }
   }
 
-  // Soft sage pixel lattice.
-  ctx.fillStyle = "rgba(74,122,82,0.07)";
+  // Soft sage pixel lattice — keep chroma readable.
+  ctx.fillStyle = "rgba(74,122,82,0.05)";
   for (let i = 0; i < size; i += 4) {
     ctx.fillRect(i, 0, 1, size);
     ctx.fillRect(0, i, size, 1);
   }
 
-  // Cream paper rim — filled border so it survives nearest-filter scale.
+  // Thin cream rim — 1px so nearest-filter stays crisp, not chunky.
   ctx.fillStyle = FACE_RIM;
-  ctx.fillRect(0, 0, size, 3);
-  ctx.fillRect(0, size - 3, size, 3);
-  ctx.fillRect(0, 0, 3, size);
-  ctx.fillRect(size - 3, 0, 3, size);
+  ctx.fillRect(0, 0, size, 1);
+  ctx.fillRect(0, size - 1, size, 1);
+  ctx.fillRect(0, 0, 1, size);
+  ctx.fillRect(size - 1, 0, 1, size);
 
   texture.needsUpdate = true;
   return texture;
@@ -190,7 +198,7 @@ function DieMesh({
     if (!rolling) return;
     const id = window.setInterval(() => {
       setSpin(COLOR_KEYS[Math.floor(Math.random() * COLOR_KEYS.length)]!);
-    }, 70);
+    }, ROLL_FACE_MS);
     return () => window.clearInterval(id);
   }, [rolling]);
 
@@ -200,19 +208,20 @@ function DieMesh({
     const phase = index * 1.7;
 
     if (rolling) {
-      group.current.rotation.x += 0.32;
-      group.current.rotation.y += 0.38;
-      group.current.position.y = Math.sin(t * 18 + phase) * 0.22;
+      group.current.rotation.x += ROLL_SPIN_X;
+      group.current.rotation.y += ROLL_SPIN_Y;
+      group.current.position.y =
+        Math.sin(t * ROLL_BOB_HZ + phase) * ROLL_BOB_AMP;
       return;
     }
 
     if (color) {
       // Settle toward a readable isometric pose; tiny victory bob on hits.
       group.current.rotation.x +=
-        (-0.28 - group.current.rotation.x) * 0.12;
+        (-0.28 - group.current.rotation.x) * SETTLE_LERP;
       group.current.rotation.y +=
-        (0.42 - group.current.rotation.y) * 0.12;
-      group.current.rotation.z += (0 - group.current.rotation.z) * 0.12;
+        (0.42 - group.current.rotation.y) * SETTLE_LERP;
+      group.current.rotation.z += (0 - group.current.rotation.z) * SETTLE_LERP;
       const bob = hit ? Math.sin(t * 3.2 + phase) * 0.06 : Math.sin(t * 1.6 + phase) * 0.03;
       group.current.position.y += (bob - group.current.position.y) * 0.15;
       return;
@@ -274,7 +283,7 @@ function DieMesh({
   }, [materials]);
 
   const edges = useMemo(
-    () => new THREE.EdgesGeometry(new THREE.BoxGeometry(1.48, 1.48, 1.48)),
+    () => new THREE.EdgesGeometry(new THREE.BoxGeometry(1.42, 1.42, 1.42)),
     [],
   );
   const edgeMat = useMemo(

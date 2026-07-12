@@ -18,14 +18,14 @@ export const COLOR_LABEL: Record<ColorKey, string> = {
   red: "RED",
 };
 
-/** Soft pastels for stage cubes + picker — readable on dark Midway paper. */
+/** Light pastels with enough chroma to pop on dark Midway paper. */
 export const COLOR_HEX: Record<ColorKey, string> = {
-  yellow: "#f3e6a4",
-  orange: "#f5c9a0",
-  pink: "#f0c0d4",
-  blue: "#a8d4f0",
-  green: "#b5e6b8",
-  red: "#f0b0b4",
+  yellow: "#f2dc6e",
+  orange: "#f4b478",
+  pink: "#f09ec8",
+  blue: "#7ec4f2",
+  green: "#8ee0a0",
+  red: "#f28e98",
 };
 
 /** Documented house edge (~5%). Cut = stake × this, every round. */

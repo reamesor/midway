@@ -247,7 +247,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Roll failed");
 
-      await wait(1100);
+      await wait(950);
 
       const rolled = data.dice as ColorKey[];
       settleRound(currentBet, currentPicked, rolled, data);
@@ -332,7 +332,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Roll failed");
-      await wait(1100);
+      await wait(950);
       const rolled = data.dice as ColorKey[];
       settleRound(currentBet, currentPicked, rolled, data);
       await wait(120);
