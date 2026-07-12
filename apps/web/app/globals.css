@@ -97,16 +97,16 @@ html.one-bit {
 }
 
 @layer base {
-  * {
+  .dark * {
     border-color: var(--line);
   }
 
-  html {
+  html:has(.dark) {
     color-scheme: dark;
     cursor: crosshair;
   }
 
-  body {
+  html:has(.dark) body {
     background: var(--void);
     color: var(--ink);
     font-family: var(--font-sans);
@@ -119,26 +119,33 @@ html.one-bit {
     font-smooth: never;
   }
 
-  h1, h2, h3, h4, .font-heading {
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark .font-heading {
     font-family: var(--font-heading);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     image-rendering: pixelated;
   }
 
-  .font-display {
+  .dark .font-display {
     font-family: var(--font-display);
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
 
-  .num, .font-mono {
+  .dark .num,
+  .dark .font-mono {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
   }
 
-  img, canvas, .pixel {
+  .dark img,
+  .dark canvas,
+  .dark .pixel {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
   }

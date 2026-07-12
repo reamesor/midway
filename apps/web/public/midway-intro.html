@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIDWAY — intro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  :root{
+    --paper:#e9e6df; --paper-2:#e3e1d8; --sage:#a9c6a0; --sage-2:#b9d3b1;
+    --ink:#2f5a38; --ink-2:#3d6b45; --ink-dim:#6e8a6c; --line:#4a7a52;
+    --gold:#c08a2e; --btn:#f4f2ec;
+  }
+  html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);
+    font-family:'Instrument Sans',system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.5;
+    background-image:radial-gradient(rgba(47,90,56,.05) 1px,transparent 1px);background-size:4px 4px;}
+  svg{display:block;} [data-pixel] svg{image-rendering:pixelated;}
+  .mono{font-family:'Space Mono',monospace;}
+
+  /* ===== HERO (revealed underneath) ===== */
+  .hero{position:fixed;inset:0;z-index:2;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:22px;text-align:center;padding:24px;
+    opacity:0;transform:scale(.985);}
+  body.run .hero{animation:heroIn 1s ease 3.15s forwards;}
+  @keyframes heroIn{to{opacity:1;transform:scale(1);}}
+  .hero .side-l,.hero .side-r{position:fixed;top:0;height:100vh;display:flex;flex-direction:column;
+    justify-content:space-between;padding:26px 0;pointer-events:none;}
+  .hero .side-l{left:16px;align-items:flex-start;} .hero .side-r{right:16px;align-items:flex-end;}
+  .hero .side-l span,.hero .side-r span{writing-mode:vertical-rl;font-size:10px;letter-spacing:3px;
+    text-transform:uppercase;color:var(--ink-dim);}
+  .hero .side-r span{transform:rotate(180deg);}
+  .hero h1{font-size:clamp(38px,7vw,76px);line-height:1;margin:0;font-weight:600;letter-spacing:-2px;}
+  .hero h1 .soft{color:var(--ink-dim);}
+  .hero p{max-width:440px;color:var(--ink-2);font-size:16px;margin:0;}
+  .hero .btn{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--btn);
+    border:1.5px solid var(--ink);border-radius:9px;padding:12px 22px;font-weight:600;font-size:15px;
+    cursor:pointer;box-shadow:2px 2px 0 #1f3e26;text-decoration:none;transition:transform .12s,box-shadow .12s;}
+  .hero .btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1f3e26;}
+  .hero .btn:active{transform:translate(2px,2px);box-shadow:0 0 0 #1f3e26;}
+  .hero .mini-mark{width:56px;height:56px;margin-bottom:4px;}
+
+  /* ===== INTRO OVERLAY ===== */
+  .intro{position:fixed;inset:0;z-index:10;pointer-events:none;}
+  /* striped canopy curtains */
+  .curtain{position:absolute;top:0;bottom:0;width:52%;
+    background:repeating-linear-gradient(90deg,var(--sage) 0 26px,var(--sage-2) 26px 52px);
+    box-shadow:0 0 40px rgba(47,90,56,.2);}
+  .curtain::after{content:'';position:absolute;bottom:0;left:0;right:0;height:26px;
+    background:repeating-linear-gradient(90deg,var(--gold) 0 26px,var(--ink) 26px 52px);opacity:.85;}
+  .curtain.l{left:0;transform-origin:left;}
+  .curtain.r{right:0;transform-origin:right;}
+  body.run .curtain.l{animation:partL 1.1s cubic-bezier(.7,0,.2,1) 3.0s forwards;}
+  body.run .curtain.r{animation:partR 1.1s cubic-bezier(.7,0,.2,1) 3.0s forwards;}
+  @keyframes partL{to{transform:translateX(-102%);}}
+  @keyframes partR{to{transform:translateX(102%);}}
+
+  /* center stage on curtains */
+  .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:12;}
+  body.run .center{animation:centerOut .5s ease 3.0s forwards;}
+  @keyframes centerOut{to{opacity:0;}}
+
+  /* technical brackets that draw in */
+  .brk{position:absolute;width:min(560px,74vw);height:min(360px,52vh);}
+  .brk span{position:absolute;width:26px;height:26px;border-color:var(--ink);opacity:0;}
+  .brk .tl{top:0;left:0;border-left:2px solid;border-top:2px solid;}
+  .brk .tr{top:0;right:0;border-right:2px solid;border-top:2px solid;}
+  .brk .bl{bottom:0;left:0;border-left:2px solid;border-bottom:2px solid;}
+  .brk .br{bottom:0;right:0;border-right:2px solid;border-bottom:2px solid;}
+  body.run .brk span{animation:brkIn .4s ease forwards;}
+  body.run .brk .tl{animation-delay:.15s;} body.run .brk .tr{animation-delay:.28s;}
+  body.run .brk .bl{animation-delay:.41s;} body.run .brk .br{animation-delay:.54s;}
+  @keyframes brkIn{from{opacity:0;transform:scale(1.4);}to{opacity:.9;transform:scale(1);}}
+
+  /* tent unfurl */
+  .tent{width:150px;height:150px;opacity:0;transform:scale(.2) translateY(20px);}
+  body.run .tent{animation:tentPop .7s cubic-bezier(.34,1.56,.4,1) .5s forwards, bob 3s ease-in-out 1.3s infinite;}
+  @keyframes tentPop{to{opacity:1;transform:scale(1) translateY(0);}}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+
+  /* wordmark assemble */
+  .word{display:flex;gap:6px;}
+  .word .ltr{width:38px;opacity:0;transform:translateY(-28px) rotate(-8deg);}
+  body.run .word .ltr{animation:drop .5s cubic-bezier(.34,1.56,.4,1) forwards;}
+  body.run .word .ltr:nth-child(1){animation-delay:1.05s;}
+  body.run .word .ltr:nth-child(2){animation-delay:1.14s;}
+  body.run .word .ltr:nth-child(3){animation-delay:1.23s;}
+  body.run .word .ltr:nth-child(4){animation-delay:1.32s;}
+  body.run .word .ltr:nth-child(5){animation-delay:1.41s;}
+  body.run .word .ltr:nth-child(6){animation-delay:1.50s;}
+  @keyframes drop{to{opacity:1;transform:translateY(0) rotate(0);}}
+
+  .tagline{font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--ink-2);opacity:0;}
+  body.run .tagline{animation:fadeUp .6s ease 2.0s forwards;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  .spectrum{display:flex;align-items:center;gap:8px;width:min(320px,60vw);opacity:0;color:var(--ink-2);}
+  body.run .spectrum{animation:fadeUp .6s ease 2.25s forwards;}
+  .spectrum .cap{font-size:10px;letter-spacing:1px;text-transform:uppercase;font-family:'Space Mono',monospace;}
+  .spectrum .bar{flex:1;height:1px;background:var(--line);position:relative;opacity:.6;}
+  .spectrum .bar::before,.spectrum .bar::after{content:'';position:absolute;top:-3px;width:1px;height:7px;background:var(--line);}
+  .spectrum .bar::before{left:0;}.spectrum .bar::after{right:0;}
+  .spectrum .knob{width:7px;height:7px;border-radius:50%;background:var(--ink);}
+
+  /* replay */
+  .replay{position:fixed;bottom:18px;right:18px;z-index:20;background:var(--btn);color:var(--ink);
+    border:1.5px solid var(--ink);border-radius:8px;padding:9px 15px;font-family:inherit;font-weight:600;
+    font-size:13px;cursor:pointer;box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;gap:7px;}
+  .replay:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink);}
+  .replay [data-pixel]{width:12px;height:12px;}
+
+  @media (prefers-reduced-motion: reduce){
+    body.run .hero{animation:none;opacity:1;transform:scale(1);}
+    body.run .intro{display:none!important;}
+  }
+</style>
+</head>
+<body class="run">
+
+  <!-- HERO underneath -->
+  <div class="hero">
+    <div class="side-l"><span>Midway · Alpha</span><span>07.12.2026</span></div>
+    <div class="side-r"><span>Every Cut Comes Home</span><span>v3.1</span></div>
+    <div class="mini-mark" data-pixel id="mini-mark"></div>
+    <h1>every cut<br><span class="soft">comes home.</span></h1>
+    <p>the boardwalk, rebuilt honest. play, mint, trade — the house cut flows back to everyone.</p>
+    <a class="btn" href="/arcade"><span data-pixel style="width:12px;height:12px" id="btn-glyph"></span> Enter the Midway</a>
+  </div>
+
+  <!-- INTRO overlay -->
+  <div class="intro">
+    <div class="curtain l"></div>
+    <div class="curtain r"></div>
+    <div class="center">
+      <div class="brk"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div>
+      <div class="tent" data-pixel id="intro-tent"></div>
+      <div class="word" id="word"></div>
+      <div class="tagline">every cut comes home</div>
+      <div class="spectrum"><span class="cap">Luck</span><div class="bar"></div><span class="knob"></span><div class="bar"></div><span class="cap">Logic</span></div>
+    </div>
+  </div>
+
+  <button class="replay" onclick="replay()"><span data-pixel id="replay-glyph"></span> REPLAY</button>
+
+<script>
+/* pixel engine */
+function rects(g,p,px){let s='';for(let r=0;r<g.length;r++){const row=g[r];for(let c=0;c<row.length;c++){const col=p[row[c]];if(col)s+=`<rect x="${c*px}" y="${r*px}" width="${px}" height="${px}" fill="${col}"/>`;}}return s;}
+function icon(g,p,px){const cols=Math.max(...g.map(r=>r.length)),rows=g.length;return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cols*px} ${rows*px}" width="100%" height="100%" shape-rendering="crispEdges">${rects(g,p,px)}</svg>`;}
+
+const TENT=["........KYYY....","........KYY.....","........KY......",".......KYK......","......KRWRK.....",".....KRWRWRK....","....KRWRWRWRK...","...KRWRWRWRWRK..","..KRWRWRWRWRWRK.","..KYKYKYKYKYKYK.","...KRWRWRWRWK...","...KRWRDDRWRK...","...KRWRDDRWRK...","...KRWRDDRWRK...","...KRWRDDRWRK...","...KKKKDDKKKK..."];
+const P_TENT={K:'#2f5a38',R:'#7fae74',W:'#eef4e6',Y:'#c08a2e',D:'#254a2d'};
+
+const FONT={
+M:["X...X","XX.XX","X.X.X","X.X.X","X...X","X...X","X...X"],
+I:["XXXXX","..X..","..X..","..X..","..X..","..X..","XXXXX"],
+D:["XXXX.","X...X","X...X","X...X","X...X","X...X","XXXX."],
+W:["X...X","X...X","X...X","X.X.X","X.X.X","XX.XX","X...X"],
+A:[".XXX.","X...X","X...X","XXXXX","X...X","X...X","X...X"],
+Y:["X...X","X...X",".X.X.","..X..","..X..","..X..","..X.."]};
+const PLAY=["K...","KK..","KKK.","KKKK","KKK.","KK..","K..."];
+
+document.getElementById('intro-tent').innerHTML=icon(TENT,P_TENT,7);
+document.getElementById('mini-mark').innerHTML=icon(TENT,P_TENT,4);
+
+const word=document.getElementById('word');
+'MIDWAY'.split('').forEach(ch=>{const d=document.createElement('div');d.className='ltr';
+  d.innerHTML=icon(FONT[ch],{X:'#2f5a38'},7);word.appendChild(d);});
+
+function glyph(id){const el=document.getElementById(id);if(el){el.innerHTML=icon(PLAY,{K:'currentColor'},3);el.querySelectorAll('rect').forEach(r=>r.setAttribute('fill','currentColor'));}}
+['btn-glyph','replay-glyph'].forEach(glyph);
+
+function replay(){document.body.classList.remove('run');void document.body.offsetWidth;document.body.classList.add('run');}
+</script>
+</body>
+</html>
