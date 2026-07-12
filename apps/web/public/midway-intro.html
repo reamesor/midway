@@ -105,14 +105,6 @@
   .spectrum .bar::before{left:0;}.spectrum .bar::after{right:0;}
   .spectrum .knob{width:7px;height:7px;border-radius:50%;background:var(--ink);}
 
-  /* replay */
-  .replay{position:fixed;bottom:18px;right:18px;z-index:20;background:var(--btn);color:var(--ink);
-    border:1.5px solid var(--ink);border-radius:8px;padding:9px 15px;font-family:inherit;font-weight:600;
-    font-size:13px;cursor:pointer;box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;gap:7px;}
-  .replay:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink);}
-  .replay [data-pixel]{width:12px;height:12px;}
-
-
   /* skip intro when already seen (no ?replay=1) */
   body.intro-done .intro{display:none!important;}
   body.intro-done .hero{opacity:1;transform:scale(1);animation:none;}
@@ -148,8 +140,6 @@
     </div>
   </div>
 
-  <button class="replay" onclick="window.replay()"><span data-pixel id="replay-glyph"></span> REPLAY</button>
-
 <script>
 /* pixel engine */
 function rects(g,p,px){let s='';for(let r=0;r<g.length;r++){const row=g[r];for(let c=0;c<row.length;c++){const col=p[row[c]];if(col)s+=`<rect x="${c*px}" y="${r*px}" width="${px}" height="${px}" fill="${col}"/>`;}}return s;}
@@ -175,7 +165,7 @@ const word=document.getElementById('word');
   d.innerHTML=icon(FONT[ch],{X:'#2f5a38'},7);word.appendChild(d);});
 
 function glyph(id){const el=document.getElementById(id);if(el){el.innerHTML=icon(PLAY,{K:'currentColor'},3);el.querySelectorAll('rect').forEach(r=>r.setAttribute('fill','currentColor'));}}
-['btn-glyph','replay-glyph'].forEach(glyph);
+glyph('btn-glyph');
 
 /* intro replay / skip-seen */
 (function(){
@@ -218,14 +208,6 @@ function glyph(id){const el=document.getElementById(id);if(el){el.innerHTML=icon
     document.body.classList.add('run');
     setTimeout(markSeen, 4200);
   }
-
-  window.replay = function(){
-    try { sessionStorage.removeItem('midway-intro-seen'); } catch (e) {}
-    document.body.classList.remove('run', 'intro-done');
-    void document.body.offsetWidth;
-    document.body.classList.add('run');
-    setTimeout(markSeen, 4200);
-  };
 })();
 </script>
 </body>
