@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type MouseEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
   motion,
@@ -26,23 +27,7 @@ import { TentWalkers } from "./TentWalkers";
 import { useOs } from "./OsContext";
 
 type CubeBehavior = "drift" | "wobbler";
-
-type CubeSpec = {
-  id: string;
-  color: ColorKey;
-  x: number;
-  y: number;
-  size: number;
-  driftX: number;
-  driftY: number;
-  rot: number;
-  duration: number;
-  delay: number;
-  behavior: CubeBehavior;
-  /** Soft egg-wobble cadence for ambiance (ms). */
-  wobbleEvery: number;
-  wobbleOffset: number;
-};
+type DepthLayer = "near" | "mid" | "far";
 
 /** idle → egg shake → crack/pop → character hop → ease back to cube */
 type CubePhase =
@@ -52,31 +37,72 @@ type CubePhase =
   | "character"
   | "returning";
 
+type CubeSpec = {
+  id: string;
+  color: ColorKey;
+  x: number;
+  y: number;
+  size: number;
+  /** Primary lateral drift amplitude (px). */
+  driftX: number;
+  /** Primary vertical drift amplitude (px). */
+  driftY: number;
+  /** Soft tumble amplitude (deg). */
+  rot: number;
+  /** Base float cycle length (s). */
+  duration: number;
+  delay: number;
+  behavior: CubeBehavior;
+  /** Soft egg-wobble cadence for ambiance (ms). */
+  wobbleEvery: number;
+  wobbleOffset: number;
+  depth: DepthLayer;
+  opacity: number;
+};
+
 /**
- * Calm ring around the tent brand — 18 cubes, no overlap with MIDWAY mark.
- * Outer oval + a few mid-ring fillers; sizes vary slightly for depth.
+ * Space field around the tent brand — 26 cubes in near/mid/far layers.
+ * Clear of MIDWAY mark (~40–60% × 32–58%). Depth via size + opacity + z-index.
  */
 const CUBE_LAYOUT: CubeSpec[] = [
-  { id: "c0", color: "blue", x: 10, y: 30, size: 46, driftX: 9, driftY: 7, rot: 7, duration: 25, delay: 0, behavior: "wobbler", wobbleEvery: 14000, wobbleOffset: 1600 },
-  { id: "c1", color: "yellow", x: 26, y: 12, size: 36, driftX: 7, driftY: 10, rot: 10, duration: 22, delay: 1.0, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  { id: "c2", color: "orange", x: 50, y: 8, size: 40, driftX: -8, driftY: 9, rot: -8, duration: 24, delay: 0.6, behavior: "wobbler", wobbleEvery: 15500, wobbleOffset: 3800 },
-  { id: "c3", color: "green", x: 74, y: 12, size: 34, driftX: -7, driftY: 11, rot: 9, duration: 21, delay: 2.1, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  { id: "c4", color: "pink", x: 90, y: 28, size: 48, driftX: -10, driftY: 8, rot: -6, duration: 27, delay: 0.3, behavior: "wobbler", wobbleEvery: 12500, wobbleOffset: 5200 },
-  { id: "c5", color: "red", x: 94, y: 50, size: 38, driftX: -9, driftY: -7, rot: 8, duration: 23, delay: 1.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  { id: "c6", color: "blue", x: 88, y: 72, size: 42, driftX: -8, driftY: -9, rot: -7, duration: 26, delay: 0.9, behavior: "wobbler", wobbleEvery: 16000, wobbleOffset: 2400 },
-  { id: "c7", color: "yellow", x: 70, y: 88, size: 36, driftX: -7, driftY: 8, rot: 11, duration: 20, delay: 2.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  { id: "c8", color: "orange", x: 50, y: 92, size: 44, driftX: 6, driftY: -8, rot: -9, duration: 25, delay: 1.2, behavior: "wobbler", wobbleEvery: 13500, wobbleOffset: 7000 },
-  { id: "c9", color: "green", x: 30, y: 88, size: 40, driftX: 9, driftY: -9, rot: 6, duration: 22, delay: 1.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  { id: "c10", color: "pink", x: 10, y: 70, size: 38, driftX: 10, driftY: -7, rot: -10, duration: 24, delay: 0.5, behavior: "wobbler", wobbleEvery: 14800, wobbleOffset: 9000 },
-  { id: "c11", color: "red", x: 8, y: 48, size: 42, driftX: 11, driftY: 6, rot: 5, duration: 26, delay: 2.7, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  /* Mid-ring fillers — keep clear of tent brand (~40–60% / 32–58%). */
-  { id: "c12", color: "yellow", x: 20, y: 44, size: 32, driftX: 8, driftY: 6, rot: -5, duration: 28, delay: 1.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  { id: "c13", color: "pink", x: 80, y: 44, size: 34, driftX: -8, driftY: 7, rot: 7, duration: 23, delay: 0.8, behavior: "wobbler", wobbleEvery: 17000, wobbleOffset: 11000 },
-  { id: "c14", color: "green", x: 36, y: 20, size: 30, driftX: 6, driftY: 9, rot: 8, duration: 21, delay: 2.0, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  { id: "c15", color: "blue", x: 64, y: 20, size: 32, driftX: -6, driftY: 10, rot: -6, duration: 24, delay: 1.7, behavior: "wobbler", wobbleEvery: 15200, wobbleOffset: 4500 },
-  { id: "c16", color: "orange", x: 22, y: 66, size: 34, driftX: 9, driftY: -6, rot: 9, duration: 22, delay: 0.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
-  { id: "c17", color: "red", x: 78, y: 66, size: 36, driftX: -9, driftY: -8, rot: -8, duration: 25, delay: 2.2, behavior: "wobbler", wobbleEvery: 14200, wobbleOffset: 6000 },
+  /* ── Near — larger, opaque, slow heavy drift ── */
+  { id: "c0", color: "blue", x: 8, y: 28, size: 50, driftX: 14, driftY: 11, rot: 12, duration: 28, delay: 0, behavior: "wobbler", wobbleEvery: 14000, wobbleOffset: 1600, depth: "near", opacity: 1 },
+  { id: "c1", color: "pink", x: 92, y: 26, size: 48, driftX: -13, driftY: 10, rot: -11, duration: 30, delay: 0.4, behavior: "wobbler", wobbleEvery: 12500, wobbleOffset: 5200, depth: "near", opacity: 0.98 },
+  { id: "c2", color: "orange", x: 94, y: 72, size: 46, driftX: -12, driftY: -11, rot: 10, duration: 27, delay: 1.1, behavior: "wobbler", wobbleEvery: 16000, wobbleOffset: 2400, depth: "near", opacity: 1 },
+  { id: "c3", color: "green", x: 6, y: 74, size: 48, driftX: 13, driftY: -10, rot: -12, duration: 29, delay: 0.7, behavior: "wobbler", wobbleEvery: 14800, wobbleOffset: 9000, depth: "near", opacity: 0.97 },
+  { id: "c4", color: "red", x: 50, y: 6, size: 44, driftX: 10, driftY: 12, rot: 9, duration: 26, delay: 1.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "near", opacity: 0.96 },
+  { id: "c5", color: "yellow", x: 50, y: 94, size: 46, driftX: -11, driftY: -9, rot: -10, duration: 31, delay: 2.0, behavior: "wobbler", wobbleEvery: 13500, wobbleOffset: 7000, depth: "near", opacity: 1 },
+  { id: "c6", color: "blue", x: 18, y: 50, size: 42, driftX: 11, driftY: 8, rot: 8, duration: 25, delay: 0.9, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "near", opacity: 0.95 },
+  { id: "c7", color: "orange", x: 82, y: 52, size: 44, driftX: -12, driftY: -8, rot: -9, duration: 28, delay: 1.4, behavior: "wobbler", wobbleEvery: 17000, wobbleOffset: 11000, depth: "near", opacity: 0.98 },
+
+  /* ── Mid — readable ring + fillers ── */
+  { id: "c8", color: "yellow", x: 24, y: 14, size: 36, driftX: 10, driftY: 13, rot: 14, duration: 22, delay: 0.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.86 },
+  { id: "c9", color: "green", x: 76, y: 14, size: 34, driftX: -10, driftY: 12, rot: -13, duration: 21, delay: 1.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.84 },
+  { id: "c10", color: "red", x: 96, y: 48, size: 38, driftX: -14, driftY: 9, rot: 11, duration: 24, delay: 1.2, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.88 },
+  { id: "c11", color: "pink", x: 72, y: 86, size: 36, driftX: -9, driftY: -12, rot: 12, duration: 23, delay: 2.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.85 },
+  { id: "c12", color: "blue", x: 28, y: 86, size: 38, driftX: 11, driftY: -11, rot: -10, duration: 25, delay: 0.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.87 },
+  { id: "c13", color: "orange", x: 4, y: 50, size: 36, driftX: 13, driftY: 7, rot: 9, duration: 26, delay: 2.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.86 },
+  { id: "c14", color: "yellow", x: 20, y: 42, size: 32, driftX: 9, driftY: 8, rot: -8, duration: 24, delay: 1.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.8 },
+  { id: "c15", color: "pink", x: 80, y: 40, size: 34, driftX: -10, driftY: 9, rot: 10, duration: 22, delay: 0.8, behavior: "wobbler", wobbleEvery: 15200, wobbleOffset: 4500, depth: "mid", opacity: 0.82 },
+  { id: "c16", color: "green", x: 34, y: 18, size: 30, driftX: 8, driftY: 11, rot: 11, duration: 20, delay: 2.1, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "mid", opacity: 0.78 },
+  { id: "c17", color: "red", x: 66, y: 18, size: 32, driftX: -8, driftY: 12, rot: -9, duration: 23, delay: 1.0, behavior: "wobbler", wobbleEvery: 14200, wobbleOffset: 6000, depth: "mid", opacity: 0.8 },
+
+  /* ── Far — tiny, faded field dust ── */
+  { id: "c18", color: "blue", x: 14, y: 10, size: 24, driftX: 16, driftY: 14, rot: 18, duration: 34, delay: 0.2, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.52 },
+  { id: "c19", color: "yellow", x: 38, y: 4, size: 22, driftX: 12, driftY: 16, rot: -16, duration: 36, delay: 1.9, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.48 },
+  { id: "c20", color: "pink", x: 62, y: 5, size: 26, driftX: -14, driftY: 15, rot: 15, duration: 32, delay: 0.6, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.55 },
+  { id: "c21", color: "green", x: 88, y: 12, size: 22, driftX: -15, driftY: 13, rot: -17, duration: 35, delay: 2.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.5 },
+  { id: "c22", color: "orange", x: 98, y: 60, size: 24, driftX: -16, driftY: -12, rot: 14, duration: 33, delay: 1.3, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.54 },
+  { id: "c23", color: "red", x: 86, y: 90, size: 26, driftX: -12, driftY: -14, rot: -15, duration: 37, delay: 0.1, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.5 },
+  { id: "c24", color: "blue", x: 12, y: 90, size: 22, driftX: 14, driftY: -15, rot: 16, duration: 34, delay: 2.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.48 },
+  { id: "c25", color: "yellow", x: 2, y: 38, size: 24, driftX: 15, driftY: 10, rot: -14, duration: 31, delay: 1.7, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0, depth: "far", opacity: 0.53 },
 ];
+
+const DEPTH_Z: Record<DepthLayer, number> = {
+  far: 1,
+  mid: 2,
+  near: 3,
+};
 
 const FACE_NAMES = ["px", "nx", "py", "ny", "pz", "nz"] as const;
 const SHAKE_MS = 820;
@@ -86,9 +112,27 @@ const CHAR_HOLD_MS = 3400;
 const CYCLE_GAP_MS = 5400;
 const WALK_FRAME_MS = 220;
 const SOFT_SHAKE_MS = 900;
+const HOVER_NUDGE_PX = 12;
 
 function softHex(hex: string) {
   return `color-mix(in srgb, ${hex} 72%, var(--paper))`;
+}
+
+/** Closed-loop float path — slow orbit + bob, not a simple A↔B mirror. */
+function floatKeyframes(spec: CubeSpec) {
+  const { driftX: dx, driftY: dy, rot } = spec;
+  return {
+    x: [0, dx * 0.85, dx * 0.25, -dx * 0.7, -dx * 0.15, 0],
+    y: [0, -dy * 0.55, dy * 0.9, dy * 0.2, -dy * 0.75, 0],
+    rotate: [
+      rot * 0.15,
+      -rot * 0.85,
+      rot * 0.45,
+      -rot * 0.35,
+      rot * 0.7,
+      rot * 0.15,
+    ],
+  };
 }
 
 function IdleCube({
@@ -128,6 +172,7 @@ function IdleCube({
   const half = spec.size / 2;
   const usesWalkFrames =
     motionStyle === "walk" || motionStyle === "strut" || motionStyle === "bounce";
+  const float = useMemo(() => floatKeyframes(spec), [spec]);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -159,15 +204,18 @@ function IdleCube({
     }
   }, []);
 
-  const driftTransition: Transition = reduced
-    ? { duration: 0 }
-    : {
-        duration: spec.duration,
-        repeat: Infinity,
-        repeatType: "mirror",
-        ease: "easeInOut",
-        delay: spec.delay,
-      };
+  const axisTransition = useCallback(
+    (durationMul: number): Transition =>
+      reduced
+        ? { duration: 0 }
+        : {
+            duration: spec.duration * durationMul,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: spec.delay,
+          },
+    [reduced, spec.delay, spec.duration],
+  );
 
   const finishReturn = useCallback(() => {
     if (!hovered.current) {
@@ -278,6 +326,7 @@ function IdleCube({
 
   const leaveHover = useCallback(() => {
     hovered.current = false;
+    setNudge({ x: 0, y: 0, rot: 0 });
     if (cycleActive.current && phaseRef.current === "character") {
       holdTimer.current = window.setTimeout(() => {
         if (!hovered.current) startReturn();
@@ -286,6 +335,26 @@ function IdleCube({
     }
     startReturn();
   }, [startReturn]);
+
+  /** Per-cube repulsion — cubes drift away from the pointer, not the whole scene. */
+  const onPointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLButtonElement>) => {
+      if (reduced) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const dist = Math.hypot(dx, dy) || 1;
+      const strength = HOVER_NUDGE_PX * (spec.depth === "far" ? 0.7 : 1);
+      setNudge({
+        x: -(dx / dist) * strength,
+        y: -(dy / dist) * strength,
+        rot: -(dx / dist) * 5,
+      });
+    },
+    [reduced, spec.depth],
+  );
 
   useEffect(() => {
     if (!forcedShow || hovered.current) return;
@@ -423,70 +492,88 @@ function IdleCube({
 
   return (
     <div
-      className="idle-cube-slot"
-      style={{ left: `${spec.x}%`, top: `${spec.y}%` }}
+      className={`idle-cube-slot idle-cube-slot--${spec.depth}`}
+      style={{
+        left: `${spec.x}%`,
+        top: `${spec.y}%`,
+        zIndex: DEPTH_Z[spec.depth],
+        opacity: spec.opacity,
+      }}
     >
-      <motion.button
-        type="button"
-        aria-label="Decorative cube"
-        className={`idle-cube${flash ? " is-flash" : ""}${phase !== "idle" ? ` is-${phase}` : ""}`}
-        style={{
-          width: spec.size,
-          height: spec.size,
-          ["--cube" as string]: softHex(COLOR_HEX[spec.color]),
-          ["--cube-size" as string]: `${spec.size}px`,
-          ["--cube-half" as string]: `${half}px`,
-        }}
-        onClick={onClick}
-        onPointerEnter={enterHover}
-        onPointerLeave={leaveHover}
+      {/* Autonomous space float — independent of cursor / scene parallax */}
+      <motion.div
+        className="idle-cube-float"
         initial={false}
         animate={
           reduced
-            ? {
-                x: nudge.x,
-                y: nudge.y,
-                rotate: spec.rot * 0.2 + nudge.rot,
-                scale: phase === "character" ? 1.08 : 1,
-              }
+            ? { x: 0, y: 0, rotate: spec.rot * 0.12 }
             : {
-                x: [nudge.x, nudge.x + spec.driftX],
-                y: [nudge.y, nudge.y + spec.driftY],
-                rotate: [spec.rot * 0.35 + nudge.rot, -spec.rot * 0.35 + nudge.rot],
+                x: float.x,
+                y: float.y,
+                rotate: float.rotate,
               }
         }
         transition={{
-          x: driftTransition,
-          y: driftTransition,
-          rotate: driftTransition,
-          scale: { duration: 0.28, ease: "easeOut" },
+          x: axisTransition(1.05),
+          y: axisTransition(0.82),
+          rotate: axisTransition(1.35),
         }}
-        whileTap={reduced ? undefined : { scale: 0.96 }}
       >
-        <span className="idle-cube-scene" aria-hidden>
-          <span className={dieClass}>
-            {FACE_NAMES.map((name, i) => (
-              <span
-                key={name}
-                className={`idle-die-face idle-die-face--${name}`}
-                style={{
-                  ["--face" as string]: softHex(COLOR_HEX[faces[i]!]),
-                }}
-              />
-            ))}
-          </span>
+        <motion.button
+          type="button"
+          aria-label="Decorative cube"
+          className={`idle-cube${flash ? " is-flash" : ""}${phase !== "idle" ? ` is-${phase}` : ""}`}
+          style={{
+            width: spec.size,
+            height: spec.size,
+            ["--cube" as string]: softHex(COLOR_HEX[spec.color]),
+            ["--cube-size" as string]: `${spec.size}px`,
+            ["--cube-half" as string]: `${half}px`,
+          }}
+          onClick={onClick}
+          onPointerEnter={enterHover}
+          onPointerLeave={leaveHover}
+          onPointerMove={onPointerMove}
+          initial={false}
+          animate={{
+            x: nudge.x,
+            y: nudge.y,
+            rotate: nudge.rot,
+            scale: phase === "character" ? 1.08 : 1,
+          }}
+          transition={{
+            x: { type: "spring", stiffness: 220, damping: 18, mass: 0.4 },
+            y: { type: "spring", stiffness: 220, damping: 18, mass: 0.4 },
+            rotate: { type: "spring", stiffness: 180, damping: 16 },
+            scale: { duration: 0.28, ease: "easeOut" },
+          }}
+          whileTap={reduced ? undefined : { scale: 0.96 }}
+        >
+          <span className="idle-cube-scene" aria-hidden>
+            <span className={dieClass}>
+              {FACE_NAMES.map((name, i) => (
+                <span
+                  key={name}
+                  className={`idle-die-face idle-die-face--${name}`}
+                  style={{
+                    ["--face" as string]: softHex(COLOR_HEX[faces[i]!]),
+                  }}
+                />
+              ))}
+            </span>
 
-          <span className={charClass}>
-            <PixelIcon
-              grid={charGrid}
-              palette={charPalette}
-              px={2}
-              className="idle-cube-char-icon"
-              style={{ width: spec.size * 0.92, height: spec.size * 0.92 }}
-            />
+            <span className={charClass}>
+              <PixelIcon
+                grid={charGrid}
+                palette={charPalette}
+                px={2}
+                className="idle-cube-char-icon"
+                style={{ width: spec.size * 0.92, height: spec.size * 0.92 }}
+              />
+            </span>
           </span>
-        </span>
-      </motion.button>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }

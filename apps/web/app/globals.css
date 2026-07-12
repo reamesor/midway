@@ -618,6 +618,15 @@ html.dark .desktop-wallpaper {
   position: absolute;
   transform: translate(-50%, -50%);
   pointer-events: none;
+  will-change: transform;
+}
+.idle-cube-slot--far {
+  filter: saturate(0.88);
+}
+.idle-cube-float {
+  display: grid;
+  place-items: center;
+  pointer-events: none;
 }
 .idle-cube {
   position: relative;
@@ -987,6 +996,10 @@ html.dark .desktop-wallpaper {
   }
   .idle-cube-char.is-visible {
     animation: none !important;
+  }
+  .idle-cube-float {
+    /* Static depth field — no autonomous orbit when motion is reduced. */
+    transform: none !important;
   }
 }
 
