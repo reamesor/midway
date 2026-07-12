@@ -43,6 +43,26 @@
   .hero .btn:active{transform:translate(2px,2px);box-shadow:0 0 0 #1f3e26;}
   .hero .mini-mark{width:56px;height:56px;margin-bottom:4px;}
 
+  /* Colors mascot parade — orderly march along the hero bottom edge */
+  .hero-parade{position:fixed;left:56px;right:56px;bottom:14px;height:34px;z-index:3;
+    pointer-events:none;overflow:hidden;opacity:0;}
+  body.run .hero-parade{animation:heroIn 1s ease 3.15s forwards;}
+  body.intro-done .hero-parade{opacity:1;animation:none;}
+  .parade-mascot{position:absolute;bottom:0;left:0;width:28px;height:28px;
+    margin-left:-14px;image-rendering:pixelated;will-change:left;
+    animation:paradeAcross 26s linear infinite;animation-delay:calc(var(--i,0) * -2.1667s);}
+  .parade-mascot svg{width:100%;height:100%;display:block;}
+  .parade-bob{display:block;width:100%;height:100%;transform-origin:center bottom;
+    animation:paradeStep .42s ease-in-out infinite;animation-delay:calc(var(--i,0) * .07s);}
+  @keyframes paradeAcross{
+    from{left:0;transform:translateX(-28px);}
+    to{left:100%;transform:translateX(28px);}
+  }
+  @keyframes paradeStep{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-2.5px);}
+  }
+
   /* ===== INTRO OVERLAY ===== */
   .intro{position:fixed;inset:0;z-index:10;pointer-events:none;}
   /* striped canopy curtains */
@@ -212,6 +232,10 @@
     .walker.w2{left:62%;bottom:8%;}
     .walker.w3,.walker.w4,.walker.w5,.walker.w6{display:none;}
     .tent-stage--lg .tent-stage-inner{animation:none!important;opacity:1;transform:none;}
+    body.run .hero-parade,body.intro-done .hero-parade{opacity:1;animation:none;
+      display:flex;align-items:flex-end;justify-content:center;gap:36px;overflow:visible;}
+    .parade-mascot{position:relative;left:auto;margin:0;animation:none!important;opacity:.9;}
+    .parade-bob{animation:none!important;transform:none;}
   }
 </style>
 </head>
@@ -232,6 +256,7 @@
     <h1>every cut<br><span class="soft">comes home.</span></h1>
     <p>the boardwalk, rebuilt honest. play, mint, trade — the house cut flows back to everyone.</p>
     <a class="btn" href="/arcade"><span data-pixel style="width:12px;height:12px" id="btn-glyph"></span> Enter the Midway</a>
+    <div class="hero-parade" id="hero-parade" aria-hidden="true"></div>
   </div>
 
   <!-- INTRO overlay -->
@@ -313,7 +338,7 @@ const word=document.getElementById('word');
 function glyph(id){const el=document.getElementById(id);if(el){el.innerHTML=icon(PLAY,{K:'currentColor'},3);el.querySelectorAll('rect').forEach(r=>r.setAttribute('fill','currentColor'));}}
 glyph('btn-glyph');
 
-/* Mount Colors walkers into tent stages */
+/* Mount Colors walkers into tent stages + hero bottom parade */
 (function mountWalkers(){
   var specs=[
     {cls:'walker w1', color:'blue', d:'0s'},
@@ -323,31 +348,52 @@ glyph('btn-glyph');
     {cls:'walker w5', color:'pink', d:'6.5s'},
     {cls:'walker w6', color:'orange', d:'3.5s'}
   ];
+  var paradeColors=['blue','red','yellow','green','pink','orange','blue','red','yellow','green','pink','orange'];
+  function paintChar(el, color, px){
+    var frames=CHARS[color];
+    var pal=charPal(HEX[color]);
+    el.setAttribute('data-frame','a');
+    el._frames=frames;
+    el._pal=pal;
+    el._px=px;
+    el.innerHTML=icon(frames.a, pal, px);
+  }
   function fill(host, limit){
     if(!host) return;
-    specs.slice(0, limit).forEach(function(s, i){
+    specs.slice(0, limit).forEach(function(s){
       var el=document.createElement('span');
       el.className=s.cls;
       el.style.setProperty('--d', s.d);
-      el.setAttribute('data-frame','a');
-      var frames=CHARS[s.color];
-      el.innerHTML=icon(frames.a, charPal(HEX[s.color]), 2);
-      el._frames=frames;
-      el._pal=charPal(HEX[s.color]);
+      paintChar(el, s.color, 2);
+      host.appendChild(el);
+    });
+  }
+  function fillParade(host){
+    if(!host) return;
+    paradeColors.forEach(function(color, i){
+      var el=document.createElement('span');
+      el.className='parade-mascot';
+      el.style.setProperty('--i', String(i));
+      var bob=document.createElement('span');
+      bob.className='parade-bob';
+      bob.style.setProperty('--i', String(i));
+      paintChar(bob, color, 2);
+      el.appendChild(bob);
       host.appendChild(el);
     });
   }
   fill(document.getElementById('intro-walkers'), 6);
   fill(document.getElementById('hero-walkers'), 2);
+  fillParade(document.getElementById('hero-parade'));
 
   var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduced) return;
   setInterval(function(){
-    document.querySelectorAll('.walker').forEach(function(el){
+    document.querySelectorAll('.walker, .parade-bob').forEach(function(el){
       if(!el._frames) return;
       var next=el.getAttribute('data-frame')==='a'?'b':'a';
       el.setAttribute('data-frame', next);
-      el.innerHTML=icon(el._frames[next], el._pal, 2);
+      el.innerHTML=icon(el._frames[next], el._pal, el._px || 2);
     });
   }, 220);
 })();
