@@ -46,7 +46,11 @@ export function WalletConnectControl({
         type="button"
         className={`${btnClass} ${className}`}
         disabled={connecting}
-        onClick={() => setVisible(true)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setVisible(true);
+        }}
       >
         {connecting ? "…" : "CONNECT"}
       </button>
