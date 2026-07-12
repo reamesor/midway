@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { ColorPicker } from "./ColorPicker";
 import { BetPanel } from "./BetPanel";
 import { ColorsRules } from "./ColorsRules";
@@ -9,6 +11,8 @@ import { OsDialog } from "@/components/os/OsDialog";
 import { useOs } from "@/components/os/OsContext";
 import type { ColorKey } from "@/lib/colors/engine";
 import { PAYOUT_MODE, settleRoll, splitCut } from "@/lib/colors/engine";
+import { useMidwayWallet } from "@/hooks/useMidwayWallet";
+import { useColorsBetTx } from "@/hooks/useColorsBetTx";
 
 const DiceStage = dynamic(
   () => import("./DiceStage").then((m) => m.DiceStage),
@@ -29,7 +33,7 @@ type Fairness = {
 };
 
 const AUTOBET_OPTIONS = [0, 5, 10, 20, 50, 100, -1] as const;
-/** Demo SOL buffer until on-chain wallet settlement lands. */
+/** Preview buffer only when disconnected — bets stay gated. */
 const DEMO_SOL_BALANCE = 1;
 
 type ColorsGameProps = {
@@ -38,7 +42,15 @@ type ColorsGameProps = {
 
 export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   const { openWin } = useOs();
-  const [balance, setBalance] = useState(DEMO_SOL_BALANCE);
+  const { connected } = useWallet();
+  const { setVisible } = useWalletModal();
+  const { play, debitPlaySol, creditPlaySol, refresh: refreshPlay } =
+    useMidwayWallet();
+  const { placeBetOnChain } = useColorsBetTx();
+
+  const balance = connected ? play.sol : DEMO_SOL_BALANCE;
+  const needsDeposit = connected && play.sol <= 0;
+
   const [bet, setBet] = useState(0.05);
   const [picked, setPicked] = useState<Set<ColorKey>>(new Set());
   const [phase, setPhase] = useState<Phase>("select");
@@ -57,13 +69,13 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   const [autobet, setAutobet] = useState(0);
   const [autoLeft, setAutoLeft] = useState(0);
   const [rulesOpen, setRulesOpen] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
 
   const pickedRef = useRef(picked);
   const betRef = useRef(bet);
   const balanceRef = useRef(balance);
   const nonceRef = useRef(nonce);
   const phaseRef = useRef(phase);
+  const connectedRef = useRef(connected);
 
   useEffect(() => {
     pickedRef.current = picked;
@@ -80,8 +92,19 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
+  useEffect(() => {
+    connectedRef.current = connected;
+  }, [connected]);
 
   const locked = phase === "placed" || phase === "rolling";
+
+  const openWalletFlow = () => {
+    if (!connected) {
+      setVisible(true);
+      return;
+    }
+    openWin("wallet");
+  };
 
   const toggleColor = (c: ColorKey) => {
     if (locked) return;
@@ -102,29 +125,41 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     setPrompt(picked.size ? "PLACE YOUR BET" : "SELECT UP TO 3 COLORS");
   }, [picked.size, phase]);
 
-  const requestConnect = () => {
-    // Wallet adapter lands later — keep a clear Connect affordance in SOL mode.
-    alert(
-      "Connect wallet (Phantom / Solflare) lands with on-chain settlement. Demo SOL balance is active for now.",
-    );
-    setWalletConnected(false);
+  const ensureWalletAndBalance = (cost: number) => {
+    if (!connectedRef.current) {
+      setPrompt("WALLET REQUIRED — CONNECT TO PLAY");
+      openWalletFlow();
+      return false;
+    }
+    if (cost > balanceRef.current || cost <= 0) {
+      setPrompt("NOT ENOUGH PLAY SOL — DEPOSIT IN MIDWAY.WALLET");
+      openWin("wallet");
+      return false;
+    }
+    return true;
   };
 
   const runRound = useCallback(async () => {
     const currentPicked = pickedRef.current;
     const currentBet = betRef.current;
-    const currentBalance = balanceRef.current;
     if (currentPicked.size === 0) {
       setPrompt("PICK AT LEAST ONE COLOR");
       return false;
     }
     const cost = currentBet * currentPicked.size;
-    if (cost > currentBalance || cost <= 0) {
-      setPrompt("NOT ENOUGH SOL");
+    if (!ensureWalletAndBalance(cost)) return false;
+
+    // Prepare hook for future on-chain escrow; demo settlement continues.
+    void placeBetOnChain({ bet: currentBet, picked: Array.from(currentPicked) });
+
+    const debit = debitPlaySol(cost, "colors stake");
+    if (!debit.ok) {
+      setPrompt(debit.error.toUpperCase());
+      openWin("wallet");
       return false;
     }
+    refreshPlay();
 
-    setBalance((b) => b - cost);
     setPhase("rolling");
     setPrompt("");
     setDice(null);
@@ -157,7 +192,10 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       setDice(rolled);
       setHits(hitFlags);
       setFairness(data.fairness);
-      setBalance((b) => b + settlement.winnings);
+      if (settlement.winnings > 0) {
+        creditPlaySol(settlement.winnings, "colors payout");
+        refreshPlay();
+      }
       setResult({
         matches: settlement.matches,
         winnings: settlement.winnings,
@@ -174,27 +212,42 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     } catch (err) {
       console.error(err);
       setPrompt("ROLL FAILED — TRY AGAIN");
-      setBalance((b) => b + cost);
+      creditPlaySol(cost, "colors refund");
+      refreshPlay();
       setPhase("select");
       return false;
     }
-  }, [onHouseCut]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ensureWallet uses stable openWin/setVisible
+  }, [
+    creditPlaySol,
+    debitPlaySol,
+    onHouseCut,
+    openWin,
+    placeBetOnChain,
+    refreshPlay,
+  ]);
 
   const placeOnly = () => {
     if (phaseRef.current !== "select") return;
     const currentPicked = pickedRef.current;
     const currentBet = betRef.current;
-    const currentBalance = balanceRef.current;
     if (currentPicked.size === 0) {
       setPrompt("PICK AT LEAST ONE COLOR");
       return;
     }
     const cost = currentBet * currentPicked.size;
-    if (cost > currentBalance || cost <= 0) {
-      setPrompt("NOT ENOUGH SOL");
+    if (!ensureWalletAndBalance(cost)) return;
+
+    void placeBetOnChain({ bet: currentBet, picked: Array.from(currentPicked) });
+
+    const debit = debitPlaySol(cost, "colors stake");
+    if (!debit.ok) {
+      setPrompt(debit.error.toUpperCase());
+      openWin("wallet");
       return;
     }
-    setBalance((b) => b - cost);
+    refreshPlay();
+
     setPhase("placed");
     setPrompt("READY — PULL THE LEVER");
     setDice(null);
@@ -207,6 +260,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     if (phaseRef.current !== "placed") return;
     const currentPicked = pickedRef.current;
     const currentBet = betRef.current;
+    const cost = currentBet * currentPicked.size;
     setPhase("rolling");
     setPrompt("");
     try {
@@ -230,7 +284,10 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       setDice(rolled);
       setHits(rolled.map((c) => currentPicked.has(c)));
       setFairness(data.fairness);
-      setBalance((b) => b + settlement.winnings);
+      if (settlement.winnings > 0) {
+        creditPlaySol(settlement.winnings, "colors payout");
+        refreshPlay();
+      }
       setResult({
         matches: settlement.matches,
         winnings: settlement.winnings,
@@ -246,6 +303,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     } catch (err) {
       console.error(err);
       setPrompt("ROLL FAILED — TRY AGAIN");
+      creditPlaySol(cost, "colors refund");
+      refreshPlay();
       setPhase("placed");
     }
   };
@@ -281,6 +340,14 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         <div className="chroma text-sm text-hot">COLORS.EXE</div>
         <div className="flex items-center gap-1">
           <span className="bevel-inset px-2 py-1 text-[10px] text-acid">SOL</span>
+          <button
+            type="button"
+            className="bevel-btn px-2 py-1"
+            onClick={() => openWin("wallet")}
+            title="Open Midway wallet"
+          >
+            WALLET
+          </button>
           <button
             type="button"
             className="bevel-btn px-2 py-1"
@@ -333,11 +400,12 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
             canRoll={phase === "placed"}
             placingDisabled={picked.size === 0}
             leverArmed={phase === "placed"}
-            walletConnected={walletConnected}
+            walletConnected={connected}
+            needsDeposit={needsDeposit}
             onBetChange={setBet}
             onPlace={placeOnly}
             onPullLever={() => void rollOnly()}
-            onConnect={requestConnect}
+            onOpenWallet={openWalletFlow}
             onMax={() => {
               const n = Math.max(1, picked.size);
               setBet(Math.max(0.01, Math.floor((balance / n) * 10000) / 10000));
@@ -395,8 +463,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         body={
           result
             ? result.matches > 0
-              ? `+${fmt(result.winnings)} SOL returned.`
-              : `−${fmt(result.stake)} SOL this round. The cut still comes home.`
+              ? `+${fmt(result.winnings)} SOL returned to Midway play.`
+              : `−${fmt(result.stake)} SOL from Midway play. The cut still comes home.`
             : ""
         }
         detail={

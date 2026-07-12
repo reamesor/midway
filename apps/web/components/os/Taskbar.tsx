@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { PixelIcon, GLYPHS, inkPalette } from "@/lib/pixel";
+import { WalletConnectControl } from "@/components/wallet/WalletConnectControl";
 import { Marquee } from "./Marquee";
 import { useOs, type WinId } from "./OsContext";
 
 const TABS: { id: WinId; label: string }[] = [
   { id: "colors", label: "COLORS.EXE" },
+  { id: "wallet", label: "EXCHANGE.EXE" },
   { id: "loop", label: "LOOP.EXE" },
   { id: "treasury", label: "TREASURY.MON" },
   { id: "info", label: "INFO.TXT" },
@@ -228,9 +230,7 @@ export function Taskbar({
         <span className="hidden md:inline">INTRO</span>
       </button>
 
-      <button type="button" className="bevel-btn px-2 py-1 text-[10px] whitespace-nowrap">
-        CONNECT
-      </button>
+      <WalletConnectControl size="taskbar" />
       <div className="bevel-inset num px-2 py-1 text-amber blink whitespace-nowrap">
         {clock}
       </div>

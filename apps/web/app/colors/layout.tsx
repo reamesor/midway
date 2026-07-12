@@ -1,4 +1,5 @@
 import { OsProvider } from "@/components/os/OsContext";
+import { SolanaProviderGate } from "@/components/wallet/SolanaProviderGate";
 import "../globals.css";
 
 export default function ColorsLayout({
@@ -6,7 +7,9 @@ export default function ColorsLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="dark">
-      <OsProvider>{children}</OsProvider>
+      <SolanaProviderGate>
+        <OsProvider>{children}</OsProvider>
+      </SolanaProviderGate>
     </div>
   );
 }

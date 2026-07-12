@@ -11,6 +11,7 @@ import { IdleDesktop } from "@/components/os/IdleDesktop";
 import { TheLoop } from "@/components/TheLoop";
 import { ColorsGame } from "@/components/colors/ColorsGame";
 import { TreasuryPanel } from "@/components/treasury/TreasuryPanel";
+import { MidwayWalletPanel } from "@/components/wallet/MidwayWalletPanel";
 import { InfoPanel } from "@/components/os/InfoPanel";
 import { ComingSoonStub } from "@/components/os/ComingSoonStub";
 import { applyHouseCut, type TreasuryState } from "@/lib/treasury/split";
@@ -20,7 +21,10 @@ type Rect = { x: number; y: number; width: number; height: number };
 function tileLayout(
   w: number,
   h: number,
-): Record<"colors" | "loop" | "treasury" | "info" | "fairness" | "soon", Rect> {
+): Record<
+  "colors" | "loop" | "treasury" | "wallet" | "info" | "fairness" | "soon",
+  Rect
+> {
   const task = 44;
   const usableH = Math.max(280, h - task);
   const pad = 8;
@@ -39,6 +43,7 @@ function tileLayout(
       colors: full,
       loop: { ...full, x: pad + 8, y: pad + dock + 8 },
       treasury: { ...full, x: pad + 16, y: pad + dock + 16 },
+      wallet: { ...full, x: pad + 10, y: pad + dock + 10 },
       info: { ...full, x: pad + 12, y: pad + dock + 12 },
       fairness: { ...full, x: pad + 20, y: pad + dock + 20 },
       soon: { ...full, x: pad + 24, y: pad + dock + 24 },
@@ -76,6 +81,12 @@ function tileLayout(
       y: workY + loopH + gap,
       width: sideW,
       height: treasuryH,
+    },
+    wallet: {
+      x: workX + Math.round(workW * 0.16),
+      y: workY + Math.round(workH * 0.08),
+      width: Math.min(440, Math.round(workW * 0.48)),
+      height: Math.min(520, Math.round(workH * 0.78)),
     },
     info: {
       x: workX + Math.round(workW * 0.1),
@@ -118,6 +129,7 @@ function Desktop() {
         colors: { x: 100, y: 8, width: 780, height: 640 },
         loop: { x: 900, y: 8, width: 420, height: 380 },
         treasury: { x: 900, y: 396, width: 420, height: 260 },
+        wallet: { x: 220, y: 48, width: 420, height: 520 },
         info: { x: 180, y: 40, width: 500, height: 520 },
         fairness: { x: 240, y: 120, width: 480, height: 320 },
         soon: { x: 280, y: 160, width: 360, height: 260 },
@@ -185,6 +197,17 @@ function Desktop() {
               setYourShare(0);
             }}
           />
+        </Win>
+
+        <Win
+          key={`wallet-${layoutKey}`}
+          id="wallet"
+          title="EXCHANGE.EXE — MIDWAY.WALLET"
+          default={winDefaults.wallet}
+          minWidth={300}
+          minHeight={360}
+        >
+          <MidwayWalletPanel />
         </Win>
 
         <Win

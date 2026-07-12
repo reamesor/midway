@@ -10,7 +10,14 @@ import {
   type ReactNode,
 } from "react";
 
-export type WinId = "loop" | "colors" | "treasury" | "info" | "fairness" | "soon";
+export type WinId =
+  | "loop"
+  | "colors"
+  | "treasury"
+  | "wallet"
+  | "info"
+  | "fairness"
+  | "soon";
 export type OsTheme = "light" | "dark";
 
 type OsContextValue = {
@@ -45,6 +52,7 @@ const DEFAULT_OPEN: Record<WinId, boolean> = {
   loop: true,
   colors: true,
   treasury: true,
+  wallet: false,
   info: false,
   fairness: false,
   soon: false,
@@ -67,6 +75,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
     loop: 11,
     colors: 14,
     treasury: 12,
+    wallet: 13,
     info: 10,
     fairness: 10,
     soon: 10,

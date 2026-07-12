@@ -709,6 +709,67 @@ html.dark .win-titlebar.focused {
   vertical-align: middle;
 }
 
+/* Wallet adapter modal — warm paper arcade (override default purple) */
+.wallet-adapter-modal-wrapper {
+  background: color-mix(in srgb, var(--void) 55%, transparent) !important;
+  font-family: var(--font-heading), ui-monospace, monospace !important;
+}
+.wallet-adapter-modal {
+  background: var(--panel) !important;
+  color: var(--ink) !important;
+  border: 2px solid var(--line) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 var(--shadow-cut) !important;
+}
+.wallet-adapter-modal-title {
+  color: var(--ink) !important;
+  font-family: var(--font-heading), ui-monospace, monospace !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.wallet-adapter-modal-list {
+  margin: 0 !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: var(--chrome) !important;
+  color: var(--ink) !important;
+  border: 2px solid !important;
+  border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi) !important;
+  border-radius: 0 !important;
+  font-family: var(--font-heading), ui-monospace, monospace !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  height: auto !important;
+  line-height: 1.2 !important;
+  padding: 10px 12px !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: var(--ink) !important;
+  color: var(--btn) !important;
+}
+.wallet-adapter-modal-button-close {
+  background: var(--chrome) !important;
+}
+.wallet-adapter-button-trigger {
+  background: var(--ink) !important;
+  color: var(--btn) !important;
+}
+.wallet-adapter-dropdown-list {
+  background: var(--panel) !important;
+  border: 2px solid var(--line) !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 var(--shadow-cut) !important;
+}
+.wallet-adapter-dropdown-list-item {
+  color: var(--ink) !important;
+  border-radius: 0 !important;
+  font-family: var(--font-heading), ui-monospace, monospace !important;
+}
+.wallet-adapter-dropdown-list-item:hover {
+  background: var(--ink) !important;
+  color: var(--btn) !important;
+}
+
 /* Dither SVG filter helper class */
 .dithered {
   filter: url(#bayer-dither);

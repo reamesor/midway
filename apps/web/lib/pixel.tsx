@@ -210,6 +210,16 @@ export const GLYPHS = {
     ".KYYYYK.",
     "..KKKK..",
   ],
+  wallet: [
+    ".KKKKKK.",
+    "KYYYYYYK",
+    "KY....YK",
+    "KY.KKKYK",
+    "KY.KYYYK",
+    "KY....YK",
+    "KYYYYYYK",
+    ".KKKKKK.",
+  ],
   lever: [
     "....KK..",
     "...KYK..",

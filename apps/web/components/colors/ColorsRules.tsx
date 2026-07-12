@@ -93,12 +93,14 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
           <Section title="SOLANA">
             <div className="space-y-2 rounded border border-line/60 bg-paper-2/80 p-3">
               <p>
-                Colors is <strong className="text-cyber">SOL only</strong>. Connect
-                Phantom or Solflare when wallet settlement is live.
+                Colors is <strong className="text-cyber">SOL only</strong>. Connect{" "}
+                <strong className="text-ink">Phantom</strong> or{" "}
+                <strong className="text-ink">Solflare</strong>, then deposit into{" "}
+                <strong className="text-hot">MIDWAY.WALLET</strong> (EXCHANGE.EXE).
               </p>
               <p className="text-[13px] text-ink-dim">
-                Until then, a demo SOL balance lets you practice rolls, payouts,
-                and the treasury loop.
+                Bets debit your Midway play balance — not your main wallet each roll.
+                Demo escrow is local until the on-chain vault is live.
               </p>
             </div>
           </Section>

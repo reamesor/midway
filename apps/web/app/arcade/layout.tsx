@@ -6,6 +6,7 @@ import {
 } from "next/font/google";
 import { OsProvider } from "@/components/os/OsContext";
 import { DitherFilter } from "@/components/os/DitherFilter";
+import { SolanaProviderGate } from "@/components/wallet/SolanaProviderGate";
 import "../globals.css";
 
 const silkscreen = Silkscreen({
@@ -42,12 +43,14 @@ export default function ArcadeLayout({
       className={`arcade-shell ${silkscreen.variable} ${pixelify.variable} ${vt323.variable} ${mono.variable}`}
     >
       <DitherFilter />
-      <OsProvider>
-        <div className="crt-scanlines" aria-hidden />
-        <div className="crt-vignette" aria-hidden />
-        <div className="crt-grain" aria-hidden />
-        {children}
-      </OsProvider>
+      <SolanaProviderGate>
+        <OsProvider>
+          <div className="crt-scanlines" aria-hidden />
+          <div className="crt-vignette" aria-hidden />
+          <div className="crt-grain" aria-hidden />
+          {children}
+        </OsProvider>
+      </SolanaProviderGate>
     </div>
   );
 }

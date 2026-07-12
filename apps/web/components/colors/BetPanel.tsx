@@ -1,6 +1,7 @@
 "use client";
 
 import { PixelIcon, GLYPHS } from "@/lib/pixel";
+import { WalletConnectControl } from "@/components/wallet/WalletConnectControl";
 
 const BET_PRESETS = [0.01, 0.05, 0.1, 0.25] as const;
 
@@ -12,11 +13,13 @@ type BetPanelProps = {
   placingDisabled: boolean;
   leverArmed: boolean;
   walletConnected: boolean;
+  /** When connected but play balance is empty. */
+  needsDeposit: boolean;
   onBetChange: (v: number) => void;
   onPlace: () => void;
   onPullLever: () => void;
   onMax: () => void;
-  onConnect: () => void;
+  onOpenWallet: () => void;
 };
 
 export function BetPanel({
@@ -27,36 +30,50 @@ export function BetPanel({
   placingDisabled,
   leverArmed,
   walletConnected,
+  needsDeposit,
   onBetChange,
   onPlace,
   onPullLever,
   onMax,
-  onConnect,
+  onOpenWallet,
 }: BetPanelProps) {
   const step = bet >= 0.1 ? 0.05 : 0.01;
+  const placeLabel = !walletConnected
+    ? "WALLET REQUIRED"
+    : needsDeposit
+      ? "DEPOSIT TO PLAY"
+      : "PLACE BET";
+
+  const canClickPlace =
+    canPlace &&
+    (Boolean(!walletConnected || needsDeposit) || !placingDisabled);
 
   return (
     <div className="space-y-3 font-heading text-[11px]">
       <div className="bevel-inset p-3">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-ink-dim">BALANCE</div>
-          {!walletConnected && (
-            <button
-              type="button"
-              className="bevel-btn px-2 py-0.5 text-[10px] text-hot"
-              onClick={onConnect}
-            >
-              CONNECT
-            </button>
-          )}
+          <div className="text-ink-dim">MIDWAY PLAY</div>
+          <WalletConnectControl size="panel" />
         </div>
         <div className="num text-2xl text-acid">
           {fmtSol(balance)}{" "}
           <span className="text-sm text-ink-dim">SOL</span>
         </div>
-        {!walletConnected && (
+        {!walletConnected ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Demo balance until wallet connect is live.
+            Connect Phantom / Solflare, then deposit into MIDWAY.WALLET to play.
+          </p>
+        ) : needsDeposit ? (
+          <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+            Play balance empty —{" "}
+            <button type="button" className="text-hot underline" onClick={onOpenWallet}>
+              deposit SOL
+            </button>{" "}
+            in EXCHANGE.EXE.
+          </p>
+        ) : (
+          <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+            Bets debit Midway play SOL (not your main wallet directly).
           </p>
         )}
       </div>
@@ -111,11 +128,17 @@ export function BetPanel({
 
       <button
         type="button"
-        disabled={!canPlace || placingDisabled}
-        onClick={onPlace}
+        disabled={!canClickPlace}
+        onClick={() => {
+          if (!walletConnected || needsDeposit) {
+            onOpenWallet();
+            return;
+          }
+          onPlace();
+        }}
         className="bevel-btn bevel-btn-hot w-full py-3 text-sm"
       >
-        PLACE BET
+        {placeLabel}
       </button>
 
       <button
