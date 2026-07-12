@@ -458,36 +458,47 @@ html.dark .win-titlebar.focused {
 }
 .win-controls button:hover { filter: invert(1); }
 
-/* Desktop icons — denser grid */
+/* Desktop icons — slim rail dock (windows own the workspace) */
 .desk-icons {
   position: absolute;
-  z-index: 5;
-  display: grid;
-  gap: 8px 10px;
-  left: 10px;
-  top: 10px;
-  right: 10px;
-  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-  max-width: 100%;
+  z-index: 9;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  left: 8px;
+  top: 8px;
+  right: auto;
+  max-width: calc(100% - 120px);
+  padding: 4px;
   pointer-events: none;
+  background: color-mix(in srgb, var(--chrome) 72%, transparent);
+  border: 2px solid;
+  border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
+  box-shadow: 3px 3px 0 var(--shadow-cut);
 }
 .desk-icons > * {
   pointer-events: auto;
 }
 @media (min-width: 768px) {
   .desk-icons {
-    left: 12px;
-    top: 12px;
+    top: 10px;
+    left: 8px;
     right: auto;
-    width: min(280px, 28vw);
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px 8px;
+    bottom: 52px;
+    max-width: none;
+    width: 76px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px 4px;
+    overflow-y: auto;
   }
 }
 @media (min-width: 1100px) {
   .desk-icons {
-    width: min(320px, 26vw);
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 84px;
   }
 }
 
@@ -496,11 +507,11 @@ html.dark .win-titlebar.focused {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px 2px;
+  gap: 3px;
+  padding: 4px 2px;
   color: var(--ink);
   font-family: var(--font-heading);
-  font-size: 9px;
+  font-size: 8px;
   letter-spacing: 0.06em;
   text-align: center;
   text-transform: uppercase;
@@ -512,12 +523,15 @@ html.dark .win-titlebar.focused {
   background: color-mix(in srgb, var(--sage) 28%, transparent);
   outline: 1px dashed var(--ink);
 }
+.desk-icon.is-open .glyph {
+  outline: 1px solid var(--ink);
+}
 .desk-icon .glyph {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  padding: 6px;
+  padding: 5px;
   background: var(--panel);
   border: 2px solid;
   border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);

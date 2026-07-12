@@ -7,12 +7,83 @@ import { Taskbar } from "@/components/os/Taskbar";
 import { Win } from "@/components/os/Win";
 import { DesktopIcons } from "@/components/os/DesktopIcons";
 import { KineticHero } from "@/components/os/KineticHero";
-import { WebringFooter } from "@/components/os/WebringFooter";
 import { TheLoop } from "@/components/TheLoop";
 import { ColorsGame } from "@/components/colors/ColorsGame";
 import { TreasuryPanel } from "@/components/treasury/TreasuryPanel";
 import { HonestStrip } from "@/components/HonestStrip";
 import { applyHouseCut, type TreasuryState } from "@/lib/treasury/split";
+
+type Rect = { x: number; y: number; width: number; height: number };
+
+function tileLayout(w: number, h: number): Record<"colors" | "loop" | "treasury" | "readme" | "fairness", Rect> {
+  const task = 44;
+  const usableH = Math.max(280, h - task);
+  const pad = 8;
+  const gap = 8;
+
+  if (w < 768) {
+    // Near full-bleed stack under the icon dock — taskbar tabs switch focus
+    const dock = 58;
+    const full: Rect = {
+      x: pad,
+      y: pad + dock,
+      width: Math.max(280, w - pad * 2),
+      height: Math.max(280, usableH - pad * 2 - dock),
+    };
+    return {
+      colors: full,
+      loop: { ...full, x: pad + 8, y: pad + dock + 8 },
+      treasury: { ...full, x: pad + 16, y: pad + dock + 16 },
+      readme: { ...full, x: pad + 12, y: pad + dock + 12 },
+      fairness: { ...full, x: pad + 20, y: pad + dock + 20 },
+    };
+  }
+
+  // Slim icon rail on the left; windows fill the rest
+  const rail = w >= 1100 ? 92 : 84;
+  const workX = rail + pad;
+  const workY = pad;
+  const workW = Math.max(480, w - workX - pad);
+  const workH = Math.max(360, usableH - pad * 2);
+
+  const colGap = gap;
+  const mainW = Math.floor(workW * 0.62);
+  const sideW = workW - mainW - colGap;
+  const sideH = Math.floor((workH - gap) / 2);
+
+  return {
+    colors: {
+      x: workX,
+      y: workY,
+      width: mainW,
+      height: workH,
+    },
+    loop: {
+      x: workX + mainW + colGap,
+      y: workY,
+      width: sideW,
+      height: sideH,
+    },
+    treasury: {
+      x: workX + mainW + colGap,
+      y: workY + sideH + gap,
+      width: sideW,
+      height: workH - sideH - gap,
+    },
+    readme: {
+      x: workX + Math.round(workW * 0.12),
+      y: workY + Math.round(workH * 0.1),
+      width: Math.min(480, Math.round(workW * 0.55)),
+      height: Math.min(420, Math.round(workH * 0.7)),
+    },
+    fairness: {
+      x: workX + Math.round(workW * 0.18),
+      y: workY + Math.round(workH * 0.14),
+      width: Math.min(500, Math.round(workW * 0.5)),
+      height: Math.min(360, Math.round(workH * 0.55)),
+    },
+  };
+}
 
 function Desktop() {
   const { openWin, booted } = useOs();
@@ -31,57 +102,18 @@ function Desktop() {
   const winDefaults = useMemo(() => {
     if (typeof window === "undefined") {
       return {
-        colors: { x: 300, y: 48, width: 780, height: 620 },
-        loop: { x: 48, y: 48, width: 460, height: 420 },
-        treasury: { x: 340, y: 280, width: 560, height: 360 },
-        readme: { x: 120, y: 120, width: 440, height: 380 },
-        fairness: { x: 200, y: 160, width: 460, height: 300 },
+        colors: { x: 100, y: 8, width: 780, height: 640 },
+        loop: { x: 900, y: 8, width: 420, height: 310 },
+        treasury: { x: 900, y: 326, width: 420, height: 310 },
+        readme: { x: 200, y: 80, width: 460, height: 400 },
+        fairness: { x: 240, y: 120, width: 480, height: 320 },
       };
     }
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    const task = 48;
-    const footer = 52;
-    const usableH = h - task - footer;
-
-    if (w < 768) {
-      return {
-        colors: { x: 6, y: 44, width: w - 12, height: Math.min(usableH - 8, h - 100) },
-        loop: { x: 6, y: 44, width: w - 12, height: Math.min(440, usableH - 8) },
-        treasury: { x: 6, y: 44, width: w - 12, height: Math.min(400, usableH - 8) },
-        readme: { x: 6, y: 44, width: w - 12, height: Math.min(420, usableH - 8) },
-        fairness: { x: 6, y: 44, width: w - 12, height: Math.min(340, usableH - 8) },
-      };
-    }
-
-    // Dense tiling: icons occupy left ~300px; windows fill the rest
-    const left = Math.min(300, Math.round(w * 0.22));
-    const pad = 12;
-    const colorsW = Math.min(820, w - left - pad * 2);
-    const colorsH = Math.min(640, usableH - pad * 2);
-    return {
-      colors: {
-        x: left + pad,
-        y: pad + 8,
-        width: colorsW,
-        height: colorsH,
-      },
-      loop: {
-        x: left + pad,
-        y: Math.min(colorsH + 20, usableH - 380),
-        width: Math.min(480, colorsW * 0.58),
-        height: Math.min(400, usableH * 0.42),
-      },
-      treasury: {
-        x: left + pad + Math.min(480, colorsW * 0.58) + 12,
-        y: Math.min(colorsH + 20, usableH - 340),
-        width: Math.min(520, colorsW * 0.42),
-        height: Math.min(360, usableH * 0.4),
-      },
-      readme: { x: left + 40, y: 80, width: 460, height: 400 },
-      fairness: { x: left + 80, y: 120, width: 480, height: 320 },
-    };
+    return tileLayout(window.innerWidth, window.innerHeight);
   }, [booted]);
+
+  // Remount windows after boot so Rnd picks up measured viewport tiles
+  const layoutKey = booted ? "live" : "boot";
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
@@ -91,16 +123,24 @@ function Desktop() {
       <DesktopIcons />
 
       <div className="absolute inset-0 bottom-10 z-[8] md:bottom-11">
-        <Win id="loop" title="LOOP.EXE" default={winDefaults.loop} minWidth={300} minHeight={260}>
+        <Win
+          key={`loop-${layoutKey}`}
+          id="loop"
+          title="LOOP.EXE"
+          default={winDefaults.loop}
+          minWidth={280}
+          minHeight={220}
+        >
           <TheLoop />
         </Win>
 
         <Win
+          key={`colors-${layoutKey}`}
           id="colors"
           title="COLORS.EXE"
           default={winDefaults.colors}
-          minWidth={320}
-          minHeight={400}
+          minWidth={300}
+          minHeight={360}
         >
           <ColorsGame
             onHouseCut={(cut) => {
@@ -111,11 +151,12 @@ function Desktop() {
         </Win>
 
         <Win
+          key={`treasury-${layoutKey}`}
           id="treasury"
           title="TREASURY.MON — SYSTEM MONITOR"
           default={winDefaults.treasury}
-          minWidth={300}
-          minHeight={260}
+          minWidth={280}
+          minHeight={220}
         >
           <TreasuryPanel
             {...treasury}
@@ -131,7 +172,14 @@ function Desktop() {
           />
         </Win>
 
-        <Win id="readme" title="README.TXT" default={winDefaults.readme} minWidth={280} minHeight={240}>
+        <Win
+          key={`readme-${layoutKey}`}
+          id="readme"
+          title="README.TXT"
+          default={winDefaults.readme}
+          minWidth={280}
+          minHeight={240}
+        >
           <HonestStrip />
           <button
             type="button"
@@ -143,6 +191,7 @@ function Desktop() {
         </Win>
 
         <Win
+          key={`fairness-${layoutKey}`}
           id="fairness"
           title="FAIRNESS.LOG"
           default={winDefaults.fairness}
@@ -158,7 +207,6 @@ function Desktop() {
         </Win>
       </div>
 
-      <WebringFooter />
       <Taskbar
         treasuryTotal={treasury.total}
         burnedTokens={treasury.burnedTokens}
