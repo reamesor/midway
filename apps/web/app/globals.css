@@ -406,30 +406,78 @@ html.dark .desktop-wallpaper {
   opacity: 0.88;
 }
 .idle-tent-stage {
-  /* Door hole = cols 7–8 / rows 11–14; row 15 is an opaque sill. */
+  /*
+    16×16 tent grid: door = cols 7–8 / rows 11–14 (12.5% × 25%);
+    row 15 = opaque sill. Wall body ≈ cols 3–12.
+  */
   --door-x: 50%;
   --door-w: 12.5%;
   --door-top: 68.75%;
   --door-h: 25%;
+  --wall-left: 18.75%;
+  --wall-w: 62.5%;
+  --wall-top: 62.5%;
+  --wall-h: 37.5%;
   --walk-x: 38px;
   /* Feet on the sill top (1/16 of the tent) — never below the tent base. */
   --walker-sill: 6.25%;
+  --tent-void: #1a241c;
   position: relative;
   width: 72px;
   height: 72px;
   margin: 0 auto;
   overflow: visible;
 }
+/* Dark interior behind the door hole (no light-gray “room”). */
+.tent-door-void {
+  position: absolute;
+  left: calc(var(--door-x) - var(--door-w) / 2);
+  top: var(--door-top);
+  width: var(--door-w);
+  height: var(--door-h);
+  background: var(--tent-void);
+  z-index: 0;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+/*
+  Gap-sealing wall plate: opaque over striped pillars + sill, with a door cutout.
+  Walkers sit under this so they never paint on wall pixels even if the SVG gaps.
+*/
+.tent-wall-occluder {
+  position: absolute;
+  left: var(--wall-left);
+  top: var(--wall-top);
+  width: var(--wall-w);
+  height: var(--wall-h);
+  z-index: 2;
+  pointer-events: none;
+  background: var(--ink);
+  /* Outer wall rect; inner door hole (cols 7–8 / rows 11–14 within the wall band). */
+  clip-path: polygon(
+    evenodd,
+    0% 0%,
+    100% 0%,
+    100% 100%,
+    0% 100%,
+    0% 0%,
+    40% 16.666%,
+    60% 16.666%,
+    60% 83.333%,
+    40% 83.333%,
+    40% 16.666%
+  );
+}
 .idle-tent-stage .idle-brand-tent {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: 72px;
   height: 72px;
   pointer-events: none;
 }
 /*
-  Walkers sit behind the tent SVG. Opaque facade + solid bottom sill hide them;
-  only the transparent door D pixels reveal them. Approach lanes extend sideways.
+  Walkers under walls/roof/sill. Visible beside the tent or through the door hole only.
+  Approach lanes extend sideways; opacity drops while crossing wall columns.
 */
 .tent-walkers {
   position: absolute;
@@ -445,7 +493,6 @@ html.dark .desktop-wallpaper {
   display: grid;
   place-items: center;
   transform-origin: center bottom;
-  filter: drop-shadow(1px 0 0 color-mix(in srgb, var(--ink) 14%, transparent));
   image-rendering: pixelated;
   will-change: transform, opacity;
   animation-timing-function: cubic-bezier(0.42, 0, 0.2, 1);
@@ -461,7 +508,7 @@ html.dark .desktop-wallpaper {
   transform: translateX(-50%);
   animation: none;
 }
-/* Paths shrink into the door hole, then fully hide before emerging the other way. */
+/* Outside → hide through walls → brief door-only peek → inside → reverse out. */
 .tent-walker--left-in-right-out {
   animation-name: tent-walk-l2r;
 }
@@ -476,52 +523,64 @@ html.dark .desktop-wallpaper {
 }
 @keyframes tent-walk-l2r {
   0% { opacity: 0; transform: translate(calc(var(--walk-x) * -1), 0) scale(1, 1); }
-  10% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.82), 0) scale(1, 1); }
-  32% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.28), 0) scale(0.94, 0.94); }
-  40% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.1), 0) scale(0.7, 0.7); }
-  45% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.02), 0) scale(0.4, 0.4); }
-  46%, 54% { opacity: 0; transform: translate(0, 0) scale(0.28, 0.28); }
-  55% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.02), 0) scale(-0.4, 0.4); }
-  60% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.1), 0) scale(-0.7, 0.7); }
-  68% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.28), 0) scale(-0.94, 0.94); }
-  90% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.82), 0) scale(-1, 1); }
+  8% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.88), 0) scale(1, 1); }
+  24% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.7), 0) scale(1, 1); }
+  28% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.55), 0) scale(0.85, 0.85); }
+  36% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.05), 0) scale(0.48, 0.48); }
+  40% { opacity: 1; transform: translate(0, 0) scale(0.4, 0.4); }
+  44%, 56% { opacity: 0; transform: translate(0, 0) scale(0.26, 0.26); }
+  60% { opacity: 1; transform: translate(0, 0) scale(-0.4, 0.4); }
+  64% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.05), 0) scale(-0.48, 0.48); }
+  72% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.55), 0) scale(-0.85, 0.85); }
+  76% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.7), 0) scale(-1, 1); }
+  92% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.88), 0) scale(-1, 1); }
   100% { opacity: 0; transform: translate(var(--walk-x), 0) scale(-1, 1); }
 }
 @keyframes tent-walk-r2l {
   0% { opacity: 0; transform: translate(var(--walk-x), 0) scale(-1, 1); }
-  10% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.82), 0) scale(-1, 1); }
-  32% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.28), 0) scale(-0.94, 0.94); }
-  40% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.1), 0) scale(-0.7, 0.7); }
-  45% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.02), 0) scale(-0.4, 0.4); }
-  46%, 54% { opacity: 0; transform: translate(0, 0) scale(0.28, 0.28); }
-  55% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.02), 0) scale(0.4, 0.4); }
-  60% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.1), 0) scale(0.7, 0.7); }
-  70% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.28), 0) scale(0.94, 0.94); }
-  90% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.82), 0) scale(1, 1); }
+  8% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.88), 0) scale(-1, 1); }
+  24% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.7), 0) scale(-1, 1); }
+  28% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.55), 0) scale(-0.85, 0.85); }
+  36% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.05), 0) scale(-0.48, 0.48); }
+  40% { opacity: 1; transform: translate(0, 0) scale(-0.4, 0.4); }
+  44%, 56% { opacity: 0; transform: translate(0, 0) scale(0.26, 0.26); }
+  60% { opacity: 1; transform: translate(0, 0) scale(0.4, 0.4); }
+  64% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.05), 0) scale(0.48, 0.48); }
+  72% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.55), 0) scale(0.85, 0.85); }
+  76% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.7), 0) scale(1, 1); }
+  92% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.88), 0) scale(1, 1); }
   100% { opacity: 0; transform: translate(calc(var(--walk-x) * -1), 0) scale(1, 1); }
 }
 @keyframes tent-walk-loop-l {
   0% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.92), 0) scale(1, 1); }
-  12% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.72), 0) scale(1, 1); }
-  28% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.22), 0) scale(0.9, 0.9); }
-  35% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.08), 0) scale(0.55, 0.55); }
-  40%, 60% { opacity: 0; transform: translate(0, 0) scale(0.3, 0.3); }
-  65% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.08), 0) scale(-0.55, 0.55); }
-  72% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.22), 0) scale(-0.9, 0.9); }
-  85% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.72), 0) scale(-1, 1); }
-  92% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.92), 0) scale(-1, 1); }
+  10% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.78), 0) scale(1, 1); }
+  22% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.7), 0) scale(1, 1); }
+  26% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.5), 0) scale(0.8, 0.8); }
+  34% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.04), 0) scale(0.45, 0.45); }
+  38% { opacity: 1; transform: translate(0, 0) scale(0.38, 0.38); }
+  42%, 58% { opacity: 0; transform: translate(0, 0) scale(0.26, 0.26); }
+  62% { opacity: 1; transform: translate(0, 0) scale(-0.38, 0.38); }
+  66% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.04), 0) scale(-0.45, 0.45); }
+  74% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.5), 0) scale(-0.8, 0.8); }
+  78% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.7), 0) scale(-1, 1); }
+  90% { opacity: 1; transform: translate(calc(var(--walk-x) * -0.78), 0) scale(-1, 1); }
+  96% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.92), 0) scale(-1, 1); }
   100% { opacity: 0; transform: translate(calc(var(--walk-x) * -0.92), 0) scale(1, 1); }
 }
 @keyframes tent-walk-loop-r {
   0% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.92), 0) scale(-1, 1); }
-  12% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.72), 0) scale(-1, 1); }
-  28% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.22), 0) scale(-0.9, 0.9); }
-  35% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.08), 0) scale(-0.55, 0.55); }
-  40%, 60% { opacity: 0; transform: translate(0, 0) scale(0.3, 0.3); }
-  65% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.08), 0) scale(0.55, 0.55); }
-  72% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.22), 0) scale(0.9, 0.9); }
-  85% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.72), 0) scale(1, 1); }
-  92% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.92), 0) scale(1, 1); }
+  10% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.78), 0) scale(-1, 1); }
+  22% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.7), 0) scale(-1, 1); }
+  26% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.5), 0) scale(-0.8, 0.8); }
+  34% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.04), 0) scale(-0.45, 0.45); }
+  38% { opacity: 1; transform: translate(0, 0) scale(-0.38, 0.38); }
+  42%, 58% { opacity: 0; transform: translate(0, 0) scale(0.26, 0.26); }
+  62% { opacity: 1; transform: translate(0, 0) scale(0.38, 0.38); }
+  66% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.04), 0) scale(0.45, 0.45); }
+  74% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.5), 0) scale(0.8, 0.8); }
+  78% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.7), 0) scale(1, 1); }
+  90% { opacity: 1; transform: translate(calc(var(--walk-x) * 0.78), 0) scale(1, 1); }
+  96% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.92), 0) scale(1, 1); }
   100% { opacity: 0; transform: translate(calc(var(--walk-x) * 0.92), 0) scale(-1, 1); }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -14,17 +14,17 @@ type WalkerSpec = {
   path: "left-in-right-out" | "right-in-left-out" | "loop-left" | "loop-right";
   duration: number;
   delay: number;
-  /** Pixel size — must fit inside the tent door hole (~9×18 on 72px stage). */
+  /** Pixel size — door is 2/16 of 72px (~9px); keep ≤8 so pillars never clip the sprite. */
   size: number;
 };
 
 const WALKERS: WalkerSpec[] = [
-  { id: "blue", path: "left-in-right-out", duration: 12, delay: 0, size: 11 },
-  { id: "red", path: "right-in-left-out", duration: 14, delay: 2.4, size: 10 },
-  { id: "yellow", path: "loop-left", duration: 16, delay: 5.0, size: 10 },
-  { id: "green", path: "loop-right", duration: 13.5, delay: 1.2, size: 10 },
-  { id: "pink", path: "left-in-right-out", duration: 15, delay: 7.2, size: 9 },
-  { id: "orange", path: "right-in-left-out", duration: 17, delay: 3.6, size: 9 },
+  { id: "blue", path: "left-in-right-out", duration: 12, delay: 0, size: 8 },
+  { id: "red", path: "right-in-left-out", duration: 14, delay: 2.4, size: 8 },
+  { id: "yellow", path: "loop-left", duration: 16, delay: 5.0, size: 7 },
+  { id: "green", path: "loop-right", duration: 13.5, delay: 1.2, size: 7 },
+  { id: "pink", path: "left-in-right-out", duration: 15, delay: 7.2, size: 7 },
+  { id: "orange", path: "right-in-left-out", duration: 17, delay: 3.6, size: 7 },
 ];
 
 const WALK_FRAME_MS = 240;

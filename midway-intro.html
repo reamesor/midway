@@ -78,30 +78,36 @@
   /* tent stage + doorway walkers (door D omitted = hole; bottom sill stays opaque) */
   /* Door = cols 7–8 / rows 11–14; row 15 = solid sill so feet never poke under the house. */
   .tent-stage{position:relative;width:150px;height:150px;overflow:visible;
-    --walk-x:72px;--walker-size:16px;--walker-sill:6.25%;}
-  .tent-stage--sm{width:56px;height:56px;--walk-x:28px;--walker-size:8px;}
+    --door-x:50%;--door-w:12.5%;--door-top:68.75%;--door-h:25%;
+    --wall-left:18.75%;--wall-w:62.5%;--wall-top:62.5%;--wall-h:37.5%;
+    --walk-x:72px;--walker-size:14px;--walker-sill:6.25%;--tent-void:#1a241c;}
+  .tent-stage--sm{width:56px;height:56px;--walk-x:28px;--walker-size:6px;}
   .tent-stage-inner{position:relative;width:100%;height:100%;}
   .tent-stage--lg .tent-stage-inner{opacity:0;transform:scale(.2) translateY(20px);}
   body.run .tent-stage--lg .tent-stage-inner{animation:tentPop .7s cubic-bezier(.34,1.56,.4,1) .5s forwards, bob 3s ease-in-out 1.3s infinite;}
   .tent-stage--sm .tent-stage-inner{opacity:1;transform:none;}
-  .tent{position:relative;z-index:2;width:100%;height:100%;pointer-events:none;}
+  .tent-door-void{position:absolute;left:calc(var(--door-x) - var(--door-w) / 2);top:var(--door-top);
+    width:var(--door-w);height:var(--door-h);background:var(--tent-void);z-index:0;pointer-events:none;}
+  .tent-wall-occluder{position:absolute;left:var(--wall-left);top:var(--wall-top);width:var(--wall-w);height:var(--wall-h);
+    z-index:2;pointer-events:none;background:var(--ink);
+    clip-path:polygon(evenodd,0% 0%,100% 0%,100% 100%,0% 100%,0% 0%,40% 16.666%,60% 16.666%,60% 83.333%,40% 83.333%,40% 16.666%);}
+  .tent{position:relative;z-index:3;width:100%;height:100%;pointer-events:none;}
   @keyframes tentPop{to{opacity:1;transform:scale(1) translateY(0);}}
   @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
 
-  /* Walkers behind tent SVG; only the door hole reveals them. */
+  /* Walkers under walls; only door hole + outside lanes reveal them. */
   .tent-walkers{position:absolute;inset:-24px -72px 0;z-index:1;pointer-events:none;overflow:visible;}
   .tent-stage--sm .tent-walkers{inset:-10px -30px 0;}
   .walker{position:absolute;left:50%;bottom:var(--walker-sill);
     width:var(--walker-size);height:var(--walker-size);margin-left:calc(var(--walker-size) / -2);
     opacity:0;transform-origin:center bottom;image-rendering:pixelated;will-change:transform,opacity;
-    filter:drop-shadow(1px 0 0 rgba(47,90,56,.16));
     animation:tentWalkL2R 12s cubic-bezier(.42,0,.2,1) infinite;}
   .walker svg{width:100%;height:100%;display:block;}
   .walker.w2{animation-name:tentWalkR2L;animation-duration:14s;}
   .walker.w3{animation-name:tentWalkLoopL;animation-duration:16s;}
   .walker.w4{animation-name:tentWalkLoopR;animation-duration:13.5s;}
-  .walker.w5{animation-name:tentWalkL2R;animation-duration:15s;--walker-size:14px;}
-  .walker.w6{animation-name:tentWalkR2L;animation-duration:17s;--walker-size:13px;}
+  .walker.w5{animation-name:tentWalkL2R;animation-duration:15s;--walker-size:12px;}
+  .walker.w6{animation-name:tentWalkR2L;animation-duration:17s;--walker-size:11px;}
   .tent-stage--sm .walker.w3,.tent-stage--sm .walker.w4,.tent-stage--sm .walker.w5,.tent-stage--sm .walker.w6{display:none;}
   /* Hold intro walkers until tent pops; hero walkers start immediately */
   .tent-stage--lg .walker{animation-delay:calc(1.4s + var(--d,0s));}
@@ -109,52 +115,64 @@
 
   @keyframes tentWalkL2R{
     0%{opacity:0;transform:translate(calc(var(--walk-x) * -1),0) scale(1,1);}
-    10%{opacity:1;transform:translate(calc(var(--walk-x) * -0.82),0) scale(1,1);}
-    32%{opacity:1;transform:translate(calc(var(--walk-x) * -0.28),0) scale(.94,.94);}
-    40%{opacity:1;transform:translate(calc(var(--walk-x) * -0.1),0) scale(.7,.7);}
-    45%{opacity:0;transform:translate(calc(var(--walk-x) * -0.02),0) scale(.4,.4);}
-    46%,54%{opacity:0;transform:translate(0,0) scale(.28,.28);}
-    55%{opacity:0;transform:translate(calc(var(--walk-x) * 0.02),0) scale(-.4,.4);}
-    60%{opacity:1;transform:translate(calc(var(--walk-x) * 0.1),0) scale(-.7,.7);}
-    68%{opacity:1;transform:translate(calc(var(--walk-x) * 0.28),0) scale(-.94,.94);}
-    90%{opacity:1;transform:translate(calc(var(--walk-x) * 0.82),0) scale(-1,1);}
+    8%{opacity:1;transform:translate(calc(var(--walk-x) * -0.88),0) scale(1,1);}
+    24%{opacity:1;transform:translate(calc(var(--walk-x) * -0.7),0) scale(1,1);}
+    28%{opacity:0;transform:translate(calc(var(--walk-x) * -0.55),0) scale(.85,.85);}
+    36%{opacity:0;transform:translate(calc(var(--walk-x) * -0.05),0) scale(.48,.48);}
+    40%{opacity:1;transform:translate(0,0) scale(.4,.4);}
+    44%,56%{opacity:0;transform:translate(0,0) scale(.26,.26);}
+    60%{opacity:1;transform:translate(0,0) scale(-.4,.4);}
+    64%{opacity:0;transform:translate(calc(var(--walk-x) * 0.05),0) scale(-.48,.48);}
+    72%{opacity:0;transform:translate(calc(var(--walk-x) * 0.55),0) scale(-.85,.85);}
+    76%{opacity:1;transform:translate(calc(var(--walk-x) * 0.7),0) scale(-1,1);}
+    92%{opacity:1;transform:translate(calc(var(--walk-x) * 0.88),0) scale(-1,1);}
     100%{opacity:0;transform:translate(var(--walk-x),0) scale(-1,1);}
   }
   @keyframes tentWalkR2L{
     0%{opacity:0;transform:translate(var(--walk-x),0) scale(-1,1);}
-    10%{opacity:1;transform:translate(calc(var(--walk-x) * 0.82),0) scale(-1,1);}
-    32%{opacity:1;transform:translate(calc(var(--walk-x) * 0.28),0) scale(-.94,.94);}
-    40%{opacity:1;transform:translate(calc(var(--walk-x) * 0.1),0) scale(-.7,.7);}
-    45%{opacity:0;transform:translate(calc(var(--walk-x) * 0.02),0) scale(-.4,.4);}
-    46%,54%{opacity:0;transform:translate(0,0) scale(.28,.28);}
-    55%{opacity:0;transform:translate(calc(var(--walk-x) * -0.02),0) scale(.4,.4);}
-    60%{opacity:1;transform:translate(calc(var(--walk-x) * -0.1),0) scale(.7,.7);}
-    70%{opacity:1;transform:translate(calc(var(--walk-x) * -0.28),0) scale(.94,.94);}
-    90%{opacity:1;transform:translate(calc(var(--walk-x) * -0.82),0) scale(1,1);}
+    8%{opacity:1;transform:translate(calc(var(--walk-x) * 0.88),0) scale(-1,1);}
+    24%{opacity:1;transform:translate(calc(var(--walk-x) * 0.7),0) scale(-1,1);}
+    28%{opacity:0;transform:translate(calc(var(--walk-x) * 0.55),0) scale(-.85,.85);}
+    36%{opacity:0;transform:translate(calc(var(--walk-x) * 0.05),0) scale(-.48,.48);}
+    40%{opacity:1;transform:translate(0,0) scale(-.4,.4);}
+    44%,56%{opacity:0;transform:translate(0,0) scale(.26,.26);}
+    60%{opacity:1;transform:translate(0,0) scale(.4,.4);}
+    64%{opacity:0;transform:translate(calc(var(--walk-x) * -0.05),0) scale(.48,.48);}
+    72%{opacity:0;transform:translate(calc(var(--walk-x) * -0.55),0) scale(.85,.85);}
+    76%{opacity:1;transform:translate(calc(var(--walk-x) * -0.7),0) scale(1,1);}
+    92%{opacity:1;transform:translate(calc(var(--walk-x) * -0.88),0) scale(1,1);}
     100%{opacity:0;transform:translate(calc(var(--walk-x) * -1),0) scale(1,1);}
   }
   @keyframes tentWalkLoopL{
     0%{opacity:0;transform:translate(calc(var(--walk-x) * -0.92),0) scale(1,1);}
-    12%{opacity:1;transform:translate(calc(var(--walk-x) * -0.72),0) scale(1,1);}
-    28%{opacity:1;transform:translate(calc(var(--walk-x) * -0.22),0) scale(.9,.9);}
-    35%{opacity:1;transform:translate(calc(var(--walk-x) * -0.08),0) scale(.55,.55);}
-    40%,60%{opacity:0;transform:translate(0,0) scale(.3,.3);}
-    65%{opacity:1;transform:translate(calc(var(--walk-x) * -0.08),0) scale(-.55,.55);}
-    72%{opacity:1;transform:translate(calc(var(--walk-x) * -0.22),0) scale(-.9,.9);}
-    85%{opacity:1;transform:translate(calc(var(--walk-x) * -0.72),0) scale(-1,1);}
-    92%{opacity:0;transform:translate(calc(var(--walk-x) * -0.92),0) scale(-1,1);}
+    10%{opacity:1;transform:translate(calc(var(--walk-x) * -0.78),0) scale(1,1);}
+    22%{opacity:1;transform:translate(calc(var(--walk-x) * -0.7),0) scale(1,1);}
+    26%{opacity:0;transform:translate(calc(var(--walk-x) * -0.5),0) scale(.8,.8);}
+    34%{opacity:0;transform:translate(calc(var(--walk-x) * -0.04),0) scale(.45,.45);}
+    38%{opacity:1;transform:translate(0,0) scale(.38,.38);}
+    42%,58%{opacity:0;transform:translate(0,0) scale(.26,.26);}
+    62%{opacity:1;transform:translate(0,0) scale(-.38,.38);}
+    66%{opacity:0;transform:translate(calc(var(--walk-x) * -0.04),0) scale(-.45,.45);}
+    74%{opacity:0;transform:translate(calc(var(--walk-x) * -0.5),0) scale(-.8,.8);}
+    78%{opacity:1;transform:translate(calc(var(--walk-x) * -0.7),0) scale(-1,1);}
+    90%{opacity:1;transform:translate(calc(var(--walk-x) * -0.78),0) scale(-1,1);}
+    96%{opacity:0;transform:translate(calc(var(--walk-x) * -0.92),0) scale(-1,1);}
     100%{opacity:0;transform:translate(calc(var(--walk-x) * -0.92),0) scale(1,1);}
   }
   @keyframes tentWalkLoopR{
     0%{opacity:0;transform:translate(calc(var(--walk-x) * 0.92),0) scale(-1,1);}
-    12%{opacity:1;transform:translate(calc(var(--walk-x) * 0.72),0) scale(-1,1);}
-    28%{opacity:1;transform:translate(calc(var(--walk-x) * 0.22),0) scale(-.9,.9);}
-    35%{opacity:1;transform:translate(calc(var(--walk-x) * 0.08),0) scale(-.55,.55);}
-    40%,60%{opacity:0;transform:translate(0,0) scale(.3,.3);}
-    65%{opacity:1;transform:translate(calc(var(--walk-x) * 0.08),0) scale(.55,.55);}
-    72%{opacity:1;transform:translate(calc(var(--walk-x) * 0.22),0) scale(.9,.9);}
-    85%{opacity:1;transform:translate(calc(var(--walk-x) * 0.72),0) scale(1,1);}
-    92%{opacity:0;transform:translate(calc(var(--walk-x) * 0.92),0) scale(1,1);}
+    10%{opacity:1;transform:translate(calc(var(--walk-x) * 0.78),0) scale(-1,1);}
+    22%{opacity:1;transform:translate(calc(var(--walk-x) * 0.7),0) scale(-1,1);}
+    26%{opacity:0;transform:translate(calc(var(--walk-x) * 0.5),0) scale(-.8,.8);}
+    34%{opacity:0;transform:translate(calc(var(--walk-x) * 0.04),0) scale(-.45,.45);}
+    38%{opacity:1;transform:translate(0,0) scale(-.38,.38);}
+    42%,58%{opacity:0;transform:translate(0,0) scale(.26,.26);}
+    62%{opacity:1;transform:translate(0,0) scale(.38,.38);}
+    66%{opacity:0;transform:translate(calc(var(--walk-x) * 0.04),0) scale(.45,.45);}
+    74%{opacity:0;transform:translate(calc(var(--walk-x) * 0.5),0) scale(.8,.8);}
+    78%{opacity:1;transform:translate(calc(var(--walk-x) * 0.7),0) scale(1,1);}
+    90%{opacity:1;transform:translate(calc(var(--walk-x) * 0.78),0) scale(1,1);}
+    96%{opacity:0;transform:translate(calc(var(--walk-x) * 0.92),0) scale(1,1);}
     100%{opacity:0;transform:translate(calc(var(--walk-x) * 0.92),0) scale(-1,1);}
   }
 
@@ -205,7 +223,9 @@
     <div class="side-r"><span>Every Cut Comes Home</span><span>v3.1</span></div>
     <div class="tent-stage tent-stage--sm" id="hero-tent-stage">
       <div class="tent-stage-inner">
+        <div class="tent-door-void" aria-hidden="true"></div>
         <div class="tent-walkers" id="hero-walkers" aria-hidden="true"></div>
+        <div class="tent-wall-occluder" aria-hidden="true"></div>
         <div class="tent mini-mark" data-pixel id="mini-mark"></div>
       </div>
     </div>
@@ -222,7 +242,9 @@
       <div class="brk"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div>
       <div class="tent-stage tent-stage--lg" id="intro-tent-stage">
         <div class="tent-stage-inner">
+          <div class="tent-door-void" aria-hidden="true"></div>
           <div class="tent-walkers" id="intro-walkers" aria-hidden="true"></div>
+          <div class="tent-wall-occluder" aria-hidden="true"></div>
           <div class="tent" data-pixel id="intro-tent"></div>
         </div>
       </div>

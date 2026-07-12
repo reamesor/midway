@@ -485,7 +485,13 @@ export function IdleDesktop() {
             }
           >
             <div className="idle-tent-stage">
+              <div className="tent-door-void" aria-hidden />
               <TentWalkers ink={ink} reduced={reduced} />
+              <div
+                className="tent-wall-occluder"
+                style={{ background: tentPalette.K }}
+                aria-hidden
+              />
               <PixelIcon
                 grid={[...TENT]}
                 palette={{ ...tentPalette, D: "" }}
