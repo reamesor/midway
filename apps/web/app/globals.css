@@ -265,37 +265,38 @@ html.dark .bevel-btn-acid {
   color: #121a14;
 }
 
-/* Colors.EXE picker — chunky pixel cube swatches */
+/* Colors.EXE picker — chunky pixel cube swatches (cream rim, soft sage depth) */
 .colors-swatch-cube {
   --swatch: #e9d839;
+  --swatch-rim: #f7f5ef;
   width: 26px;
   height: 26px;
-  border: 2px solid var(--ink);
+  border: 2px solid var(--swatch-rim);
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, #fff 30%, var(--swatch)) 0 28%,
+      color-mix(in srgb, #fff 38%, var(--swatch)) 0 28%,
       transparent 28% 100%
     ),
     linear-gradient(
       135deg,
       transparent 0 62%,
-      color-mix(in srgb, var(--ink) 26%, var(--swatch)) 62% 100%
+      color-mix(in srgb, var(--sage) 22%, var(--swatch)) 62% 100%
     ),
     repeating-linear-gradient(
       0deg,
       transparent 0 3px,
-      color-mix(in srgb, var(--ink) 10%, transparent) 3px 4px
+      color-mix(in srgb, var(--line) 8%, transparent) 3px 4px
     ),
     repeating-linear-gradient(
       90deg,
       transparent 0 3px,
-      color-mix(in srgb, var(--ink) 10%, transparent) 3px 4px
+      color-mix(in srgb, var(--line) 8%, transparent) 3px 4px
     ),
-    var(--swatch);
+    color-mix(in srgb, #fff 10%, var(--swatch));
   box-shadow:
-    3px 3px 0 color-mix(in srgb, var(--swatch) 68%, var(--ink)),
-    5px 5px 0 var(--ink);
+    3px 3px 0 color-mix(in srgb, var(--swatch) 72%, var(--sage)),
+    5px 5px 0 color-mix(in srgb, var(--sage) 55%, var(--line));
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }

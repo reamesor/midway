@@ -39,20 +39,25 @@ function mixHex(hex: string, other: string, t: number): string {
     .join("")}`;
 }
 
+/** Soft Midway shade — paper-warm, not void black. */
+const SHADE_INK = "#5a6e52";
+/** Cream / paper-ink rim — matches light Midway chrome. */
+const FACE_RIM = "#f7f5ef";
+
 function shadeHex(hex: string, shade: FaceShade): string {
   switch (shade) {
     case "lit":
-      return mixHex(hex, "#ffffff", 0.28);
+      return mixHex(hex, "#ffffff", 0.38);
     case "mid":
-      return hex;
+      return mixHex(hex, "#ffffff", 0.1);
     case "shade":
-      return mixHex(hex, "#1a1a14", 0.28);
+      return mixHex(hex, SHADE_INK, 0.16);
     case "deep":
-      return mixHex(hex, "#1a1a14", 0.45);
+      return mixHex(hex, SHADE_INK, 0.28);
   }
 }
 
-/** Chunky 8-bit face — flat fill, stepped bands, pixel lattice, no soft gradients. */
+/** Chunky 8-bit face — flat fill, stepped bands, soft lattice, cream rim. */
 function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTexture {
   const size = 32;
   const canvas =
@@ -71,9 +76,8 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
   const fill = shadeHex(hex, shade);
-  const lit = mixHex(fill, "#ffffff", 0.32);
-  const dark = mixHex(fill, "#1a1a14", 0.28);
-  const ink = "#1a1a14";
+  const lit = mixHex(fill, "#ffffff", 0.4);
+  const dark = mixHex(fill, SHADE_INK, 0.2);
 
   ctx.fillStyle = fill;
   ctx.fillRect(0, 0, size, size);
@@ -94,15 +98,15 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
     }
   }
 
-  // Pixel lattice.
-  ctx.fillStyle = "rgba(26,26,20,0.14)";
+  // Soft sage pixel lattice.
+  ctx.fillStyle = "rgba(47,90,56,0.09)";
   for (let i = 0; i < size; i += 4) {
     ctx.fillRect(i, 0, 1, size);
     ctx.fillRect(0, i, size, 1);
   }
 
-  // Ink rim.
-  ctx.strokeStyle = ink;
+  // Cream paper rim (not black ink).
+  ctx.strokeStyle = FACE_RIM;
   ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, size - 2, size - 2);
 
@@ -123,18 +127,18 @@ export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
   const showPrompt = Boolean(prompt) && !rolling && !dice;
 
   return (
-    <div className="bevel-inset relative isolate min-h-[300px] overflow-hidden bg-[#1a1a22]">
+    <div className="bevel-inset relative isolate min-h-[300px] overflow-hidden bg-[var(--paper)]">
       <div
-        className="pointer-events-none absolute inset-0 dithered opacity-40"
+        className="pointer-events-none absolute inset-0 dithered opacity-25"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(0deg,#000 0 2px,transparent 2px 4px),repeating-linear-gradient(90deg,#222 0 2px,transparent 2px 4px)",
+            "repeating-linear-gradient(0deg,rgba(74,122,82,0.14) 0 2px,transparent 2px 5px),repeating-linear-gradient(90deg,rgba(74,122,82,0.1) 0 2px,transparent 2px 5px)",
         }}
         aria-hidden
       />
       {showPrompt ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
-          <p className="rounded-sm border-2 border-black bg-[#f3ead8]/90 px-3 py-1 font-heading text-[11px] tracking-[0.18em] text-ink blink shadow-[2px_2px_0_#000]">
+          <p className="rounded-sm border-2 border-line bg-[var(--panel)]/95 px-3 py-1 font-heading text-[11px] tracking-[0.18em] text-ink blink shadow-[2px_2px_0_var(--shadow-cut)]">
             {prompt}
           </p>
         </div>
@@ -278,7 +282,7 @@ function DieMesh({
         ))}
       </mesh>
       <lineSegments geometry={edges}>
-        <lineBasicMaterial color="#1a1a14" linewidth={2} />
+        <lineBasicMaterial color={FACE_RIM} linewidth={2} />
       </lineSegments>
       {hit && !rolling && (
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
