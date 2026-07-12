@@ -16,7 +16,12 @@ import {
   type Transition,
 } from "framer-motion";
 import { PixelIcon, TENT, P_TENT } from "@/lib/pixel";
-import { COLOR_HEX, COLOR_KEYS, type ColorKey } from "@/lib/colors/engine";
+import { COLOR_HEX, COLOR_KEYS, COLOR_LABEL, type ColorKey } from "@/lib/colors/engine";
+import {
+  IDLE_CUBE_CHARS,
+  dieFaceColors,
+  idleCharPalette,
+} from "@/lib/idleCubeChars";
 import { useOs } from "./OsContext";
 
 type CubeSpec = {
@@ -31,6 +36,8 @@ type CubeSpec = {
   delay: number;
 };
 
+type CubePhase = "idle" | "rolling" | "character" | "returning";
+
 const CUBE_LAYOUT: Omit<CubeSpec, "id">[] = [
   { x: 18, y: 28, size: 52, driftX: 14, driftY: 10, rot: 8, duration: 22, delay: 0 },
   { x: 72, y: 22, size: 44, driftX: -12, driftY: 14, rot: -10, duration: 26, delay: 1.2 },
@@ -39,6 +46,10 @@ const CUBE_LAYOUT: Omit<CubeSpec, "id">[] = [
   { x: 48, y: 18, size: 40, driftX: 10, driftY: 16, rot: 12, duration: 20, delay: 1.5 },
   { x: 58, y: 74, size: 46, driftX: -10, driftY: 12, rot: -9, duration: 25, delay: 0.3 },
 ];
+
+const FACE_NAMES = ["px", "nx", "py", "ny", "pz", "nz"] as const;
+const ROLL_MS = 720;
+const RETURN_MS = 520;
 
 function softHex(hex: string) {
   return `color-mix(in srgb, ${hex} 72%, var(--paper))`;
@@ -49,15 +60,31 @@ function IdleCube({
   reduced,
   pointer,
   attract,
+  ink,
 }: {
   spec: CubeSpec;
   reduced: boolean;
   pointer: { x: number; y: number };
   attract: boolean;
+  ink: string;
 }) {
   const [nudge, setNudge] = useState({ x: 0, y: 0, rot: 0 });
   const [flash, setFlash] = useState(false);
+  const [phase, setPhase] = useState<CubePhase>("idle");
   const flashTimer = useRef<number | null>(null);
+  const phaseTimer = useRef<number | null>(null);
+  const hovered = useRef(false);
+
+  const faces = useMemo(() => dieFaceColors(spec.id), [spec.id]);
+  const charPalette = useMemo(() => idleCharPalette(spec.id, ink), [spec.id, ink]);
+  const half = spec.size / 2;
+
+  const clearPhaseTimer = useCallback(() => {
+    if (phaseTimer.current) {
+      window.clearTimeout(phaseTimer.current);
+      phaseTimer.current = null;
+    }
+  }, []);
 
   const baseX =
     (reduced ? 0 : (pointer.x - 0.5) * (attract ? 10 : 18) * (spec.x > 50 ? -1 : 1) * 0.35) +
@@ -77,6 +104,35 @@ function IdleCube({
         ease: "easeInOut",
         delay: spec.delay,
       };
+
+  const enterHover = useCallback(() => {
+    hovered.current = true;
+    if (reduced) {
+      setPhase("character");
+      return;
+    }
+    clearPhaseTimer();
+    setPhase("rolling");
+    phaseTimer.current = window.setTimeout(() => {
+      if (hovered.current) setPhase("character");
+    }, ROLL_MS);
+  }, [clearPhaseTimer, reduced]);
+
+  const leaveHover = useCallback(() => {
+    hovered.current = false;
+    clearPhaseTimer();
+    if (reduced) {
+      setPhase("idle");
+      return;
+    }
+    setPhase((prev) => {
+      if (prev === "idle") return "idle";
+      return "returning";
+    });
+    phaseTimer.current = window.setTimeout(() => {
+      if (!hovered.current) setPhase("idle");
+    }, RETURN_MS);
+  }, [clearPhaseTimer, reduced]);
 
   const onClick = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -105,8 +161,14 @@ function IdleCube({
   useEffect(() => {
     return () => {
       if (flashTimer.current) window.clearTimeout(flashTimer.current);
+      clearPhaseTimer();
     };
-  }, []);
+  }, [clearPhaseTimer]);
+
+  const showCharacter = phase === "character" || (reduced && phase === "character");
+  const isRolling = phase === "rolling";
+  const isReturning = phase === "returning";
+  const dieActive = phase !== "idle" && !reduced;
 
   return (
     <div
@@ -115,14 +177,18 @@ function IdleCube({
     >
       <motion.button
         type="button"
-        aria-label={`${spec.id} cube`}
-        className="idle-cube"
+        aria-label={`${COLOR_LABEL[spec.id]} color cube`}
+        className={`idle-cube${flash ? " is-flash" : ""}${phase !== "idle" ? ` is-${phase}` : ""}`}
         style={{
           width: spec.size,
           height: spec.size,
           ["--cube" as string]: softHex(COLOR_HEX[spec.id]),
+          ["--cube-size" as string]: `${spec.size}px`,
+          ["--cube-half" as string]: `${half}px`,
         }}
         onClick={onClick}
+        onPointerEnter={enterHover}
+        onPointerLeave={leaveHover}
         initial={false}
         animate={
           reduced
@@ -130,6 +196,7 @@ function IdleCube({
                 x: baseX,
                 y: baseY,
                 rotate: spec.rot * 0.2 + nudge.rot,
+                scale: phase === "character" ? 1.08 : 1,
               }
             : {
                 x: [baseX, baseX + spec.driftX],
@@ -141,16 +208,43 @@ function IdleCube({
           x: driftTransition,
           y: driftTransition,
           rotate: driftTransition,
+          scale: { duration: 0.28, ease: "easeOut" },
         }}
-        whileHover={
-          reduced
-            ? undefined
-            : { scale: 1.06, transition: { duration: 0.35, ease: "easeOut" } }
-        }
         whileTap={reduced ? undefined : { scale: 0.96 }}
       >
-        <span className={`idle-cube-body${flash ? " is-flash" : ""}`} />
-        <span className="idle-cube-label">{spec.id.slice(0, 3)}</span>
+        <span className="idle-cube-scene" aria-hidden>
+          <span
+            className={`idle-die${isRolling ? " is-rolling" : ""}${isReturning ? " is-returning" : ""}${showCharacter ? " is-morphed" : ""}`}
+          >
+            {FACE_NAMES.map((name, i) => (
+              <span
+                key={name}
+                className={`idle-die-face idle-die-face--${name}`}
+                style={{
+                  ["--face" as string]: softHex(COLOR_HEX[faces[i]!]),
+                }}
+              />
+            ))}
+          </span>
+
+          <span
+            className={`idle-cube-char${showCharacter || (reduced && phase === "character") ? " is-visible" : ""}${dieActive && isRolling ? " is-waiting" : ""}`}
+          >
+            <PixelIcon
+              grid={IDLE_CUBE_CHARS[spec.id]}
+              palette={charPalette}
+              px={2}
+              className="idle-cube-char-icon"
+              style={{ width: spec.size * 0.92, height: spec.size * 0.92 }}
+            />
+          </span>
+        </span>
+
+        <span
+          className={`idle-cube-label${showCharacter ? " is-hidden" : ""}`}
+        >
+          {COLOR_LABEL[spec.id]}
+        </span>
       </motion.button>
     </div>
   );
@@ -173,6 +267,8 @@ export function IdleDesktop() {
       })),
     [],
   );
+
+  const ink = theme === "dark" ? "#e9e6df" : "#2f5a38";
 
   const onMove = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -256,6 +352,7 @@ export function IdleDesktop() {
                 reduced={reduced}
                 pointer={pointer}
                 attract={attract}
+                ink={ink}
               />
             ))}
           </div>
