@@ -45,7 +45,7 @@ export function BootScreen() {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black font-mono text-sm text-win"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-[var(--void)] font-mono text-sm text-win"
       onClick={finishBoot}
     >
       <div className="w-full max-w-lg px-6">

@@ -31,29 +31,55 @@ function Desktop() {
   const winDefaults = useMemo(() => {
     if (typeof window === "undefined") {
       return {
-        colors: { x: 220, y: 120, width: 720, height: 560 },
-        loop: { x: 40, y: 100, width: 420, height: 360 },
-        treasury: { x: 280, y: 320, width: 520, height: 320 },
-        readme: { x: 120, y: 160, width: 420, height: 360 },
-        fairness: { x: 200, y: 180, width: 440, height: 280 },
+        colors: { x: 300, y: 48, width: 780, height: 620 },
+        loop: { x: 48, y: 48, width: 460, height: 420 },
+        treasury: { x: 340, y: 280, width: 560, height: 360 },
+        readme: { x: 120, y: 120, width: 440, height: 380 },
+        fairness: { x: 200, y: 160, width: 460, height: 300 },
       };
     }
     const w = window.innerWidth;
+    const h = window.innerHeight;
+    const task = 48;
+    const footer = 52;
+    const usableH = h - task - footer;
+
     if (w < 768) {
       return {
-        colors: { x: 8, y: 56, width: w - 16, height: Math.min(640, window.innerHeight - 120) },
-        loop: { x: 8, y: 56, width: w - 16, height: 420 },
-        treasury: { x: 8, y: 56, width: w - 16, height: 380 },
-        readme: { x: 8, y: 56, width: w - 16, height: 400 },
-        fairness: { x: 8, y: 56, width: w - 16, height: 320 },
+        colors: { x: 6, y: 44, width: w - 12, height: Math.min(usableH - 8, h - 100) },
+        loop: { x: 6, y: 44, width: w - 12, height: Math.min(440, usableH - 8) },
+        treasury: { x: 6, y: 44, width: w - 12, height: Math.min(400, usableH - 8) },
+        readme: { x: 6, y: 44, width: w - 12, height: Math.min(420, usableH - 8) },
+        fairness: { x: 6, y: 44, width: w - 12, height: Math.min(340, usableH - 8) },
       };
     }
+
+    // Dense tiling: icons occupy left ~300px; windows fill the rest
+    const left = Math.min(300, Math.round(w * 0.22));
+    const pad = 12;
+    const colorsW = Math.min(820, w - left - pad * 2);
+    const colorsH = Math.min(640, usableH - pad * 2);
     return {
-      colors: { x: 240, y: 100, width: 740, height: 580 },
-      loop: { x: 36, y: 90, width: 440, height: 380 },
-      treasury: { x: 300, y: 340, width: 540, height: 340 },
-      readme: { x: 140, y: 150, width: 440, height: 380 },
-      fairness: { x: 220, y: 200, width: 460, height: 300 },
+      colors: {
+        x: left + pad,
+        y: pad + 8,
+        width: colorsW,
+        height: colorsH,
+      },
+      loop: {
+        x: left + pad,
+        y: Math.min(colorsH + 20, usableH - 380),
+        width: Math.min(480, colorsW * 0.58),
+        height: Math.min(400, usableH * 0.42),
+      },
+      treasury: {
+        x: left + pad + Math.min(480, colorsW * 0.58) + 12,
+        y: Math.min(colorsH + 20, usableH - 340),
+        width: Math.min(520, colorsW * 0.42),
+        height: Math.min(360, usableH * 0.4),
+      },
+      readme: { x: left + 40, y: 80, width: 460, height: 400 },
+      fairness: { x: left + 80, y: 120, width: 480, height: 320 },
     };
   }, [booted]);
 
@@ -99,7 +125,7 @@ function Desktop() {
                 alert("Nothing to claim yet — play a few rounds.");
                 return;
               }
-              alert(`⭐ Claimed ◎ ${yourShare.toFixed(4)} from Believers' Pool (Fun Mode).`);
+              alert(`Claimed ◎ ${yourShare.toFixed(4)} from Believers' Pool (Fun Mode).`);
               setYourShare(0);
             }}
           />

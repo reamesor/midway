@@ -112,6 +112,11 @@
   .replay:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink);}
   .replay [data-pixel]{width:12px;height:12px;}
 
+
+  /* skip intro when already seen (no ?replay=1) */
+  body.intro-done .intro{display:none!important;}
+  body.intro-done .hero{opacity:1;transform:scale(1);animation:none;}
+
   @media (prefers-reduced-motion: reduce){
     body.run .hero{animation:none;opacity:1;transform:scale(1);}
     body.run .intro{display:none!important;}
@@ -143,7 +148,7 @@
     </div>
   </div>
 
-  <button class="replay" onclick="replay()"><span data-pixel id="replay-glyph"></span> REPLAY</button>
+  <button class="replay" onclick="window.replay()"><span data-pixel id="replay-glyph"></span> REPLAY</button>
 
 <script>
 /* pixel engine */
@@ -172,7 +177,56 @@ const word=document.getElementById('word');
 function glyph(id){const el=document.getElementById(id);if(el){el.innerHTML=icon(PLAY,{K:'currentColor'},3);el.querySelectorAll('rect').forEach(r=>r.setAttribute('fill','currentColor'));}}
 ['btn-glyph','replay-glyph'].forEach(glyph);
 
-function replay(){document.body.classList.remove('run');void document.body.offsetWidth;document.body.classList.add('run');}
+/* intro replay / skip-seen */
+(function(){
+  var params = new URLSearchParams(location.search);
+  var forceReplay = params.get('replay') === '1';
+  try {
+    if (forceReplay) sessionStorage.removeItem('midway-intro-seen');
+  } catch (e) {}
+
+  var seen = false;
+  try { seen = sessionStorage.getItem('midway-intro-seen') === '1'; } catch (e) {}
+
+  function markSeen(){
+    try { sessionStorage.setItem('midway-intro-seen', '1'); } catch (e) {}
+  }
+
+  function stripReplayParam(){
+    if (!forceReplay) return;
+    try {
+      params.delete('replay');
+      var q = params.toString();
+      history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash);
+    } catch (e) {}
+  }
+
+  function jumpToHero(){
+    document.body.classList.add('run', 'intro-done');
+    markSeen();
+  }
+
+  if (seen && !forceReplay) {
+    jumpToHero();
+  } else if (forceReplay) {
+    document.body.classList.remove('run', 'intro-done');
+    void document.body.offsetWidth;
+    document.body.classList.add('run');
+    stripReplayParam();
+    setTimeout(markSeen, 4200);
+  } else {
+    document.body.classList.add('run');
+    setTimeout(markSeen, 4200);
+  }
+
+  window.replay = function(){
+    try { sessionStorage.removeItem('midway-intro-seen'); } catch (e) {}
+    document.body.classList.remove('run', 'intro-done');
+    void document.body.offsetWidth;
+    document.body.classList.add('run');
+    setTimeout(markSeen, 4200);
+  };
+})();
 </script>
 </body>
 </html>

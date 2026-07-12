@@ -46,7 +46,7 @@ export function Win({
     >
       <div
         className={`flex h-full flex-col bevel hard-shadow ${
-          isFocused ? "outline outline-1 outline-acid" : ""
+          isFocused ? "outline outline-1 outline-ink" : ""
         }`}
         onMouseDown={() => focusWin(id)}
       >

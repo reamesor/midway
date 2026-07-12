@@ -39,7 +39,7 @@ export default function ArcadeLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div
-      className={`dark ${silkscreen.variable} ${pixelify.variable} ${vt323.variable} ${mono.variable}`}
+      className={`arcade-shell ${silkscreen.variable} ${pixelify.variable} ${vt323.variable} ${mono.variable}`}
     >
       <DitherFilter />
       <OsProvider>

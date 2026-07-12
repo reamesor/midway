@@ -41,7 +41,7 @@ export function TreasuryPanel({
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Vu
-          label="🔥 BURN.SYS"
+          label="BURN.SYS"
           value={burn}
           pct={(burn / max) * 100}
           note={
@@ -53,14 +53,14 @@ export function TreasuryPanel({
           tone="burn"
         />
         <Vu
-          label="⭐ BELIEVERS.DAT"
+          label="BELIEVERS.DAT"
           value={believers}
           pct={(believers / max) * 100}
           note="waiting to drop"
           tone="acid"
         />
         <Vu
-          label="🔧 BUILD.BIN"
+          label="BUILD.BIN"
           value={build}
           pct={(build / max) * 100}
           note="next attraction fund"

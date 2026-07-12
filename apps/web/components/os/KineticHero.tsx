@@ -1,39 +1,25 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { PixelIcon, TENT, P_TENT } from "@/lib/pixel";
 
+/** Subtle corner brand — replaces the barren center KineticHero. */
 export function KineticHero() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 300], [0, 40]);
-  const ghostX = useTransform(scrollY, [0, 400], [0, -30]);
-
   return (
-    <div
-      ref={ref}
-      className="pointer-events-none absolute inset-x-0 top-6 z-[2] flex flex-col items-center px-4 text-center md:top-10"
-    >
-      <motion.div style={{ x: ghostX }} className="relative">
-        <span
-          aria-hidden
-          className="font-display absolute inset-0 -z-10 translate-x-4 text-[clamp(4rem,18vw,9rem)] leading-none text-hot/15"
-        >
-          祭
-        </span>
-        <motion.h1
-          style={{ y }}
-          className="font-display chroma text-[clamp(2.5rem,12vw,6rem)] leading-[0.9] text-ink"
-        >
+    <div className="pointer-events-none absolute right-3 top-3 z-[2] flex items-center gap-2 md:right-5 md:top-4">
+      <PixelIcon
+        grid={[...TENT]}
+        palette={{ ...P_TENT }}
+        px={2}
+        style={{ width: 36, height: 36, opacity: 0.85 }}
+      />
+      <div className="hidden text-right sm:block">
+        <div className="font-heading text-[10px] tracking-[0.2em] text-ink-dim">
           MIDWAY
-        </motion.h1>
-      </motion.div>
-      <p className="font-heading mt-2 text-sm tracking-[0.25em] text-acid blink">
-        EVERY CUT COMES HOME
-      </p>
-      <p className="mt-2 max-w-md text-sm text-ink-dim">
-        haunted 8-bit boardwalk · bootleg OS · the house cut comes home
-      </p>
+        </div>
+        <div className="font-heading text-[8px] tracking-[0.18em] text-ink-dim/80">
+          EVERY CUT COMES HOME
+        </div>
+      </div>
     </div>
   );
 }

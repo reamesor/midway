@@ -426,7 +426,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         }
         detail={
           parts
-            ? `◎ +${fmt(result!.houseCut)} → treasury · 🔥 ${fmt(parts.burn)} · ⭐ ${fmt(parts.believers)} · 🔧 ${fmt(parts.build)}`
+            ? `◎ +${fmt(result!.houseCut)} → treasury · burn ${fmt(parts.burn)} · believers ${fmt(parts.believers)} · build ${fmt(parts.build)}`
             : undefined
         }
         onRetry={() => {

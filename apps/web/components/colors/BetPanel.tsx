@@ -1,5 +1,7 @@
 "use client";
 
+import { PixelIcon, GLYPHS } from "@/lib/pixel";
+
 type BetPanelProps = {
   balance: number;
   unit: string;
@@ -49,7 +51,7 @@ export function BetPanel({
             −
           </button>
           <input
-            className="num bevel-inset h-10 flex-1 bg-black text-center text-lg text-ink outline-none"
+            className="num bevel-inset h-10 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none"
             type="number"
             min={1}
             value={bet}
@@ -80,7 +82,6 @@ export function BetPanel({
         PLACE BET
       </button>
 
-      {/* Interactive gimmick: pull the lever to roll */}
       <button
         type="button"
         disabled={!canRoll}
@@ -90,14 +91,19 @@ export function BetPanel({
         }`}
       >
         <span className="relative z-10">
-          {canRoll ? "▼ PULL LEVER TO ROLL ▼" : "🎲 LEVER LOCKED"}
+          {canRoll ? "▼ PULL LEVER TO ROLL ▼" : "LEVER LOCKED"}
         </span>
         <span
-          className="absolute right-3 top-1/2 text-2xl transition-transform"
-          style={{ transform: canRoll ? "translateY(-40%) rotate(15deg)" : "translateY(-50%)" }}
+          className="absolute right-3 top-1/2 transition-transform"
+          style={{ transform: canRoll ? "translateY(-40%) rotate(12deg)" : "translateY(-50%)" }}
           aria-hidden
         >
-          🕹️
+          <PixelIcon
+            grid={[...GLYPHS.lever]}
+            palette={{ K: "currentColor", Y: "currentColor" }}
+            px={3}
+            style={{ width: 28, height: 28 }}
+          />
         </span>
       </button>
 

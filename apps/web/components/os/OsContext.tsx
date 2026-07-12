@@ -11,11 +11,13 @@ import {
 } from "react";
 
 export type WinId = "loop" | "colors" | "treasury" | "readme" | "fairness";
+export type OsTheme = "light" | "dark";
 
 type OsContextValue = {
   calm: boolean;
   oneBit: boolean;
   sound: boolean;
+  theme: OsTheme;
   booted: boolean;
   zCounter: number;
   open: Record<WinId, boolean>;
@@ -24,11 +26,14 @@ type OsContextValue = {
   setCalm: (v: boolean) => void;
   setOneBit: (v: boolean) => void;
   setSound: (v: boolean) => void;
+  setTheme: (v: OsTheme) => void;
+  toggleTheme: () => void;
   finishBoot: () => void;
   openWin: (id: WinId) => void;
   closeWin: (id: WinId) => void;
   focusWin: (id: WinId) => void;
   toggleWin: (id: WinId) => void;
+  goToIntro: () => void;
 };
 
 const OsContext = createContext<OsContextValue | null>(null);
@@ -41,10 +46,13 @@ const DEFAULT_OPEN: Record<WinId, boolean> = {
   fairness: false,
 };
 
+const THEME_KEY = "midway-os-theme";
+
 export function OsProvider({ children }: { children: ReactNode }) {
   const [calm, setCalmState] = useState(false);
   const [oneBit, setOneBitState] = useState(false);
   const [sound, setSound] = useState(false);
+  const [theme, setThemeState] = useState<OsTheme>("light");
   const [booted, setBooted] = useState(false);
   const [open, setOpen] = useState(DEFAULT_OPEN);
   const [focused, setFocused] = useState<WinId | null>("colors");
@@ -60,6 +68,8 @@ export function OsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (sessionStorage.getItem("midway-booted") === "1") setBooted(true);
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === "light" || saved === "dark") setThemeState(saved);
   }, []);
 
   useEffect(() => {
@@ -70,8 +80,34 @@ export function OsProvider({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle("one-bit", oneBit);
   }, [oneBit]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.classList.toggle("dark", theme === "dark");
+    root.classList.toggle("light", theme === "light");
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
+
   const setCalm = useCallback((v: boolean) => setCalmState(v), []);
   const setOneBit = useCallback((v: boolean) => setOneBitState(v), []);
+  const setTheme = useCallback((v: OsTheme) => setThemeState(v), []);
+  const toggleTheme = useCallback(
+    () => setThemeState((t) => (t === "light" ? "dark" : "light")),
+    [],
+  );
+
+  const goToIntro = useCallback(() => {
+    try {
+      sessionStorage.removeItem("midway-intro-seen");
+    } catch {
+      /* ignore */
+    }
+    window.location.href = "/?replay=1";
+  }, []);
 
   const finishBoot = useCallback(() => {
     setBooted(true);
@@ -119,6 +155,7 @@ export function OsProvider({ children }: { children: ReactNode }) {
       calm,
       oneBit,
       sound,
+      theme,
       booted,
       zCounter,
       open,
@@ -127,16 +164,20 @@ export function OsProvider({ children }: { children: ReactNode }) {
       setCalm,
       setOneBit,
       setSound,
+      setTheme,
+      toggleTheme,
       finishBoot,
       openWin,
       closeWin,
       focusWin,
       toggleWin,
+      goToIntro,
     }),
     [
       calm,
       oneBit,
       sound,
+      theme,
       booted,
       zCounter,
       open,
@@ -144,11 +185,14 @@ export function OsProvider({ children }: { children: ReactNode }) {
       zMap,
       setCalm,
       setOneBit,
+      setTheme,
+      toggleTheme,
       finishBoot,
       openWin,
       closeWin,
       focusWin,
       toggleWin,
+      goToIntro,
     ],
   );
 

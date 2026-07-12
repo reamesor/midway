@@ -38,9 +38,9 @@ export function ResultBanner({
 
   const title =
     matches === 3
-      ? "🎰 JACKPOT · 3 MATCHES!"
+      ? "★ JACKPOT · 3 MATCHES!"
       : matches > 0
-        ? `✨ WIN · ${matches} MATCH${matches > 1 ? "ES" : ""}`
+        ? `★ WIN · ${matches} MATCH${matches > 1 ? "ES" : ""}`
         : "✕ NO MATCH";
 
   const detail =
@@ -62,8 +62,8 @@ export function ResultBanner({
           </div>
           <div className="text-[13px] text-dim">{detail}</div>
           <div className="mt-2 text-xs text-gold">
-            🏛️ +{fmt(houseCut)} {unit} → treasury · 🔥 {fmt(parts.burn)} burn · ⭐{" "}
-            {fmt(parts.believers)} believers · 🔧 {fmt(parts.build)} build
+            ◎ +{fmt(houseCut)} {unit} → treasury · burn {fmt(parts.burn)} · believers{" "}
+            {fmt(parts.believers)} · build {fmt(parts.build)}
           </div>
         </motion.div>
       )}
