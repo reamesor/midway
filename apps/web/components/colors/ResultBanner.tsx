@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { splitCut } from "@/lib/colors/engine";
+import { ResultBreakdown } from "./ResultBreakdown";
 
 type ResultBannerProps = {
   show: boolean;
@@ -9,18 +8,20 @@ type ResultBannerProps = {
   winnings: number;
   stake: number;
   houseCut: number;
-  unit: string;
+  unit?: string;
 };
 
+/** Inline result strip — same numbers as the WIN.EXE / ERROR.EXE dialog. */
 export function ResultBanner({
   show,
   matches,
   winnings,
   stake,
   houseCut,
-  unit = "SOL",
+  unit = "DEMO SOL",
 }: ResultBannerProps) {
-  const parts = splitCut(houseCut);
+  if (!show) return null;
+
   const kind =
     matches === 3 ? "jackpot" : matches > 0 ? "win" : "lose";
 
@@ -43,37 +44,18 @@ export function ResultBanner({
         ? `★ WIN · ${matches} MATCH${matches > 1 ? "ES" : ""}`
         : "✕ NO MATCH";
 
-  const detail =
-    matches > 0
-      ? `+${fmt(winnings)} ${unit}${matches === 3 ? " · all three dice came home" : " returned"}`
-      : `−${fmt(stake)} ${unit} this round`;
-
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          className={`mt-4 rounded-xl border p-4 text-center ${styles}`}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className={`mb-1 text-[22px] font-extrabold ${titleColor}`}>
-            {title}
-          </div>
-          <div className="text-[13px] text-dim">{detail}</div>
-          <div className="mt-2 text-xs text-gold">
-            ◎ +{fmt(houseCut)} {unit} → treasury · burn {fmt(parts.burn)} · believers{" "}
-            {fmt(parts.believers)} · build {fmt(parts.build)}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className={`mt-4 rounded-xl border p-4 ${styles}`}>
+      <div className={`mb-3 text-center text-[22px] font-extrabold ${titleColor}`}>
+        {title}
+      </div>
+      <ResultBreakdown
+        matches={matches}
+        winnings={winnings}
+        stake={stake}
+        houseCut={houseCut}
+        unit={unit}
+      />
+    </div>
   );
-}
-
-function fmt(n: number) {
-  return n.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4,
-  });
 }

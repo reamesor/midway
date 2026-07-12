@@ -9,10 +9,11 @@ import { ColorsRules } from "./ColorsRules";
 import { OsDialog } from "@/components/os/OsDialog";
 import { useOs } from "@/components/os/OsContext";
 import type { ColorKey } from "@/lib/colors/engine";
-import { PAYOUT_MODE, settleRoll, splitCut } from "@/lib/colors/engine";
+import { PAYOUT_MODE, settleRoll } from "@/lib/colors/engine";
 import { useMidwayWallet } from "@/hooks/useMidwayWallet";
 import { useColorsBetTx } from "@/hooks/useColorsBetTx";
 import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
+import { ResultBreakdown } from "./ResultBreakdown";
 
 const DiceStage = dynamic(
   () => import("./DiceStage").then((m) => m.DiceStage),
@@ -366,7 +367,6 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
   const dialogVariant =
     result?.matches === 3 ? "jackpot" : (result?.matches ?? 0) > 0 ? "win" : "lose";
-  const parts = result ? splitCut(result.houseCut) : null;
 
   return (
     <div className="font-heading text-xs">
@@ -516,21 +516,20 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
               : "✕ ERROR: NO MATCH"
         }
         body={
-          result
-            ? result.matches > 0
-              ? `+${fmt(result.winnings)} demo SOL returned to Midway play.`
-              : `−${fmt(result.stake)} demo SOL from Midway play. The cut still comes home.`
-            : ""
-        }
-        detail={
-          parts
-            ? `◎ +${fmt(result!.houseCut)} SOL → treasury · burn ${fmt(parts.burn)} · believers ${fmt(parts.believers)} · build ${fmt(parts.build)}`
-            : undefined
+          result ? (
+            <ResultBreakdown
+              matches={result.matches}
+              winnings={result.winnings}
+              stake={result.stake}
+              houseCut={result.houseCut}
+              unit="DEMO SOL"
+            />
+          ) : null
         }
         shareHref={
           result && result.matches > 0
             ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                `Hit ${result.matches} match${result.matches > 1 ? "es" : ""} on MIDWAY COLORS — +${fmt(result.winnings)} SOL. The cut comes home.`,
+                `Hit ${result.matches} match${result.matches > 1 ? "es" : ""} on MIDWAY COLORS — +${fmt(result.winnings)} DEMO SOL to Midway Play. The cut comes home.`,
               )}`
             : undefined
         }

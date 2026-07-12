@@ -26,12 +26,16 @@ export function TreasuryPanel({
   const handleClaim = () => {
     setClaimMsg(null);
     if (yourShare <= 0) {
-      setClaimMsg("Nothing to claim yet — play Colors so the house cut can feed believers.");
+      setClaimMsg(
+        "Nothing to claim yet — play Colors so the Believers slice of the house cut can accrue.",
+      );
       return;
     }
     const amount = yourShare;
     onClaim?.();
-    setClaimMsg(`Claimed ◎ ${amount.toFixed(4)} from Believers' Pool (Fun Mode).`);
+    setClaimMsg(
+      `Claimed ◎ ${amount.toFixed(4)} from Believers pool (DEMO). Not a Colors win payout.`,
+    );
   };
 
   return (
@@ -40,7 +44,7 @@ export function TreasuryPanel({
         <div>
           <div className="text-ink-dim">SYSTEM MONITOR · LIVE</div>
           <div className="font-sans text-[13px] normal-case tracking-normal text-ink-dim">
-            every Colors roll routes its house cut here — 40/40/20
+            every Colors roll routes its 5% house cut here — then 40/40/20
           </div>
         </div>
         <CountUp
@@ -68,7 +72,7 @@ export function TreasuryPanel({
           label="BELIEVERS.DAT"
           value={believers}
           pct={(believers / max) * 100}
-          note="waiting to drop"
+          note="40% pool · claim below"
           tone="acid"
         />
         <Vu
@@ -80,23 +84,32 @@ export function TreasuryPanel({
         />
       </div>
 
-      <div className="bevel-inset flex flex-wrap items-center justify-between gap-2 p-3">
-        <div className="font-sans text-[14px] normal-case tracking-normal">
-          your share:{" "}
-          <CountUp
-            value={yourShare}
-            prefix="◎ "
-            decimals={4}
-            className="num font-heading text-acid"
-          />
+      <div className="bevel-inset space-y-2 p-3">
+        <div className="font-heading text-[10px] tracking-wide text-acid">
+          YOUR BELIEVERS SHARE · DEMO
         </div>
-        <button
-          type="button"
-          className="bevel-btn bevel-btn-acid px-4 py-2"
-          onClick={handleClaim}
-        >
-          CLAIM SHARE
-        </button>
+        <p className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+          Accrues from the <span className="text-ink">Believers</span> slice of the house
+          cut — not the same as Colors win payouts (those credit Midway Play).
+        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="font-sans text-[14px] normal-case tracking-normal">
+            claimable:{" "}
+            <CountUp
+              value={yourShare}
+              prefix="◎ "
+              decimals={4}
+              className="num font-heading text-acid"
+            />
+          </div>
+          <button
+            type="button"
+            className="bevel-btn bevel-btn-acid px-4 py-2"
+            onClick={handleClaim}
+          >
+            CLAIM BELIEVERS
+          </button>
+        </div>
       </div>
       {claimMsg && (
         <p className="font-sans text-[12px] normal-case tracking-normal text-cyber" role="status">

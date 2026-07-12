@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 type OsDialogProps = {
   open: boolean;
   variant: "win" | "jackpot" | "lose";
   title: string;
-  body: string;
-  detail?: string;
+  body: ReactNode;
+  detail?: ReactNode;
   shareHref?: string;
   onRetry?: () => void;
   onClose: () => void;
@@ -53,7 +53,7 @@ export function OsDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="os-dialog-title"
-        className={`bevel hard-shadow-lg w-full max-w-sm bg-panel ${chrome}`}
+        className={`bevel hard-shadow-lg w-full max-w-md bg-panel ${chrome}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -85,8 +85,8 @@ export function OsDialog({
           <div id="os-dialog-title" className="font-heading text-lg chroma">
             {title}
           </div>
-          <p className="text-base">{body}</p>
-          {detail && <p className="num text-sm text-acid">{detail}</p>}
+          <div className="text-base">{body}</div>
+          {detail && <div className="num text-sm text-acid">{detail}</div>}
           <div className="flex flex-wrap gap-2 pt-2">
             {onRetry && (
               <button
