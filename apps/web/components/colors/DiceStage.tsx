@@ -39,25 +39,25 @@ function mixHex(hex: string, other: string, t: number): string {
     .join("")}`;
 }
 
-/** Soft Midway shade — paper-warm, not void black. */
-const SHADE_INK = "#5a6e52";
-/** Cream / paper-ink rim — matches light Midway chrome. */
+/** Soft Midway shade — sage, never void black. */
+const SHADE_INK = "#7a9a72";
+/** Cream / paper rim — must read in dark mode (not black). */
 const FACE_RIM = "#f7f5ef";
 
 function shadeHex(hex: string, shade: FaceShade): string {
   switch (shade) {
     case "lit":
-      return mixHex(hex, "#ffffff", 0.38);
+      return mixHex(hex, "#ffffff", 0.32);
     case "mid":
-      return mixHex(hex, "#ffffff", 0.1);
+      return mixHex(hex, "#ffffff", 0.08);
     case "shade":
-      return mixHex(hex, SHADE_INK, 0.16);
+      return mixHex(hex, SHADE_INK, 0.12);
     case "deep":
-      return mixHex(hex, SHADE_INK, 0.28);
+      return mixHex(hex, SHADE_INK, 0.2);
   }
 }
 
-/** Chunky 8-bit face — flat fill, stepped bands, soft lattice, cream rim. */
+/** Chunky 8-bit face — pastel fill, soft bands, cream rim. */
 function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTexture {
   const size = 32;
   const canvas =
@@ -76,8 +76,8 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
   const fill = shadeHex(hex, shade);
-  const lit = mixHex(fill, "#ffffff", 0.4);
-  const dark = mixHex(fill, SHADE_INK, 0.2);
+  const lit = mixHex(fill, "#ffffff", 0.36);
+  const dark = mixHex(fill, SHADE_INK, 0.14);
 
   ctx.fillStyle = fill;
   ctx.fillRect(0, 0, size, size);
@@ -99,16 +99,18 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
   }
 
   // Soft sage pixel lattice.
-  ctx.fillStyle = "rgba(47,90,56,0.09)";
+  ctx.fillStyle = "rgba(74,122,82,0.07)";
   for (let i = 0; i < size; i += 4) {
     ctx.fillRect(i, 0, 1, size);
     ctx.fillRect(0, i, size, 1);
   }
 
-  // Cream paper rim (not black ink).
-  ctx.strokeStyle = FACE_RIM;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(1, 1, size - 2, size - 2);
+  // Cream paper rim — filled border so it survives nearest-filter scale.
+  ctx.fillStyle = FACE_RIM;
+  ctx.fillRect(0, 0, size, 3);
+  ctx.fillRect(0, size - 3, size, 3);
+  ctx.fillRect(0, 0, 3, size);
+  ctx.fillRect(size - 3, 0, 3, size);
 
   texture.needsUpdate = true;
   return texture;
@@ -127,18 +129,18 @@ export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
   const showPrompt = Boolean(prompt) && !rolling && !dice;
 
   return (
-    <div className="bevel-inset relative isolate min-h-[300px] overflow-hidden bg-[var(--paper)]">
+    <div className="colors-dice-stage bevel-inset relative isolate min-h-[300px] overflow-hidden">
       <div
-        className="pointer-events-none absolute inset-0 dithered opacity-25"
+        className="pointer-events-none absolute inset-0 dithered opacity-20"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(0deg,rgba(74,122,82,0.14) 0 2px,transparent 2px 5px),repeating-linear-gradient(90deg,rgba(74,122,82,0.1) 0 2px,transparent 2px 5px)",
+            "repeating-linear-gradient(0deg,rgba(74,122,82,0.12) 0 2px,transparent 2px 5px),repeating-linear-gradient(90deg,rgba(74,122,82,0.08) 0 2px,transparent 2px 5px)",
         }}
         aria-hidden
       />
       {showPrompt ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
-          <p className="rounded-sm border-2 border-line bg-[var(--panel)]/95 px-3 py-1 font-heading text-[11px] tracking-[0.18em] text-ink blink shadow-[2px_2px_0_var(--shadow-cut)]">
+          <p className="colors-stage-prompt rounded-sm px-3 py-1 font-heading text-[11px] tracking-[0.18em] blink">
             {prompt}
           </p>
         </div>
@@ -271,7 +273,27 @@ function DieMesh({
     };
   }, [materials]);
 
-  const edges = useMemo(() => new THREE.EdgesGeometry(new THREE.BoxGeometry(1.42, 1.42, 1.42)), []);
+  const edges = useMemo(
+    () => new THREE.EdgesGeometry(new THREE.BoxGeometry(1.48, 1.48, 1.48)),
+    [],
+  );
+  const edgeMat = useMemo(
+    () =>
+      new THREE.LineBasicMaterial({
+        color: FACE_RIM,
+        toneMapped: false,
+        depthTest: true,
+        transparent: false,
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    return () => {
+      edges.dispose();
+      edgeMat.dispose();
+    };
+  }, [edges, edgeMat]);
 
   return (
     <group ref={group} position={[x, 0, 0]}>
@@ -281,9 +303,7 @@ function DieMesh({
           <primitive key={i} object={mat} attach={`material-${i}`} />
         ))}
       </mesh>
-      <lineSegments geometry={edges}>
-        <lineBasicMaterial color={FACE_RIM} linewidth={2} />
-      </lineSegments>
+      <lineSegments geometry={edges} material={edgeMat} renderOrder={2} />
       {hit && !rolling && (
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
           <torusGeometry args={[1.05, 0.06, 4, 16]} />

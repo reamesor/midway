@@ -24,12 +24,12 @@
   --color-sage: var(--sage);
   --color-paper: var(--paper);
   --color-paper-2: var(--paper-2);
-  --color-c-yellow: #ffe600;
-  --color-c-orange: #ff7a00;
-  --color-c-pink: #ff2eb0;
-  --color-c-blue: #2e9bff;
-  --color-c-green: #39ff14;
-  --color-c-red: #ff2e2e;
+  --color-c-yellow: #f3e6a4;
+  --color-c-orange: #f5c9a0;
+  --color-c-pink: #f0c0d4;
+  --color-c-blue: #a8d4f0;
+  --color-c-green: #b5e6b8;
+  --color-c-red: #f0b0b4;
 
   --color-background: var(--crt);
   --color-foreground: var(--ink);
@@ -265,9 +265,41 @@ html.dark .bevel-btn-acid {
   color: #121a14;
 }
 
-/* Colors.EXE picker — chunky pixel cube swatches (cream rim, soft sage depth) */
+/* Colors.EXE dice stage — lifted dark paper so pastels read */
+.colors-dice-stage {
+  background: var(--paper);
+}
+html[data-theme="dark"] .colors-dice-stage,
+html.dark .colors-dice-stage {
+  background: #2a3830;
+}
+
+/* Prompt chip — ink on cream paper in both themes (never cream-on-cream) */
+.colors-stage-prompt {
+  border: 2px solid #4a7a52;
+  background: #f4f2ec;
+  color: #2f5a38;
+  box-shadow: 2px 2px 0 var(--shadow-cut);
+}
+html[data-theme="dark"] .colors-stage-prompt,
+html.dark .colors-stage-prompt {
+  border-color: #c8d4c0;
+  background: #1f2a22;
+  color: #f4f2ec;
+  box-shadow: 2px 2px 0 #0a100c;
+}
+.colors-stage-prompt.blink {
+  animation: colors-prompt-blink steps(2) 1.4s infinite;
+}
+@keyframes colors-prompt-blink {
+  50% {
+    opacity: 0.62;
+  }
+}
+
+/* Colors.EXE picker — pastel swatches, cream rim */
 .colors-swatch-cube {
-  --swatch: #e9d839;
+  --swatch: #f3e6a4;
   --swatch-rim: #f7f5ef;
   width: 26px;
   height: 26px;
@@ -275,28 +307,28 @@ html.dark .bevel-btn-acid {
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, #fff 38%, var(--swatch)) 0 28%,
+      color-mix(in srgb, #fff 42%, var(--swatch)) 0 28%,
       transparent 28% 100%
     ),
     linear-gradient(
       135deg,
       transparent 0 62%,
-      color-mix(in srgb, var(--sage) 22%, var(--swatch)) 62% 100%
+      color-mix(in srgb, var(--sage) 18%, var(--swatch)) 62% 100%
     ),
     repeating-linear-gradient(
       0deg,
       transparent 0 3px,
-      color-mix(in srgb, var(--line) 8%, transparent) 3px 4px
+      color-mix(in srgb, var(--line) 6%, transparent) 3px 4px
     ),
     repeating-linear-gradient(
       90deg,
       transparent 0 3px,
-      color-mix(in srgb, var(--line) 8%, transparent) 3px 4px
+      color-mix(in srgb, var(--line) 6%, transparent) 3px 4px
     ),
-    color-mix(in srgb, #fff 10%, var(--swatch));
+    color-mix(in srgb, #fff 18%, var(--swatch));
   box-shadow:
-    3px 3px 0 color-mix(in srgb, var(--swatch) 72%, var(--sage)),
-    5px 5px 0 color-mix(in srgb, var(--sage) 55%, var(--line));
+    3px 3px 0 color-mix(in srgb, var(--swatch) 78%, #f7f5ef),
+    5px 5px 0 color-mix(in srgb, #f7f5ef 70%, var(--sage));
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
@@ -815,12 +847,12 @@ html.dark .desktop-wallpaper {
   animation: none;
   transition: opacity 0.28s ease, transform 0.28s ease;
 }
-/* Chunky 8-bit die faces — flat Colors palette, hard steps, no soft gradients. */
+/* Chunky 8-bit die faces — pastel Colors palette, cream rim. */
 .idle-die-face {
   --face-fill: var(--face);
   position: absolute;
   inset: 0;
-  border: 2px solid var(--ink);
+  border: 2px solid #f7f5ef;
   background-color: var(--face-fill);
   /* Pixel lattice + two hard shade bands (stepped, not blended). */
   background-image:
@@ -832,23 +864,23 @@ html.dark .desktop-wallpaper {
     linear-gradient(
       135deg,
       transparent 0 62%,
-      color-mix(in srgb, var(--ink) 26%, var(--face-fill)) 62% 100%
+      color-mix(in srgb, var(--sage) 22%, var(--face-fill)) 62% 100%
     ),
     repeating-linear-gradient(
       0deg,
       transparent 0 3px,
-      color-mix(in srgb, var(--ink) 10%, transparent) 3px 4px
+      color-mix(in srgb, var(--line) 8%, transparent) 3px 4px
     ),
     repeating-linear-gradient(
       90deg,
       transparent 0 3px,
-      color-mix(in srgb, var(--ink) 10%, transparent) 3px 4px
+      color-mix(in srgb, var(--line) 8%, transparent) 3px 4px
     );
   box-shadow: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   backface-visibility: hidden;
-  outline: 1px solid var(--ink);
+  outline: 1px solid #f7f5ef;
   outline-offset: -1px;
 }
 /* Discrete face lighting — voxel sides, not smooth shading. */
@@ -861,19 +893,19 @@ html.dark .desktop-wallpaper {
   transform: rotateY(0deg) translateZ(var(--cube-half));
 }
 .idle-die-face--px {
-  --face-fill: color-mix(in srgb, var(--face) 72%, var(--ink));
+  --face-fill: color-mix(in srgb, var(--face) 78%, var(--sage));
   transform: rotateY(90deg) translateZ(var(--cube-half));
 }
 .idle-die-face--nx {
-  --face-fill: color-mix(in srgb, var(--face) 84%, var(--ink));
+  --face-fill: color-mix(in srgb, var(--face) 86%, var(--sage));
   transform: rotateY(-90deg) translateZ(var(--cube-half));
 }
 .idle-die-face--ny {
-  --face-fill: color-mix(in srgb, var(--face) 55%, var(--ink));
+  --face-fill: color-mix(in srgb, var(--face) 68%, var(--sage));
   transform: rotateX(-90deg) translateZ(var(--cube-half));
 }
 .idle-die-face--nz {
-  --face-fill: color-mix(in srgb, var(--face) 65%, var(--ink));
+  --face-fill: color-mix(in srgb, var(--face) 74%, var(--sage));
   transform: rotateY(180deg) translateZ(var(--cube-half));
 }
 
