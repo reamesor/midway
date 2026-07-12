@@ -1249,10 +1249,41 @@ html.dark .win-titlebar.focused {
   box-shadow: 3px 3px 0 var(--shadow-cut);
   image-rendering: pixelated;
 }
-.desk-icon .glyph > span,
+.desk-icon .glyph > span:not(.desk-icon-badge),
 .desk-icon .glyph [data-pixel] {
   width: 100%;
   height: 100%;
+}
+.desk-icon-badge {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  z-index: 1;
+  width: auto;
+  height: auto;
+  display: inline-block;
+  padding: 1px 3px;
+  font-size: 8px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  border: 1px solid var(--ink);
+  box-shadow: 1px 1px 0 var(--shadow-cut);
+}
+.desk-icon-badge.is-live {
+  background: var(--win);
+  color: var(--btn);
+}
+.desk-icon-badge.is-demo {
+  background: var(--acid);
+  color: var(--btn);
+}
+.desk-icon-badge.is-soon {
+  background: var(--chrome);
+  color: var(--ink-dim);
+  border-color: var(--line);
 }
 
 /* VU meter */

@@ -87,12 +87,12 @@ export function DesktopIcons() {
               <PixelIcon grid={[...GLYPHS[icon.glyph]]} palette={palette} px={3} />
               {badge && (
                 <span
-                  className={`absolute -right-2 -top-2 px-1 text-[8px] ${
+                  className={`desk-icon-badge ${
                     badge === "LIVE"
-                      ? "bg-win text-[var(--btn)] blink"
+                      ? "is-live blink"
                       : badge === "DEMO"
-                        ? "bg-acid text-[var(--btn)]"
-                        : "bg-chrome text-ink-dim border border-line"
+                        ? "is-demo"
+                        : "is-soon"
                   }`}
                 >
                   {badge}
