@@ -25,7 +25,7 @@ import {
 import { TentWalkers } from "./TentWalkers";
 import { useOs } from "./OsContext";
 
-type CubeBehavior = "drift" | "roller";
+type CubeBehavior = "drift" | "wobbler";
 
 type CubeSpec = {
   id: string;
@@ -39,36 +39,53 @@ type CubeSpec = {
   duration: number;
   delay: number;
   behavior: CubeBehavior;
-  /** Stagger offset (ms) before first autonomous tumble for rollers. */
-  rollEvery: number;
-  rollOffset: number;
+  /** Soft egg-wobble cadence for ambiance (ms). */
+  wobbleEvery: number;
+  wobbleOffset: number;
 };
 
-type CubePhase = "idle" | "rolling" | "character" | "returning";
+/** idle → egg shake → crack/pop → character hop → ease back to cube */
+type CubePhase =
+  | "idle"
+  | "shaking"
+  | "hatching"
+  | "character"
+  | "returning";
 
-/** Calm scatter around center tent — no overlap with brand mark. */
+/**
+ * Calm ring around the tent brand — 18 cubes, no overlap with MIDWAY mark.
+ * Outer oval + a few mid-ring fillers; sizes vary slightly for depth.
+ */
 const CUBE_LAYOUT: CubeSpec[] = [
-  { id: "c0", color: "blue", x: 12, y: 30, size: 48, driftX: 10, driftY: 8, rot: 7, duration: 24, delay: 0, behavior: "roller", rollEvery: 11000, rollOffset: 1800 },
-  { id: "c1", color: "yellow", x: 50, y: 12, size: 38, driftX: 8, driftY: 12, rot: 11, duration: 21, delay: 1.1, behavior: "drift", rollEvery: 0, rollOffset: 0 },
-  { id: "c2", color: "orange", x: 86, y: 26, size: 44, driftX: -10, driftY: 10, rot: -9, duration: 26, delay: 0.8, behavior: "roller", rollEvery: 13000, rollOffset: 4200 },
-  { id: "c3", color: "green", x: 18, y: 58, size: 42, driftX: 12, driftY: -8, rot: 5, duration: 23, delay: 1.6, behavior: "drift", rollEvery: 0, rollOffset: 0 },
-  { id: "c4", color: "pink", x: 84, y: 54, size: 50, driftX: -12, driftY: -9, rot: -6, duration: 27, delay: 0.4, behavior: "roller", rollEvery: 14500, rollOffset: 2600 },
-  { id: "c5", color: "red", x: 34, y: 82, size: 46, driftX: 9, driftY: -10, rot: 8, duration: 25, delay: 2.0, behavior: "drift", rollEvery: 0, rollOffset: 0 },
-  { id: "c6", color: "yellow", x: 68, y: 80, size: 40, driftX: -8, driftY: 9, rot: -10, duration: 22, delay: 1.3, behavior: "roller", rollEvery: 12000, rollOffset: 6500 },
-  { id: "c7", color: "green", x: 72, y: 16, size: 36, driftX: -7, driftY: 11, rot: 9, duration: 20, delay: 2.4, behavior: "drift", rollEvery: 0, rollOffset: 0 },
-  { id: "c8", color: "blue", x: 28, y: 16, size: 34, driftX: 7, driftY: 10, rot: -8, duration: 28, delay: 0.2, behavior: "drift", rollEvery: 0, rollOffset: 0 },
-  { id: "c9", color: "orange", x: 10, y: 74, size: 40, driftX: 11, driftY: -7, rot: 6, duration: 24, delay: 1.9, behavior: "roller", rollEvery: 15500, rollOffset: 8000 },
-  { id: "c10", color: "pink", x: 90, y: 72, size: 38, driftX: -9, driftY: -8, rot: -7, duration: 23, delay: 0.7, behavior: "drift", rollEvery: 0, rollOffset: 0 },
-  { id: "c11", color: "red", x: 54, y: 88, size: 42, driftX: -6, driftY: 7, rot: 10, duration: 26, delay: 2.8, behavior: "roller", rollEvery: 16000, rollOffset: 10000 },
+  { id: "c0", color: "blue", x: 10, y: 30, size: 46, driftX: 9, driftY: 7, rot: 7, duration: 25, delay: 0, behavior: "wobbler", wobbleEvery: 14000, wobbleOffset: 1600 },
+  { id: "c1", color: "yellow", x: 26, y: 12, size: 36, driftX: 7, driftY: 10, rot: 10, duration: 22, delay: 1.0, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  { id: "c2", color: "orange", x: 50, y: 8, size: 40, driftX: -8, driftY: 9, rot: -8, duration: 24, delay: 0.6, behavior: "wobbler", wobbleEvery: 15500, wobbleOffset: 3800 },
+  { id: "c3", color: "green", x: 74, y: 12, size: 34, driftX: -7, driftY: 11, rot: 9, duration: 21, delay: 2.1, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  { id: "c4", color: "pink", x: 90, y: 28, size: 48, driftX: -10, driftY: 8, rot: -6, duration: 27, delay: 0.3, behavior: "wobbler", wobbleEvery: 12500, wobbleOffset: 5200 },
+  { id: "c5", color: "red", x: 94, y: 50, size: 38, driftX: -9, driftY: -7, rot: 8, duration: 23, delay: 1.5, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  { id: "c6", color: "blue", x: 88, y: 72, size: 42, driftX: -8, driftY: -9, rot: -7, duration: 26, delay: 0.9, behavior: "wobbler", wobbleEvery: 16000, wobbleOffset: 2400 },
+  { id: "c7", color: "yellow", x: 70, y: 88, size: 36, driftX: -7, driftY: 8, rot: 11, duration: 20, delay: 2.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  { id: "c8", color: "orange", x: 50, y: 92, size: 44, driftX: 6, driftY: -8, rot: -9, duration: 25, delay: 1.2, behavior: "wobbler", wobbleEvery: 13500, wobbleOffset: 7000 },
+  { id: "c9", color: "green", x: 30, y: 88, size: 40, driftX: 9, driftY: -9, rot: 6, duration: 22, delay: 1.8, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  { id: "c10", color: "pink", x: 10, y: 70, size: 38, driftX: 10, driftY: -7, rot: -10, duration: 24, delay: 0.5, behavior: "wobbler", wobbleEvery: 14800, wobbleOffset: 9000 },
+  { id: "c11", color: "red", x: 8, y: 48, size: 42, driftX: 11, driftY: 6, rot: 5, duration: 26, delay: 2.7, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  /* Mid-ring fillers — keep clear of tent brand (~40–60% / 32–58%). */
+  { id: "c12", color: "yellow", x: 20, y: 44, size: 32, driftX: 8, driftY: 6, rot: -5, duration: 28, delay: 1.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  { id: "c13", color: "pink", x: 80, y: 44, size: 34, driftX: -8, driftY: 7, rot: 7, duration: 23, delay: 0.8, behavior: "wobbler", wobbleEvery: 17000, wobbleOffset: 11000 },
+  { id: "c14", color: "green", x: 36, y: 20, size: 30, driftX: 6, driftY: 9, rot: 8, duration: 21, delay: 2.0, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  { id: "c15", color: "blue", x: 64, y: 20, size: 32, driftX: -6, driftY: 10, rot: -6, duration: 24, delay: 1.7, behavior: "wobbler", wobbleEvery: 15200, wobbleOffset: 4500 },
+  { id: "c16", color: "orange", x: 22, y: 66, size: 34, driftX: 9, driftY: -6, rot: 9, duration: 22, delay: 0.4, behavior: "drift", wobbleEvery: 0, wobbleOffset: 0 },
+  { id: "c17", color: "red", x: 78, y: 66, size: 36, driftX: -9, driftY: -8, rot: -8, duration: 25, delay: 2.2, behavior: "wobbler", wobbleEvery: 14200, wobbleOffset: 6000 },
 ];
 
 const FACE_NAMES = ["px", "nx", "py", "ny", "pz", "nz"] as const;
-const ROLL_MS = 720;
-const TUMBLE_MS = 1050;
-const RETURN_MS = 520;
-const CHAR_HOLD_MS = 3200;
-const CYCLE_GAP_MS = 5600;
+const SHAKE_MS = 820;
+const HATCH_MS = 680;
+const RETURN_MS = 560;
+const CHAR_HOLD_MS = 3400;
+const CYCLE_GAP_MS = 5400;
 const WALK_FRAME_MS = 220;
+const SOFT_SHAKE_MS = 900;
 
 function softHex(hex: string) {
   return `color-mix(in srgb, ${hex} 72%, var(--paper))`;
@@ -91,14 +108,16 @@ function IdleCube({
   const [flash, setFlash] = useState(false);
   const [phase, setPhase] = useState<CubePhase>("idle");
   const [walkFrame, setWalkFrame] = useState(0);
-  const [tumbleSlow, setTumbleSlow] = useState(false);
+  const [softShake, setSoftShake] = useState(false);
   const flashTimer = useRef<number | null>(null);
   const phaseTimer = useRef<number | null>(null);
   const holdTimer = useRef<number | null>(null);
-  const tumbleTimer = useRef<number | null>(null);
+  const wobbleTimer = useRef<number | null>(null);
   const hovered = useRef(false);
   const cycleActive = useRef(false);
+  const softShakeRef = useRef(false);
   const phaseRef = useRef<CubePhase>("idle");
+  const busyRef = useRef(false);
 
   const faces = useMemo(() => dieFaceColors(spec.color), [spec.color]);
   const charPalette = useMemo(
@@ -112,7 +131,12 @@ function IdleCube({
 
   useEffect(() => {
     phaseRef.current = phase;
+    busyRef.current = phase !== "idle";
   }, [phase]);
+
+  useEffect(() => {
+    softShakeRef.current = softShake;
+  }, [softShake]);
 
   const clearPhaseTimer = useCallback(() => {
     if (phaseTimer.current) {
@@ -128,10 +152,10 @@ function IdleCube({
     }
   }, []);
 
-  const clearTumbleTimer = useCallback(() => {
-    if (tumbleTimer.current) {
-      window.clearTimeout(tumbleTimer.current);
-      tumbleTimer.current = null;
+  const clearWobbleTimer = useCallback(() => {
+    if (wobbleTimer.current) {
+      window.clearTimeout(wobbleTimer.current);
+      wobbleTimer.current = null;
     }
   }, []);
 
@@ -149,7 +173,8 @@ function IdleCube({
     if (!hovered.current) {
       setPhase("idle");
       setWalkFrame(0);
-      setTumbleSlow(false);
+      setSoftShake(false);
+      softShakeRef.current = false;
       if (cycleActive.current) {
         cycleActive.current = false;
         onCycleDone?.();
@@ -163,7 +188,8 @@ function IdleCube({
     if (reduced) {
       setPhase("idle");
       setWalkFrame(0);
-      setTumbleSlow(false);
+      setSoftShake(false);
+      softShakeRef.current = false;
       if (cycleActive.current) {
         cycleActive.current = false;
         onCycleDone?.();
@@ -174,28 +200,13 @@ function IdleCube({
     phaseTimer.current = window.setTimeout(finishReturn, RETURN_MS);
   }, [clearHoldTimer, clearPhaseTimer, finishReturn, onCycleDone, reduced]);
 
-  /** Autonomous Colors-style tumble that settles back as a die (no character). */
-  const startTumble = useCallback(() => {
-    if (reduced) return;
-    if (hovered.current || cycleActive.current) return;
-    if (phaseRef.current !== "idle") return;
-
-    clearPhaseTimer();
-    clearHoldTimer();
-    setTumbleSlow(true);
-    setPhase("rolling");
-    phaseTimer.current = window.setTimeout(() => {
-      if (hovered.current || cycleActive.current) return;
-      setPhase("returning");
-      phaseTimer.current = window.setTimeout(finishReturn, RETURN_MS);
-    }, TUMBLE_MS);
-  }, [clearHoldTimer, clearPhaseTimer, finishReturn, reduced]);
-
-  const enterCharacter = useCallback(
+  /** Full cinematic hatch: shake → crack/pop → character. */
+  const enterHatch = useCallback(
     (fromCycle: boolean) => {
       clearPhaseTimer();
       clearHoldTimer();
-      setTumbleSlow(false);
+      setSoftShake(false);
+      softShakeRef.current = false;
       if (fromCycle) cycleActive.current = true;
 
       if (reduced) {
@@ -208,29 +219,62 @@ function IdleCube({
         return;
       }
 
-      setPhase("rolling");
+      setPhase("shaking");
       phaseTimer.current = window.setTimeout(() => {
-        if (hovered.current || cycleActive.current) {
+        if (!(hovered.current || cycleActive.current)) return;
+        setPhase("hatching");
+        phaseTimer.current = window.setTimeout(() => {
+          if (!(hovered.current || cycleActive.current)) return;
           setPhase("character");
           if (fromCycle && !hovered.current) {
             holdTimer.current = window.setTimeout(() => {
               if (!hovered.current) startReturn();
             }, CHAR_HOLD_MS);
           }
-        }
-      }, ROLL_MS);
+        }, HATCH_MS);
+      }, SHAKE_MS);
     },
     [clearHoldTimer, clearPhaseTimer, reduced, startReturn],
   );
+
+  /** Ambiance-only egg wobble that settles back without hatching. */
+  const startSoftWobble = useCallback(() => {
+    if (reduced) return;
+    if (hovered.current || cycleActive.current || busyRef.current) return;
+    if (phaseRef.current !== "idle") return;
+
+    clearPhaseTimer();
+    setSoftShake(true);
+    softShakeRef.current = true;
+    setPhase("shaking");
+    phaseTimer.current = window.setTimeout(() => {
+      if (hovered.current || cycleActive.current) return;
+      setSoftShake(false);
+      softShakeRef.current = false;
+      setPhase("idle");
+    }, SOFT_SHAKE_MS);
+  }, [clearPhaseTimer, reduced]);
 
   const enterHover = useCallback(() => {
     hovered.current = true;
     clearHoldTimer();
     if (phaseRef.current === "character") return;
-    // Autonomous tumble in progress — convert into a proper morph roll.
-    if (phaseRef.current === "rolling" && cycleActive.current) return;
-    enterCharacter(false);
-  }, [clearHoldTimer, enterCharacter]);
+    if (phaseRef.current === "hatching" && cycleActive.current) return;
+    // Soft ambiance shake in progress — escalate into a full hatch.
+    if (phaseRef.current === "shaking" && softShakeRef.current && !cycleActive.current) {
+      setSoftShake(false);
+      softShakeRef.current = false;
+      clearPhaseTimer();
+      setPhase("hatching");
+      phaseTimer.current = window.setTimeout(() => {
+        if (!hovered.current && !cycleActive.current) return;
+        setPhase("character");
+      }, HATCH_MS);
+      return;
+    }
+    if (phaseRef.current === "shaking" || phaseRef.current === "hatching") return;
+    enterHatch(false);
+  }, [clearHoldTimer, clearPhaseTimer, enterHatch]);
 
   const leaveHover = useCallback(() => {
     hovered.current = false;
@@ -245,38 +289,43 @@ function IdleCube({
 
   useEffect(() => {
     if (!forcedShow || hovered.current) return;
+    // Soft ambiance wobble must not block the scheduled hatch cycle.
+    if (phaseRef.current === "shaking" && softShakeRef.current) {
+      enterHatch(true);
+      return;
+    }
     if (phaseRef.current !== "idle") return;
-    enterCharacter(true);
-  }, [enterCharacter, forcedShow]);
+    enterHatch(true);
+  }, [enterHatch, forcedShow, phase]);
 
-  /* Autonomous staggered rolls for roller cubes — never cursor-driven. */
+  /* Soft egg wobbles for ambiance — never cursor-driven. */
   useEffect(() => {
-    if (reduced || spec.behavior !== "roller" || !spec.rollEvery) {
-      clearTumbleTimer();
+    if (reduced || spec.behavior !== "wobbler" || !spec.wobbleEvery) {
+      clearWobbleTimer();
       return;
     }
 
     let cancelled = false;
     const schedule = (ms: number) => {
-      clearTumbleTimer();
-      tumbleTimer.current = window.setTimeout(() => {
+      clearWobbleTimer();
+      wobbleTimer.current = window.setTimeout(() => {
         if (cancelled) return;
-        startTumble();
-        schedule(spec.rollEvery);
+        startSoftWobble();
+        schedule(spec.wobbleEvery);
       }, ms);
     };
-    schedule(spec.rollOffset || spec.rollEvery);
+    schedule(spec.wobbleOffset || spec.wobbleEvery);
     return () => {
       cancelled = true;
-      clearTumbleTimer();
+      clearWobbleTimer();
     };
   }, [
-    clearTumbleTimer,
+    clearWobbleTimer,
     reduced,
     spec.behavior,
-    spec.rollEvery,
-    spec.rollOffset,
-    startTumble,
+    spec.wobbleEvery,
+    spec.wobbleOffset,
+    startSoftWobble,
   ]);
 
   useEffect(() => {
@@ -293,25 +342,43 @@ function IdleCube({
   const onClick = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
-      if (reduced) {
-        setFlash(true);
-        if (flashTimer.current) window.clearTimeout(flashTimer.current);
-        flashTimer.current = window.setTimeout(() => setFlash(false), 420);
-        return;
-      }
-      setNudge({
-        x: (Math.random() - 0.5) * 16,
-        y: (Math.random() - 0.5) * 16,
-        rot: (Math.random() - 0.5) * 12,
-      });
       setFlash(true);
       if (flashTimer.current) window.clearTimeout(flashTimer.current);
-      flashTimer.current = window.setTimeout(() => {
-        setNudge({ x: 0, y: 0, rot: 0 });
-        setFlash(false);
-      }, 700);
+      flashTimer.current = window.setTimeout(() => setFlash(false), 420);
+
+      if (reduced) {
+        if (phaseRef.current === "character") {
+          startReturn();
+        } else {
+          enterHatch(false);
+          holdTimer.current = window.setTimeout(() => {
+            if (!hovered.current) startReturn();
+          }, CHAR_HOLD_MS);
+        }
+        return;
+      }
+
+      if (phaseRef.current === "idle" || softShakeRef.current) {
+        setSoftShake(false);
+        softShakeRef.current = false;
+        enterHatch(false);
+        holdTimer.current = window.setTimeout(() => {
+          if (!hovered.current) startReturn();
+        }, SHAKE_MS + HATCH_MS + CHAR_HOLD_MS);
+        return;
+      }
+
+      if (phaseRef.current === "character") {
+        setNudge({
+          x: (Math.random() - 0.5) * 14,
+          y: (Math.random() - 0.5) * 10,
+          rot: (Math.random() - 0.5) * 10,
+        });
+        window.setTimeout(() => setNudge({ x: 0, y: 0, rot: 0 }), 700);
+        return;
+      }
     },
-    [reduced],
+    [enterHatch, reduced, startReturn],
   );
 
   useEffect(() => {
@@ -319,18 +386,40 @@ function IdleCube({
       if (flashTimer.current) window.clearTimeout(flashTimer.current);
       clearPhaseTimer();
       clearHoldTimer();
-      clearTumbleTimer();
+      clearWobbleTimer();
     };
-  }, [clearHoldTimer, clearPhaseTimer, clearTumbleTimer]);
+  }, [clearHoldTimer, clearPhaseTimer, clearWobbleTimer]);
 
   const showCharacter = phase === "character";
-  const isRolling = phase === "rolling";
+  const isShaking = phase === "shaking";
+  const isHatching = phase === "hatching";
   const isReturning = phase === "returning";
-  const dieActive = !reduced && (isRolling || showCharacter);
+  const dieActive = !reduced && (isShaking || isHatching || showCharacter);
   const charGrid =
     showCharacter && walkFrame === 1
       ? IDLE_CUBE_CHARS_WALK[spec.color]
       : IDLE_CUBE_CHARS[spec.color];
+
+  const dieClass = [
+    "idle-die",
+    `idle-die--${spec.color}`,
+    isShaking ? (softShake ? "is-soft-shake" : "is-shaking") : "",
+    isHatching ? "is-hatching" : "",
+    isReturning ? "is-returning" : "",
+    showCharacter ? "is-morphed" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const charClass = [
+    "idle-cube-char",
+    `idle-cube-char--${motionStyle}`,
+    showCharacter ? "is-visible" : "",
+    dieActive && (isShaking || isHatching) ? "is-waiting" : "",
+    isHatching ? "is-popping" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
@@ -375,9 +464,7 @@ function IdleCube({
         whileTap={reduced ? undefined : { scale: 0.96 }}
       >
         <span className="idle-cube-scene" aria-hidden>
-          <span
-            className={`idle-die idle-die--${spec.color}${isRolling ? " is-rolling" : ""}${tumbleSlow && isRolling ? " is-rolling-slow" : ""}${isReturning ? " is-returning" : ""}${showCharacter ? " is-morphed" : ""}`}
-          >
+          <span className={dieClass}>
             {FACE_NAMES.map((name, i) => (
               <span
                 key={name}
@@ -389,9 +476,7 @@ function IdleCube({
             ))}
           </span>
 
-          <span
-            className={`idle-cube-char idle-cube-char--${motionStyle}${showCharacter ? " is-visible" : ""}${dieActive && isRolling ? " is-waiting" : ""}`}
-          >
+          <span className={charClass}>
             <PixelIcon
               grid={charGrid}
               palette={charPalette}
@@ -445,7 +530,7 @@ export function IdleDesktop() {
       });
     };
     const id = window.setInterval(tick, CYCLE_GAP_MS);
-    const kick = window.setTimeout(tick, 2400);
+    const kick = window.setTimeout(tick, 2800);
     return () => {
       window.clearInterval(id);
       window.clearTimeout(kick);
