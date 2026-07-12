@@ -1058,19 +1058,30 @@ html.dark .win-titlebar.focused {
   vertical-align: middle;
 }
 
-/* Wallet adapter modal — warm paper arcade (override default purple).
-   Keep above boot (200), OS dialogs (150–160), and window stack. */
+/* Wallet adapter / Midway connect modal — above boot (200), OS dialogs, window stack.
+   NOTE: `.wallet-adapter-modal` is the FULLSCREEN overlay; `.wallet-adapter-modal-wrapper`
+   is the card. Do not swap those backgrounds. */
 .wallet-adapter-modal {
   z-index: 10000 !important;
+  background: color-mix(in srgb, var(--void) 55%, transparent) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  pointer-events: auto !important;
+}
+.wallet-adapter-modal-overlay {
+  z-index: 0 !important;
+  pointer-events: auto !important;
+}
+.wallet-adapter-modal-wrapper {
+  z-index: 2 !important;
+  position: relative !important;
+  pointer-events: auto !important;
   background: var(--panel) !important;
   color: var(--ink) !important;
   border: 2px solid var(--line) !important;
   border-radius: 0 !important;
   box-shadow: 4px 4px 0 var(--shadow-cut) !important;
-}
-.wallet-adapter-modal-wrapper {
-  z-index: 10001 !important;
-  background: color-mix(in srgb, var(--void) 55%, transparent) !important;
   font-family: var(--font-heading), ui-monospace, monospace !important;
 }
 .wallet-adapter-modal-title {
@@ -1094,6 +1105,7 @@ html.dark .win-titlebar.focused {
   height: auto !important;
   line-height: 1.2 !important;
   padding: 10px 12px !important;
+  pointer-events: auto !important;
 }
 .wallet-adapter-modal-list .wallet-adapter-button:hover {
   background: var(--ink) !important;
@@ -1120,6 +1132,149 @@ html.dark .win-titlebar.focused {
 .wallet-adapter-dropdown-list-item:hover {
   background: var(--ink) !important;
   color: var(--btn) !important;
+}
+
+/* Midway custom wallet modal (Phantom / Solflare only + demo guest) */
+.midway-wallet-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  pointer-events: auto;
+}
+.midway-wallet-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--void) 55%, transparent);
+}
+.midway-wallet-modal__card {
+  position: relative;
+  z-index: 1;
+  width: min(400px, 100%);
+  background: var(--panel);
+  color: var(--ink);
+  border: 2px solid var(--line);
+  box-shadow: 4px 4px 0 var(--shadow-cut);
+  font-family: var(--font-heading), ui-monospace, monospace;
+  padding: 1.25rem 1rem 1rem;
+  pointer-events: auto;
+}
+.midway-wallet-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--chrome);
+  border: 2px solid;
+  border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.midway-wallet-modal__title {
+  margin: 0.25rem 2rem 0.5rem 0.25rem;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.midway-wallet-modal__sub {
+  margin: 0 0.25rem 0.85rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink-dim);
+}
+.midway-wallet-modal__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.midway-wallet-modal__btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--chrome);
+  color: var(--ink);
+  border: 2px solid;
+  border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
+  font-family: var(--font-heading), ui-monospace, monospace;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+.midway-wallet-modal__btn:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--btn);
+}
+.midway-wallet-modal__btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.midway-wallet-modal__btn img,
+.midway-wallet-modal__btn .wallet-adapter-button-start-icon,
+.midway-wallet-modal__btn .wallet-adapter-button-start-icon img {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.midway-wallet-modal__name {
+  flex: 1;
+}
+.midway-wallet-modal__status {
+  font-size: 11px;
+  opacity: 0.65;
+}
+.midway-wallet-modal__empty,
+.midway-wallet-modal__error {
+  margin: 0.75rem 0.25rem 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12px;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink-dim);
+}
+.midway-wallet-modal__error {
+  color: var(--burn);
+}
+.midway-wallet-modal__demo {
+  margin-top: 0.85rem;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--acid);
+  color: var(--btn);
+  border: 2px solid;
+  border-color: var(--sage-2) var(--bevel-lo) var(--bevel-lo) var(--sage-2);
+  font-family: var(--font-heading), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.midway-wallet-modal__demo:hover {
+  filter: brightness(1.05);
+}
+
+html[data-theme="dark"] .midway-wallet-modal__demo,
+html.dark .midway-wallet-modal__demo {
+  color: #121a14;
 }
 
 /* Dither SVG filter helper class */

@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { ColorPicker } from "./ColorPicker";
 import { BetPanel } from "./BetPanel";
@@ -43,10 +42,15 @@ type ColorsGameProps = {
 
 export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   const { openWin } = useOs();
-  const { connected } = useWallet();
   const { setVisible } = useWalletModal();
-  const { play, debitPlaySol, creditPlaySol, refresh: refreshPlay } =
-    useMidwayWallet();
+  const {
+    connected,
+    demoGuest,
+    play,
+    debitPlaySol,
+    creditPlaySol,
+    refresh: refreshPlay,
+  } = useMidwayWallet();
   const { placeBetOnChain } = useColorsBetTx();
 
   const balance = connected ? play.sol : PREVIEW_SOL_BALANCE;
@@ -133,7 +137,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
   const ensureWalletAndBalance = (cost: number) => {
     if (!connectedRef.current) {
-      setPrompt("WALLET REQUIRED — CONNECT TO PLAY");
+      setPrompt("CONNECT PHANTOM / SOLFLARE — OR PLAY DEMO");
       openWalletFlow();
       return false;
     }
@@ -345,7 +349,9 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b-2 border-line pb-2">
         <div className="chroma text-sm text-hot">COLORS.EXE</div>
         <div className="flex items-center gap-1">
-          <span className="bevel-inset px-2 py-1 text-[10px] text-acid">DEMO</span>
+          <span className="bevel-inset px-2 py-1 text-[10px] text-acid">
+            {demoGuest ? "DEMO · GUEST" : "DEMO"}
+          </span>
           <span className="bevel-inset px-2 py-1 text-[10px] text-ink-dim">
             {DEMO_PLAY_SOL} SOL POT
           </span>

@@ -14,11 +14,14 @@ import type { MidwayAsset } from "@/lib/midway-wallet/types";
 const PRESETS = [0.05, 0.1, 0.25, 0.5, 1] as const;
 
 export function MidwayWalletPanel() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
   const { balance: mainSol, loading: mainLoading, refresh: refreshMain } =
     useSolBalance();
   const {
+    connected,
+    walletConnected,
+    demoGuest,
     mode,
     play,
     ledger,
@@ -92,7 +95,9 @@ export function MidwayWalletPanel() {
         <div className="bevel-inset p-3 font-sans text-[13px] normal-case tracking-normal text-ink-dim">
           Connect <strong className="text-ink">Phantom</strong> or{" "}
           <strong className="text-ink">Solflare</strong> to unlock your{" "}
-          {DEMO_PLAY_SOL} SOL demo play pot for Colors.
+          {DEMO_PLAY_SOL} SOL demo play pot for Colors — or choose{" "}
+          <strong className="text-ink">Play demo without wallet</strong> in the
+          connect modal.
           <button
             type="button"
             className="bevel-btn bevel-btn-hot mt-2 block w-full py-2 font-heading text-[11px] tracking-wide"
@@ -103,9 +108,14 @@ export function MidwayWalletPanel() {
         </div>
       )}
 
-      {connected && publicKey && (
+      {walletConnected && publicKey && (
         <div className="bevel-inset p-2 font-mono text-[12px] text-ink-dim break-all">
           identity · {truncateAddress(publicKey.toBase58(), 6, 6)}
+        </div>
+      )}
+      {demoGuest && !walletConnected && (
+        <div className="bevel-inset p-2 font-mono text-[12px] text-ink-dim">
+          identity · DEMO · GUEST (local 10 SOL pot)
         </div>
       )}
 

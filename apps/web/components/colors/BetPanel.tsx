@@ -39,7 +39,7 @@ export function BetPanel({
 }: BetPanelProps) {
   const step = bet >= 0.1 ? 0.05 : 0.01;
   const placeLabel = !walletConnected
-    ? "WALLET REQUIRED"
+    ? "CONNECT / DEMO"
     : needsDeposit
       ? "RESET DEMO POT"
       : "PLACE BET";
@@ -61,7 +61,7 @@ export function BetPanel({
         </div>
         {!walletConnected ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Connect Phantom / Solflare for identity — play money is a local demo pot.
+            Connect Phantom / Solflare, or play demo without a wallet — local 10 SOL pot.
           </p>
         ) : needsDeposit ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">

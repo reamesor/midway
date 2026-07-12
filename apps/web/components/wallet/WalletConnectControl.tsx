@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useDemoGuest } from "@/components/wallet/DemoGuestContext";
 import { truncateAddress } from "@/lib/solana/address";
 import { useOs } from "@/components/os/OsContext";
 
@@ -14,13 +15,14 @@ type WalletConnectControlProps = {
 
 /**
  * Shared Connect control for taskbar + Colors.
- * Opens adapter modal (Phantom / Solflare first); shows truncated address + menu.
+ * Opens Midway wallet modal (Phantom / Solflare); shows truncated address or DEMO.
  */
 export function WalletConnectControl({
   size = "taskbar",
   className = "",
 }: WalletConnectControlProps) {
   const { publicKey, connected, disconnect, connecting } = useWallet();
+  const { demoGuest, clearDemoGuest } = useDemoGuest();
   const { setVisible } = useWalletModal();
   const { openWin } = useOs();
   const [menu, setMenu] = useState(false);
@@ -40,7 +42,9 @@ export function WalletConnectControl({
       ? "bevel-btn px-2 py-1 text-[10px] whitespace-nowrap"
       : "bevel-btn px-2 py-0.5 text-[10px] text-hot";
 
-  if (!connected || !publicKey) {
+  const identified = (connected && publicKey) || demoGuest;
+
+  if (!identified) {
     return (
       <button
         type="button"
@@ -57,14 +61,19 @@ export function WalletConnectControl({
     );
   }
 
-  const label = truncateAddress(publicKey.toBase58());
+  const label =
+    connected && publicKey
+      ? truncateAddress(publicKey.toBase58())
+      : "DEMO · GUEST";
 
   return (
     <div ref={rootRef} className={`relative inline-block ${className}`}>
       <button
         type="button"
         className={`${btnClass} num`}
-        title={publicKey.toBase58()}
+        title={
+          connected && publicKey ? publicKey.toBase58() : "Demo guest · 10 SOL pot"
+        }
         onClick={() => setMenu((m) => !m)}
         aria-expanded={menu}
         aria-haspopup="menu"
@@ -98,7 +107,7 @@ export function WalletConnectControl({
               setMenu(false);
             }}
           >
-            CHANGE WALLET
+            {demoGuest && !connected ? "CONNECT WALLET" : "CHANGE WALLET"}
           </button>
           <hr className="my-1 border-line" />
           <button
@@ -106,11 +115,12 @@ export function WalletConnectControl({
             role="menuitem"
             className="block w-full px-3 py-1.5 text-left text-burn hover:bg-ink hover:text-[var(--btn)]"
             onClick={() => {
-              void disconnect();
+              if (connected) void disconnect();
+              if (demoGuest) clearDemoGuest();
               setMenu(false);
             }}
           >
-            DISCONNECT
+            {demoGuest && !connected ? "EXIT DEMO" : "DISCONNECT"}
           </button>
         </div>
       )}

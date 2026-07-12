@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
+  DEMO_GUEST_PUBKEY,
+  useDemoGuest,
+} from "@/components/wallet/DemoGuestContext";
+import {
   DEMO_PLAY_SOL,
   getMidwayMint,
   getWalletEscrowMode,
@@ -29,17 +33,29 @@ type TxResult =
   | { ok: false; error: string };
 
 /**
- * Midway play escrow keyed by connected wallet pubkey.
+ * Midway play escrow keyed by connected wallet pubkey (or DEMO_GUEST).
  * DEMO only: local 10 SOL pot + ledger. Never signs spend txs.
  */
 export function useMidwayWallet() {
-  const { publicKey, connected } = useWallet();
-  const pubkey = publicKey?.toBase58() ?? null;
+  const { publicKey, connected: walletConnected } = useWallet();
+  const { demoGuest, clearDemoGuest } = useDemoGuest();
+  const pubkey = walletConnected
+    ? (publicKey?.toBase58() ?? null)
+    : demoGuest
+      ? DEMO_GUEST_PUBKEY
+      : null;
+  /** Wallet extension OR local demo-guest identity — enough to play Colors. */
+  const connected = Boolean(pubkey);
   const mode = getWalletEscrowMode();
   const mint = getMidwayMint();
   const [play, setPlay] = useState<MidwayPlayBalance>(EMPTY_PLAY_BALANCE());
   const [ledger, setLedger] = useState<MidwayWalletLedgerEntry[]>([]);
   const [busy, setBusy] = useState(false);
+
+  // Real wallet wins — drop guest flag so taskbar shows the address.
+  useEffect(() => {
+    if (walletConnected && publicKey) clearDemoGuest();
+  }, [walletConnected, publicKey, clearDemoGuest]);
 
   const refresh = useCallback(() => {
     if (!pubkey) {
@@ -234,6 +250,8 @@ export function useMidwayWallet() {
 
   return {
     connected,
+    walletConnected,
+    demoGuest,
     pubkey,
     mode,
     demoPlaySol: DEMO_PLAY_SOL,
@@ -248,5 +266,6 @@ export function useMidwayWallet() {
     resetDemo,
     debitPlaySol,
     creditPlaySol,
+    clearDemoGuest,
   };
 }
