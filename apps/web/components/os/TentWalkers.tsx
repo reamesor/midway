@@ -14,7 +14,7 @@ type WalkerSpec = {
   path: "left-in-right-out" | "right-in-left-out" | "loop-left" | "loop-right";
   duration: number;
   delay: number;
-  /** Pixel size — must fit inside the tent door hole (~9×22 on 72px stage). */
+  /** Pixel size — must fit inside the tent door hole (~9×18 on 72px stage). */
   size: number;
 };
 
@@ -92,7 +92,7 @@ function TentWalker({
   );
 }
 
-/** Colors mascots that walk in/out of the tent doorway (door pixels are transparent holes). */
+/** Colors mascots that walk in/out of the tent doorway (transparent door, solid sill). */
 export function TentWalkers({
   ink,
   reduced,

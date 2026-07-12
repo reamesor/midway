@@ -122,7 +122,8 @@ export const TENT = [
   "...KRWRDDRWRK...",
   "...KRWRDDRWRK...",
   "...KRWRDDRWRK...",
-  "...KKKKDDKKKK...",
+  // Solid sill (no D) so walkers never poke under the tent base.
+  "...KKKKKKKKKK...",
 ];
 
 /** Single-color ink glyphs (K = ink). */
