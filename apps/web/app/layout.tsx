@@ -4,6 +4,14 @@ export const metadata: Metadata = {
   title: "MIDWAY — every cut comes home",
   description:
     "The boardwalk, rebuilt honest. Play, mint, trade — the house cut flows back to everyone.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({
