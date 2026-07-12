@@ -203,7 +203,7 @@ export function useMidwayWallet() {
     return { ok: true, balance: next };
   }, [connected, persist, pubkey]);
 
-  /** Debit play SOL for a Colors (or future) bet stake — local ledger only. */
+  /** Debit play SOL for a Colors (or future) bet — local ledger only. */
   const debitPlaySol = useCallback(
     (amount: number, note?: string): TxResult => {
       if (!connected || !pubkey) {

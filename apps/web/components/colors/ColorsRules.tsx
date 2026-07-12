@@ -50,7 +50,7 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
             <p className="mt-2 rounded border border-line/60 bg-paper-2/80 px-3 py-2 text-[13px] text-ink-dim">
               Example: bet Blue + Green; dice show Blue, Blue, Red → you win on
               Blue (2 matches). PLACE BET arms the lever (no debit); PULL LEVER
-              takes the stake. CANCEL BET undoes a placed bet for free.
+              takes the bet cost. CANCEL BET undoes a placed bet for free.
             </p>
           </Section>
 
@@ -76,13 +76,13 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
               <div className="mt-3 space-y-1 border-t border-line/50 pt-2 text-[12px] text-ink-dim">
                 <p>
                   Example at <strong className="text-ink">1 SOL</strong> unit bet
-                  (1 color → stake 1 SOL):
+                  (1 color → bet cost 1 SOL):
                 </p>
                 <ul className="font-mono text-[12px] space-y-0.5">
                   <li>1 match → <span className="text-ink">2.04</span> SOL returned</li>
                   <li>2 matches → <span className="text-ink">3.08</span> SOL returned</li>
                   <li>3 matches → <span className="text-ink">5.50</span> SOL returned</li>
-                  <li>0 matches → lose stake; cut still comes home</li>
+                  <li>0 matches → lose bet; cut still comes home</li>
                 </ul>
                 <p className="pt-1">
                   Each selected color costs the full bet (3 × 0.01 = 0.03 SOL).
@@ -105,7 +105,7 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
               <li className="bevel px-2 py-2 text-center text-acid">20% BUILD</li>
             </ul>
             <p className="mt-2 text-[12px] text-ink-dim">
-              Example cut on 1 SOL stake:{" "}
+              Example cut on 1 SOL bet:{" "}
               <span className="font-mono text-ink">0.05</span> → burn{" "}
               <span className="font-mono text-ink">0.02</span> · believers{" "}
               <span className="font-mono text-ink">0.02</span> · build{" "}

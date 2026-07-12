@@ -213,7 +213,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     // Stub only — never signs/sends; settlement stays on demo ledger.
     void placeBetOnChain({ bet: currentBet, picked: Array.from(currentPicked) });
 
-    const debit = debitPlaySol(cost, "colors stake");
+    const debit = debitPlaySol(cost, "colors bet");
     if (!debit.ok) {
       setPrompt(debit.error.toUpperCase());
       openWin("wallet");
@@ -265,7 +265,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     settleRound,
   ]);
 
-  /** Arm the lever — does NOT debit. Stake leaves the pot only when the lever is pulled. */
+  /** Arm the lever — does NOT debit. Bet cost leaves the pot only when the lever is pulled. */
   const placeOnly = () => {
     if (phaseRef.current !== "select") return;
     const currentPicked = pickedRef.current;
@@ -300,7 +300,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       return;
     }
 
-    const debit = debitPlaySol(cost, "colors stake");
+    const debit = debitPlaySol(cost, "colors bet");
     if (!debit.ok) {
       setPrompt(debit.error.toUpperCase());
       openWin("wallet");

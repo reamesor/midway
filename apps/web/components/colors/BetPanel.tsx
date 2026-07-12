@@ -133,7 +133,7 @@ export function BetPanel({
           </button>
         </div>
         <p className="mt-2 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-          Each selected color costs the full bet in SOL. Stake is taken when you pull the lever.
+          Each selected color costs the full bet in SOL. Bet cost is taken when you pull the lever.
         </p>
       </div>
 

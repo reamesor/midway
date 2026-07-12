@@ -33,7 +33,7 @@ export function ResultBreakdown({
         <div className="font-heading text-[10px] tracking-wide text-ink-dim">
           MIDWAY PLAY · THIS ROUND
         </div>
-        <Row label="Stake / bet cost" value={`−${fmt(stake)} ${unit}`} tone="dim" />
+        <Row label="Bet cost" value={`−${fmt(stake)} ${unit}`} tone="dim" />
         <Row
           label="Payout → Midway Play"
           value={won ? `+${fmt(winnings)} ${unit}` : `+0 ${unit}`}
@@ -93,7 +93,7 @@ function formulaHint(matches: number): string | null {
     return `Jackpot · Bet + (Bet × ${JACKPOT_PROFIT}) → ${(1 + JACKPOT_PROFIT).toFixed(2)}× unit bet`;
   }
   if (matches === 0) {
-    return "0 matches · no payout · stake lost · 5% cut still routes home";
+    return "0 matches · no payout · bet lost · 5% cut still routes home";
   }
   return null;
 }

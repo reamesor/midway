@@ -120,7 +120,7 @@ export function InfoPanel() {
         <strong className="font-semibold text-ink">Colors</strong> is a pick-up-to-3-of-6
         dice game with published ~5% house edge. Match and you are paid in full on the
         unit bet: 1 match → Bet+(Bet×1.04), 2 → Bet+(Bet×1.04×2), jackpot →
-        Bet+(Bet×4.5). Every roll still takes a 5% cut of total stake into the treasury
+        Bet+(Bet×4.5). Every roll still takes a 5% cut of total bet cost into the treasury
         — win or lose — so you can open TREASURY.MON and watch meters move.
       </p>
       <p className="font-sans text-ink-dim">

@@ -24,7 +24,7 @@ const STEPS: {
   {
     title: "2 · HOUSE CUT",
     glyph: "coin",
-    lead: "5% of stake, every roll",
+    lead: "5% of bet cost, every roll",
     detail:
       "Win or lose — Colors takes 5% of total cost. Pump-style rails pay deployers; Midway routes the cut home.",
   },

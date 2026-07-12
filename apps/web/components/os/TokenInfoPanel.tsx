@@ -65,7 +65,7 @@ export function TokenInfoPanel() {
         the pier.
       </p>
       <p className="font-sans text-ink-dim">
-        It is not a casino chip you cash at a cage. It is the stake in the loop: burn
+        It is not a casino chip you cash at a cage. It is skin in the loop: burn
         tightens supply, believers get paid, build keeps the lights on. Same story as
         INFO.TXT and LOOP.EXE — just the token booth. Collection holders get a separate
         designed boost (ride multipliers + claim bonus) once NFT.LAUNCH goes live;
