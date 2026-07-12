@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useDemoGuest } from "@/components/wallet/DemoGuestContext";
+import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { truncateAddress } from "@/lib/solana/address";
 import { useOs } from "@/components/os/OsContext";
 
@@ -23,6 +24,7 @@ export function WalletConnectControl({
 }: WalletConnectControlProps) {
   const { publicKey, connected, disconnect, connecting } = useWallet();
   const { demoGuest, clearDemoGuest } = useDemoGuest();
+  const { username } = usePlayerProfile();
   const { setVisible } = useWalletModal();
   const { openWin } = useOs();
   const [menu, setMenu] = useState(false);
@@ -61,10 +63,11 @@ export function WalletConnectControl({
     );
   }
 
-  const label =
+  const addressLabel =
     connected && publicKey
       ? truncateAddress(publicKey.toBase58())
       : "DEMO · GUEST";
+  const label = username ? `${username} · ${addressLabel}` : addressLabel;
 
   return (
     <div ref={rootRef} className={`relative inline-block ${className}`}>
@@ -72,7 +75,13 @@ export function WalletConnectControl({
         type="button"
         className={`${btnClass} num`}
         title={
-          connected && publicKey ? publicKey.toBase58() : "Demo guest · 10 SOL pot"
+          connected && publicKey
+            ? username
+              ? `${username} · ${publicKey.toBase58()}`
+              : publicKey.toBase58()
+            : username
+              ? `${username} · Demo guest · 10 SOL pot`
+              : "Demo guest · 10 SOL pot"
         }
         onClick={() => setMenu((m) => !m)}
         aria-expanded={menu}
@@ -87,6 +96,17 @@ export function WalletConnectControl({
             size === "taskbar" ? "bottom-9 right-0" : "top-full right-0 mt-1"
           }`}
         >
+          <button
+            type="button"
+            role="menuitem"
+            className="block w-full px-3 py-1.5 text-left hover:bg-ink hover:text-[var(--btn)]"
+            onClick={() => {
+              openWin("dashboard");
+              setMenu(false);
+            }}
+          >
+            DASHBOARD
+          </button>
           <button
             type="button"
             role="menuitem"

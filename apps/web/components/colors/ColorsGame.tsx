@@ -14,6 +14,7 @@ import { useMidwayWallet } from "@/hooks/useMidwayWallet";
 import { useColorsBetTx } from "@/hooks/useColorsBetTx";
 import { DEMO_PLAY_SOL } from "@/lib/solana/escrow";
 import { ResultBreakdown } from "./ResultBreakdown";
+import { recordColorsRound } from "@/lib/leaderboard/localScores";
 
 const DiceStage = dynamic(
   () => import("./DiceStage").then((m) => m.DiceStage),
@@ -45,6 +46,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   const {
     connected,
     demoGuest,
+    pubkey,
     play,
     debitPlaySol,
     creditPlaySol,
@@ -186,6 +188,12 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         creditPlaySol(settlement.winnings, "colors payout");
         refreshPlay();
       }
+      if (pubkey) {
+        recordColorsRound(pubkey, {
+          matches: settlement.matches,
+          winnings: settlement.winnings,
+        });
+      }
       setResult({
         matches: settlement.matches,
         winnings: settlement.winnings,
@@ -197,7 +205,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       setNonce((n) => n + 1);
       setPhase("done");
     },
-    [creditPlaySol, onHouseCut, refreshPlay, setLastFairness],
+    [creditPlaySol, onHouseCut, pubkey, refreshPlay, setLastFairness],
   );
 
   const runRound = useCallback(async () => {
@@ -386,6 +394,14 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
             title="Open Midway wallet"
           >
             WALLET
+          </button>
+          <button
+            type="button"
+            className="bevel-btn px-2 py-1"
+            onClick={() => openWin("dashboard")}
+            title="Open dashboard"
+          >
+            DASHBOARD
           </button>
           <button
             type="button"

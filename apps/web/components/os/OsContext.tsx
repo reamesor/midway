@@ -25,6 +25,8 @@ export type WinId =
   | "info"
   | "token"
   | "fairness"
+  | "dashboard"
+  | "leaderboard"
   | "soon";
 export type OsTheme = "light" | "dark";
 
@@ -77,6 +79,8 @@ const DEFAULT_OPEN: Record<WinId, boolean> = {
   info: false,
   token: false,
   fairness: false,
+  dashboard: false,
+  leaderboard: false,
   soon: false,
 };
 
@@ -103,6 +107,8 @@ export function OsProvider({ children }: { children: ReactNode }) {
     info: 10,
     token: 10,
     fairness: 10,
+    dashboard: 10,
+    leaderboard: 10,
     soon: 10,
   });
   const [zCounter, setZCounter] = useState(14);

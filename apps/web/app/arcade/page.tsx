@@ -17,17 +17,25 @@ import { TokenInfoPanel } from "@/components/os/TokenInfoPanel";
 import { ComingSoonStub } from "@/components/os/ComingSoonStub";
 import { NftLaunchPanel } from "@/components/os/NftLaunchPanel";
 import { FairnessPanel } from "@/components/os/FairnessPanel";
+import { DashboardPanel } from "@/components/os/DashboardPanel";
+import { LeaderboardPanel } from "@/components/os/LeaderboardPanel";
 import { applyHouseCut, type TreasuryState } from "@/lib/treasury/split";
 
 type Rect = { x: number; y: number; width: number; height: number };
 
-function tileLayout(
-  w: number,
-  h: number,
-): Record<
-  "colors" | "loop" | "treasury" | "wallet" | "info" | "token" | "fairness" | "soon",
-  Rect
-> {
+type WinLayoutId =
+  | "colors"
+  | "loop"
+  | "treasury"
+  | "wallet"
+  | "info"
+  | "token"
+  | "fairness"
+  | "dashboard"
+  | "leaderboard"
+  | "soon";
+
+function tileLayout(w: number, h: number): Record<WinLayoutId, Rect> {
   const task = 44;
   const usableH = Math.max(280, h - task);
   const pad = 8;
@@ -50,6 +58,8 @@ function tileLayout(
       info: { ...full, x: pad + 12, y: pad + dock + 12 },
       token: { ...full, x: pad + 14, y: pad + dock + 14 },
       fairness: { ...full, x: pad + 20, y: pad + dock + 20 },
+      dashboard: { ...full, x: pad + 18, y: pad + dock + 18 },
+      leaderboard: { ...full, x: pad + 22, y: pad + dock + 22 },
       soon: { ...full, x: pad + 24, y: pad + dock + 24 },
     };
   }
@@ -110,6 +120,18 @@ function tileLayout(
       width: Math.min(500, Math.round(workW * 0.5)),
       height: Math.min(360, Math.round(workH * 0.55)),
     },
+    dashboard: {
+      x: workX + Math.round(workW * 0.14),
+      y: workY + Math.round(workH * 0.1),
+      width: Math.min(460, Math.round(workW * 0.5)),
+      height: Math.min(480, Math.round(workH * 0.72)),
+    },
+    leaderboard: {
+      x: workX + Math.round(workW * 0.2),
+      y: workY + Math.round(workH * 0.12),
+      width: Math.min(480, Math.round(workW * 0.52)),
+      height: Math.min(440, Math.round(workH * 0.68)),
+    },
     soon: {
       x: workX + Math.round(workW * 0.22),
       y: workY + Math.round(workH * 0.22),
@@ -141,6 +163,8 @@ function Desktop() {
         info: { x: 180, y: 40, width: 500, height: 520 },
         token: { x: 200, y: 48, width: 480, height: 540 },
         fairness: { x: 240, y: 120, width: 480, height: 320 },
+        dashboard: { x: 200, y: 64, width: 440, height: 460 },
+        leaderboard: { x: 260, y: 80, width: 460, height: 420 },
         soon: { x: 280, y: 160, width: 360, height: 260 },
       };
     }
@@ -243,6 +267,28 @@ function Desktop() {
           minHeight={200}
         >
           <FairnessPanel />
+        </Win>
+
+        <Win
+          key={`dashboard-${layoutKey}`}
+          id="dashboard"
+          title="DASHBOARD.EXE — PROFILE"
+          default={winDefaults.dashboard}
+          minWidth={300}
+          minHeight={320}
+        >
+          <DashboardPanel />
+        </Win>
+
+        <Win
+          key={`leaderboard-${layoutKey}`}
+          id="leaderboard"
+          title="BOARD.EXE — LEADERBOARD"
+          default={winDefaults.leaderboard}
+          minWidth={300}
+          minHeight={280}
+        >
+          <LeaderboardPanel />
         </Win>
 
         <Win
