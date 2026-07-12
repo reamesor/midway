@@ -1,0 +1,437 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-void: #0a0a0f;
+  --color-crt: #12101a;
+  --color-panel: #1a1622;
+  --color-chrome: #2a2436;
+  --color-bevel-hi: #4a4258;
+  --color-bevel-lo: #000000;
+  --color-line: #3a3350;
+  --color-ink: #e8e6f0;
+  --color-ink-dim: #8b849c;
+  --color-acid: #c2ff00;
+  --color-hot: #ff2e88;
+  --color-cyber: #00e5ff;
+  --color-burn: #ff3b30;
+  --color-win: #39ff14;
+  --color-amber: #ffb000;
+  --color-c-yellow: #ffe600;
+  --color-c-orange: #ff7a00;
+  --color-c-pink: #ff2eb0;
+  --color-c-blue: #2e9bff;
+  --color-c-green: #39ff14;
+  --color-c-red: #ff2e2e;
+
+  --color-background: var(--crt);
+  --color-foreground: var(--ink);
+  --color-card: var(--panel);
+  --color-card-foreground: var(--ink);
+  --color-primary: var(--hot);
+  --color-primary-foreground: #000;
+  --color-secondary: var(--chrome);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--chrome);
+  --color-muted-foreground: var(--ink-dim);
+  --color-accent: var(--acid);
+  --color-accent-foreground: #000;
+  --color-destructive: var(--burn);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--acid);
+
+  --font-sans: var(--font-vt323), ui-monospace, monospace;
+  --font-heading: var(--font-silkscreen), ui-monospace, monospace;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+  --font-display: var(--font-pixelify), var(--font-silkscreen), monospace;
+}
+
+:root {
+  --void: #0a0a0f;
+  --crt: #12101a;
+  --panel: #1a1622;
+  --chrome: #2a2436;
+  --bevel-hi: #4a4258;
+  --bevel-lo: #000000;
+  --line: #3a3350;
+  --ink: #e8e6f0;
+  --ink-dim: #8b849c;
+  --acid: #c2ff00;
+  --hot: #ff2e88;
+  --cyber: #00e5ff;
+  --burn: #ff3b30;
+  --win: #39ff14;
+  --amber: #ffb000;
+  --c-yellow: #ffe600;
+  --c-orange: #ff7a00;
+  --c-pink: #ff2eb0;
+  --c-blue: #2e9bff;
+  --c-green: #39ff14;
+  --c-red: #ff2e2e;
+  --background: var(--crt);
+  --foreground: var(--ink);
+  --radius: 0px;
+}
+
+/* 1-BIT MODE */
+html.one-bit {
+  --void: #000;
+  --crt: #000;
+  --panel: #111;
+  --chrome: #222;
+  --bevel-hi: #fff;
+  --bevel-lo: #000;
+  --line: #fff;
+  --ink: #fff;
+  --ink-dim: #aaa;
+  --acid: #fff;
+  --hot: #fff;
+  --cyber: #fff;
+  --burn: #fff;
+  --win: #fff;
+  --amber: #fff;
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    color-scheme: dark;
+    cursor: crosshair;
+  }
+
+  body {
+    background: var(--void);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 18px;
+    line-height: 1.35;
+    min-height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+    font-smooth: never;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    image-rendering: pixelated;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .num, .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  img, canvas, .pixel {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Hard pixel cutout shadow */
+.hard-shadow {
+  box-shadow: 4px 4px 0 #000;
+}
+.hard-shadow-sm {
+  box-shadow: 2px 2px 0 #000;
+}
+.hard-shadow-lg {
+  box-shadow: 6px 6px 0 #000;
+}
+
+/* Beveled OS chrome */
+.bevel {
+  border: 2px solid;
+  border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
+  background: var(--panel);
+}
+.bevel-inset {
+  border: 2px solid;
+  border-color: var(--bevel-lo) var(--bevel-hi) var(--bevel-hi) var(--bevel-lo);
+  background: var(--crt);
+}
+.bevel-btn {
+  border: 3px solid;
+  border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
+  background: var(--chrome);
+  color: var(--ink);
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 3px 3px 0 #000;
+  transition: none;
+}
+.bevel-btn:hover:not(:disabled) {
+  filter: invert(1);
+  animation: jitter 120ms steps(2) infinite;
+}
+.bevel-btn:active:not(:disabled) {
+  border-color: var(--bevel-lo) var(--bevel-hi) var(--bevel-hi) var(--bevel-lo);
+  box-shadow: 1px 1px 0 #000;
+  transform: translate(2px, 2px);
+}
+.bevel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bevel-btn-hot {
+  background: var(--hot);
+  color: #000;
+  border-color: #ff9ec8 var(--bevel-lo) var(--bevel-lo) #ff9ec8;
+}
+.bevel-btn-acid {
+  background: var(--acid);
+  color: #000;
+  border-color: #e8ff88 var(--bevel-lo) var(--bevel-lo) #e8ff88;
+}
+
+/* CRT overlays */
+.crt-scanlines {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  opacity: 0.22;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    rgba(0, 0, 0, 0.28) 3px
+  );
+}
+.crt-vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 89;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+}
+.crt-grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 88;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+html.calm .crt-scanlines,
+html.calm .crt-grain,
+html.calm .glitch-pulse,
+html.calm .blink,
+html.calm .marquee-track {
+  animation: none !important;
+}
+html.calm .crt-scanlines { opacity: 0.08; }
+html.calm .crt-grain { display: none; }
+
+/* Desktop wallpaper — dithered carnival pattern */
+.desktop-wallpaper {
+  position: absolute;
+  inset: 0;
+  background-color: var(--void);
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(194, 255, 0, 0.06) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 60%, rgba(255, 46, 136, 0.05) 0 1px, transparent 2px),
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 6px,
+      rgba(255, 255, 255, 0.015) 6px 7px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 8px,
+      rgba(0, 0, 0, 0.2) 8px 9px
+    );
+  background-size: 48px 48px, 64px 64px, 14px 14px, 16px 16px;
+}
+
+/* Chromatic aberration on headlines */
+.chroma {
+  text-shadow: -1px 0 var(--burn), 1px 0 var(--cyber);
+}
+.chroma:hover {
+  text-shadow: -2px 0 var(--burn), 2px 0 var(--cyber);
+}
+
+.blink {
+  animation: blink steps(2) 1s infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes jitter {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, 0); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes glitch-burst {
+  0%, 100% { transform: none; filter: none; }
+  20% { transform: translate(-3px, 1px); filter: hue-rotate(90deg); }
+  40% { transform: translate(3px, -1px); }
+  60% { transform: translate(-1px, 2px) skewX(2deg); }
+}
+
+.glitch-pulse {
+  animation: glitch-burst 180ms steps(2);
+}
+
+/* Marquee */
+.marquee-wrap {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.marquee-track {
+  display: inline-flex;
+  gap: 3rem;
+  animation: marquee 28s linear infinite;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Window chrome */
+.win-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  background: linear-gradient(90deg, var(--hot), #7a1048 40%, var(--chrome));
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: grab;
+  user-select: none;
+}
+.win-titlebar:active { cursor: grabbing; }
+.win-titlebar.focused {
+  background: linear-gradient(90deg, var(--acid), #6a8800 45%, var(--chrome));
+  color: #000;
+}
+.win-controls {
+  display: flex;
+  gap: 3px;
+}
+.win-controls button {
+  width: 16px;
+  height: 14px;
+  border: 1px solid #000;
+  background: var(--chrome);
+  color: var(--ink);
+  font-size: 9px;
+  line-height: 1;
+  padding: 0;
+  box-shadow: 1px 1px 0 #000;
+}
+.win-controls button:hover { filter: invert(1); }
+
+/* Desktop icons */
+.desk-icon {
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+.desk-icon:hover,
+.desk-icon.selected {
+  background: rgba(194, 255, 0, 0.15);
+  outline: 1px dashed var(--acid);
+}
+.desk-icon .glyph {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  background: var(--panel);
+  border: 2px solid;
+  border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
+  box-shadow: 3px 3px 0 #000;
+  image-rendering: pixelated;
+}
+
+/* VU meter */
+.vu-track {
+  height: 14px;
+  border: 2px solid;
+  border-color: var(--bevel-lo) var(--bevel-hi) var(--bevel-hi) var(--bevel-lo);
+  background: #000;
+  overflow: hidden;
+}
+.vu-fill {
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--acid) 0 6px,
+    transparent 6px 8px
+  );
+  transition: width 400ms steps(8);
+}
+
+/* Taskbar */
+.taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: var(--chrome);
+  border-top: 2px solid var(--bevel-hi);
+  box-shadow: 0 -2px 0 #000;
+}
+
+/* Dither SVG filter helper class */
+.dithered {
+  filter: url(#bayer-dither);
+  image-rendering: pixelated;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blink, .marquee-track, .glitch-pulse, .bevel-btn:hover {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  body { overflow: auto; }
+}

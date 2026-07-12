@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE MIDWAY — every cut comes home</title>
+<style>
+  /* ============================================================
+     THE MIDWAY — ecosystem hub · Colors integrated
+     purple neon (matches Colors) + gold treasury accents
+     the loop: play/mint/trade → house cut → treasury →
+     buyback&burn + believers pool + build fund
+     ============================================================ */
+  * { box-sizing: border-box; }
+  :root {
+    --bg: #0e0518;
+    --bg2: #160a26;
+    --panel: #1c0e30;
+    --panel2: #241238;
+    --line: #3a1d5c;
+    --txt: #e6dcf5;
+    --dim: #9d86c4;
+    --magenta: #e23bc8;
+    --violet: #a855f7;
+    --cyan: #38d6e8;
+    --gold: #f5c542;
+    --green: #3ce84a;
+    --red: #e83b50;
+    /* the 6 game colors */
+    --c-yellow: #e9d839;
+    --c-orange: #e8722c;
+    --c-pink: #d93ba8;
+    --c-blue: #3b9fe8;
+    --c-green: #3ce84a;
+    --c-red: #e83b50;
+  }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--txt);
+    font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse at 70% -10%, rgba(226,59,200,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 10% 40%, rgba(168,85,247,0.10) 0%, transparent 45%),
+      radial-gradient(ellipse at 90% 100%, rgba(56,214,232,0.08) 0%, transparent 45%);
+  }
+  .wrap { position: relative; z-index: 2; }
+
+  /* ===== top bar ===== */
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 26px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(14,5,24,0.8);
+    backdrop-filter: blur(10px);
+    position: sticky; top: 0; z-index: 30;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .mark {
+    font-size: 26px;
+    filter: drop-shadow(0 0 8px var(--magenta));
+  }
+  .brand .name {
+    font-weight: 800; letter-spacing: 3px; font-size: 20px;
+    background: linear-gradient(90deg, var(--magenta), var(--violet), var(--cyan));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .topbar .live-treasury {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(245,197,66,0.08);
+    border: 1px solid rgba(245,197,66,0.3);
+    border-radius: 30px;
+    padding: 6px 16px;
+    font-size: 13px;
+  }
+  .topbar .live-treasury .lbl { color: var(--dim); text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
+  .topbar .live-treasury .amt { color: var(--gold); font-weight: 700; font-family: 'SF Mono', monospace; }
+  .topbar .live-treasury::before { content: '◉'; color: var(--gold); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  .view { max-width: 1200px; margin: 0 auto; padding: 30px 22px 90px; }
+
+  /* ===== hero ===== */
+  .hero { text-align: center; padding: 30px 0 12px; }
+  .hero .kick {
+    display: inline-block;
+    color: var(--cyan); font-size: 12px; letter-spacing: 4px; text-transform: uppercase;
+    border: 1px solid rgba(56,214,232,0.3); border-radius: 20px; padding: 5px 16px; margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: 54px; margin: 0 0 12px; font-weight: 800; letter-spacing: -1px; line-height: 1.05;
+    color: #fff;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(90deg, var(--magenta), var(--violet));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero .sub { color: var(--dim); max-width: 640px; margin: 0 auto; font-size: 17px; }
+  .hero .sub b { color: var(--txt); }
+
+  /* ===== the loop diagram ===== */
+  .loop {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 30px;
+    margin: 34px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .loop h2 { text-align: center; margin: 0 0 6px; font-size: 24px; color: #fff; }
+  .loop .loop-sub { text-align: center; color: var(--dim); font-size: 14px; margin-bottom: 26px; }
+  .loop-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 14px;
+  }
+  @media (max-width: 820px) {
+    .loop-flow { grid-template-columns: 1fr; }
+    .loop-flow .arrow { transform: rotate(90deg); justify-self: center; }
+  }
+  .loop-node {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: center;
+  }
+  .loop-node .ico { font-size: 30px; display: block; margin-bottom: 6px; }
+  .loop-node h3 { margin: 0 0 4px; font-size: 15px; color: #fff; }
+  .loop-node p { margin: 0; font-size: 12px; color: var(--dim); }
+  .loop-node.src { border-color: var(--magenta); box-shadow: 0 0 24px rgba(226,59,200,0.15); }
+  .loop-node.cut { border-color: var(--gold); box-shadow: 0 0 24px rgba(245,197,66,0.15); }
+  .loop .arrow { font-size: 26px; color: var(--violet); text-align: center; }
+
+  .split-out {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px;
+  }
+  @media (max-width: 640px) { .split-out { grid-template-columns: 1fr; } }
+  .split {
+    border-radius: 12px; padding: 16px; text-align: center;
+    border: 1px solid var(--line);
+  }
+  .split.burn { background: rgba(232,59,80,0.06); border-color: rgba(232,59,80,0.35); }
+  .split.believers { background: rgba(245,197,66,0.06); border-color: rgba(245,197,66,0.35); }
+  .split.build { background: rgba(56,214,232,0.06); border-color: rgba(56,214,232,0.35); }
+  .split .pct { font-size: 22px; font-weight: 800; }
+  .split.burn .pct { color: var(--red); }
+  .split.believers .pct { color: var(--gold); }
+  .split.build .pct { color: var(--cyan); }
+  .split h4 { margin: 4px 0 4px; font-size: 14px; color: #fff; }
+  .split p { margin: 0; font-size: 12px; color: var(--dim); }
+
+  /* ===== section titles ===== */
+  .sec { text-align: center; margin: 56px 0 22px; }
+  .sec .kick { color: var(--magenta); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+  .sec h2 { font-size: 30px; margin: 8px 0 4px; color: #fff; font-weight: 800; }
+  .sec .sub { color: var(--dim); font-size: 14px; }
+
+  /* ============================================================
+     COLORS GAME
+     ============================================================ */
+  .colors-app {
+    background: linear-gradient(180deg, var(--bg2), var(--panel));
+    border: 1px solid var(--magenta);
+    border-radius: 22px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(226,59,200,0.12);
+  }
+  .colors-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,0.2);
+    flex-wrap: wrap; gap: 10px;
+  }
+  .colors-logo {
+    font-size: 24px; font-weight: 800; letter-spacing: 4px;
+    color: var(--magenta);
+    text-shadow: 0 0 14px rgba(226,59,200,0.7);
+  }
+  .mode-toggle { display: flex; gap: 8px; }
+  .mode-btn {
+    background: transparent; border: 1px solid var(--line); color: var(--dim);
+    padding: 7px 14px; border-radius: 8px; font-family: inherit; font-size: 12px;
+    letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .mode-btn.active { background: var(--magenta); color: #fff; border-color: var(--magenta); box-shadow: 0 0 16px rgba(226,59,200,0.4); }
+  .colors-help {
+    background: transparent; border: 1px solid var(--line); color: var(--dim);
+    padding: 7px 12px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12px;
+  }
+
+  .colors-body {
+    display: grid; grid-template-columns: 1fr 300px; gap: 20px; padding: 24px;
+  }
+  @media (max-width: 860px) { .colors-body { grid-template-columns: 1fr; } }
+
+  /* dice stage */
+  .stage {
+    background: linear-gradient(160deg, #b8d4e8 0%, #e8c4e0 50%, #d4b8e8 100%);
+    border-radius: 16px;
+    min-height: 300px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 26px;
+    position: relative;
+    overflow: hidden;
+    perspective: 600px;
+  }
+  .stage::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 50%; bottom: 0;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.15));
+  }
+  .die {
+    width: 82px; height: 82px;
+    border-radius: 12px;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 14px 24px rgba(0,0,0,0.25), inset 0 -8px 12px rgba(0,0,0,0.2), inset 0 8px 12px rgba(255,255,255,0.3);
+    transition: transform 0.1s;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase; color: rgba(0,0,0,0.55);
+    border: 2px solid rgba(255,255,255,0.4);
+  }
+  .die.rolling { animation: shake 0.12s infinite; }
+  @keyframes shake {
+    0%,100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-8px) rotate(4deg); }
+  }
+  .die.yellow { background: var(--c-yellow); }
+  .die.orange { background: var(--c-orange); }
+  .die.pink { background: var(--c-pink); }
+  .die.blue { background: var(--c-blue); }
+  .die.green { background: var(--c-green); }
+  .die.red { background: var(--c-red); }
+  .die.hit { box-shadow: 0 0 0 4px var(--gold), 0 14px 24px rgba(0,0,0,0.25); }
+
+  .stage .prompt {
+    position: absolute; z-index: 3;
+    color: rgba(40,10,50,0.6); font-weight: 700; font-size: 13px; letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* control panel */
+  .panel-box {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .panel-box .plabel { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--dim); margin-bottom: 6px; }
+  .balance-val { font-size: 28px; font-weight: 800; color: var(--gold); font-family: 'SF Mono', monospace; }
+  .balance-val .unit { font-size: 13px; color: var(--dim); }
+
+  .bet-row { display: flex; align-items: center; gap: 8px; }
+  .bet-input {
+    flex: 1; background: var(--bg); border: 1px solid var(--line); color: #fff;
+    padding: 12px; border-radius: 8px; font-family: 'SF Mono', monospace; font-size: 18px; font-weight: 700;
+    text-align: center; outline: none;
+  }
+  .bet-step {
+    background: var(--panel); border: 1px solid var(--line); color: var(--txt);
+    width: 40px; height: 44px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: 700;
+    transition: all 0.15s;
+  }
+  .bet-step:hover { border-color: var(--magenta); color: var(--magenta); }
+  .quick-bets { display: flex; gap: 6px; margin-top: 8px; }
+  .quick-bet {
+    flex: 1; background: var(--panel); border: 1px solid var(--line); color: var(--dim);
+    padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11px; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .quick-bet:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .btn-primary {
+    width: 100%; background: linear-gradient(90deg, var(--magenta), var(--violet));
+    color: #fff; border: 0; padding: 15px; border-radius: 10px; font-family: inherit;
+    font-weight: 800; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.2s; box-shadow: 0 0 20px rgba(226,59,200,0.3);
+  }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 30px rgba(226,59,200,0.5); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-roll {
+    width: 100%; background: linear-gradient(90deg, var(--gold), #ffb020);
+    color: #2a1500; border: 0; padding: 16px; border-radius: 10px; font-family: inherit;
+    font-weight: 800; font-size: 17px; letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
+    margin-top: 12px; transition: transform 0.12s, box-shadow 0.2s; box-shadow: 0 0 24px rgba(245,197,66,0.4);
+  }
+  .btn-roll:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 34px rgba(245,197,66,0.6); }
+  .btn-roll:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+
+  /* color picker */
+  .picker-title { text-align: center; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--dim); margin: 20px 0 12px; }
+  .color-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+  }
+  @media (max-width: 560px) { .color-grid { grid-template-columns: repeat(3, 1fr); } }
+  .color-pick {
+    background: var(--panel2); border: 2px solid var(--line); border-radius: 12px;
+    padding: 14px 8px; cursor: pointer; text-align: center; transition: all 0.15s;
+  }
+  .color-pick:hover { transform: translateY(-2px); }
+  .color-pick .dot {
+    width: 32px; height: 32px; border-radius: 50%; margin: 0 auto 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+  }
+  .color-pick .cname { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+  .color-pick.picked { border-color: var(--gold); background: rgba(245,197,66,0.08); box-shadow: 0 0 18px rgba(245,197,66,0.3); }
+  .color-pick.picked .cname { color: var(--gold); }
+  .dot.yellow { background: var(--c-yellow); } .dot.orange { background: var(--c-orange); }
+  .dot.pink { background: var(--c-pink); } .dot.blue { background: var(--c-blue); }
+  .dot.green { background: var(--c-green); } .dot.red { background: var(--c-red); }
+
+  /* result banner */
+  .result {
+    margin-top: 16px; border-radius: 12px; padding: 16px; text-align: center; display: none;
+  }
+  .result.show { display: block; animation: pop 0.3s; }
+  @keyframes pop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .result.win { background: rgba(60,232,74,0.1); border: 1px solid var(--green); }
+  .result.jackpot { background: rgba(245,197,66,0.12); border: 1px solid var(--gold); }
+  .result.lose { background: rgba(232,59,80,0.08); border: 1px solid rgba(232,59,80,0.4); }
+  .result .rbig { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  .result.win .rbig { color: var(--green); }
+  .result.jackpot .rbig { color: var(--gold); text-shadow: 0 0 16px rgba(245,197,66,0.6); }
+  .result.lose .rbig { color: var(--red); }
+  .result .rsmall { font-size: 13px; color: var(--dim); }
+  .result .to-treasury { margin-top: 8px; font-size: 12px; color: var(--gold); }
+
+  /* ===== the treasury (the loop made live) ===== */
+  .treasury-panel {
+    background: linear-gradient(180deg, var(--panel), var(--bg2));
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 26px;
+    margin-top: 24px;
+    box-shadow: 0 0 40px rgba(245,197,66,0.1);
+  }
+  .treasury-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  .treasury-head h3 { margin: 0; color: var(--gold); font-size: 20px; letter-spacing: 1px; }
+  .treasury-head .total { font-family: 'SF Mono', monospace; font-size: 24px; font-weight: 800; color: #fff; }
+  .treasury-panel .desc { color: var(--dim); font-size: 13px; margin-bottom: 20px; }
+  .meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 640px) { .meters { grid-template-columns: 1fr; } }
+  .meter { }
+  .meter .mtop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .meter .mname { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .meter .mval { font-family: 'SF Mono', monospace; font-size: 14px; font-weight: 700; color: #fff; }
+  .meter .bar { height: 10px; background: var(--bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+  .meter .fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; width: 0%; }
+  .meter.burn .mname { color: var(--red); } .meter.burn .fill { background: linear-gradient(90deg, var(--red), #ff7a8a); }
+  .meter.believers .mname { color: var(--gold); } .meter.believers .fill { background: linear-gradient(90deg, var(--gold), #ffe08a); }
+  .meter.build .mname { color: var(--cyan); } .meter.build .fill { background: linear-gradient(90deg, var(--cyan), #8ae8f5); }
+  .meter .mnote { font-size: 11px; color: var(--dim); margin-top: 6px; }
+
+  .believers-drop {
+    margin-top: 20px; background: rgba(245,197,66,0.06); border: 1px dashed rgba(245,197,66,0.4);
+    border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .believers-drop .bd-txt { font-size: 13px; }
+  .believers-drop .bd-txt b { color: var(--gold); }
+  .believers-drop .bd-btn {
+    background: var(--gold); color: #2a1500; border: 0; padding: 9px 18px; border-radius: 8px;
+    font-family: inherit; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+  }
+
+  /* ===== attractions grid ===== */
+  .attractions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .attractions { grid-template-columns: 1fr; } }
+  .attraction {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px;
+    position: relative; transition: border-color 0.2s, transform 0.2s;
+  }
+  .attraction:hover { border-color: var(--magenta); transform: translateY(-3px); }
+  .attraction .status {
+    position: absolute; top: 16px; right: 16px; font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  }
+  .attraction .status.live { background: rgba(60,232,74,0.15); color: var(--green); border: 1px solid rgba(60,232,74,0.4); }
+  .attraction .status.soon { background: rgba(157,134,196,0.12); color: var(--dim); border: 1px solid var(--line); }
+  .attraction .ico { font-size: 34px; display: block; margin-bottom: 10px; }
+  .attraction h3 { margin: 0 0 6px; color: #fff; font-size: 18px; }
+  .attraction p { margin: 0 0 12px; color: var(--dim); font-size: 13px; }
+  .attraction .feeds {
+    font-size: 11px; color: var(--gold); letter-spacing: 0.5px;
+    padding-top: 10px; border-top: 1px solid var(--line);
+  }
+
+  /* ===== honest strip ===== */
+  .honest {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px 26px; margin-top: 24px;
+  }
+  .honest h3 { margin: 0 0 14px; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .honest h3 .d { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .honest-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 640px) { .honest-grid { grid-template-columns: 1fr; } }
+  .honest-item { font-size: 13px; }
+  .honest-item b { color: var(--cyan); }
+  .honest-item p { margin: 4px 0 0; color: var(--dim); }
+
+  /* footer */
+  .foot { text-align: center; padding: 34px 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; letter-spacing: 1px; }
+  .foot .big { color: var(--txt); font-size: 15px; margin-bottom: 6px; }
+  .foot a { color: var(--magenta); text-decoration: none; }
+
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--magenta); border-radius: 18px;
+    max-width: 560px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 28px;
+    box-shadow: 0 0 40px rgba(226,59,200,0.2);
+  }
+  .modal h3 { margin: 0 0 16px; color: var(--magenta); }
+  .modal h4 { color: var(--gold); margin: 18px 0 6px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .modal p, .modal li { font-size: 14px; color: var(--txt); }
+  .modal .close { float: right; background: transparent; border: 0; color: var(--dim); font-size: 22px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="brand">
+    <span class="mark">🎡</span>
+    <span class="name">THE MIDWAY</span>
+  </div>
+  <div class="live-treasury">
+    <span class="lbl">treasury</span>
+    <span class="amt" id="top-treasury">◎ 0.00</span>
+  </div>
+</div>
+
+<div class="view">
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="kick">◆ one ecosystem · every cut comes home ◆</span>
+    <h1>play. mint. trade.<br><span class="grad">the house cut comes back.</span></h1>
+    <p class="sub">
+      everywhere else, the house keeps the edge and you get nothing. on <b>The Midway</b>, every game you play, every token you trade, every NFT you mint feeds <b>one shared treasury</b> — that burns the supply, pays the believers, and funds the build. <b>believing pays. on-chain and honest.</b>
+    </p>
+  </div>
+
+  <!-- THE LOOP -->
+  <div class="loop">
+    <h2>The Loop</h2>
+    <div class="loop-sub">every action across the ecosystem runs through the same engine</div>
+    <div class="loop-flow">
+      <div class="loop-node src">
+        <span class="ico">🎲</span>
+        <h3>You Play / Mint / Trade</h3>
+        <p>Colors, Glitch Pits, NFT drops, token swaps</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="loop-node cut">
+        <span class="ico">💰</span>
+        <h3>The House Cut</h3>
+        <p>the 5% edge that vanishes elsewhere — captured here</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="loop-node">
+        <span class="ico">🏛️</span>
+        <h3>The Treasury</h3>
+        <p>transparent · on-chain · splits three ways</p>
+      </div>
+    </div>
+
+    <div class="split-out">
+      <div class="split burn">
+        <div class="pct">40%</div>
+        <h4>🔥 Buyback &amp; Burn</h4>
+        <p>buys the ecosystem token and burns it. supply drops → every believer's bag goes up.</p>
+      </div>
+      <div class="split believers">
+        <div class="pct">40%</div>
+        <h4>⭐ Believers' Pool</h4>
+        <p>paid back to holders &amp; players. the longer you believe, the bigger your slice.</p>
+      </div>
+      <div class="split build">
+        <div class="pct">20%</div>
+        <h4>🔧 Build Fund</h4>
+        <p>funds devs, new games, audits. the ecosystem keeps growing for everyone.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLORS GAME -->
+  <div class="sec">
+    <div class="kick">◆ the first attraction · live ◆</div>
+    <h2>Colors</h2>
+    <div class="sub">pick up to 3 · roll 3 dice · every roll feeds the treasury in real time</div>
+  </div>
+
+  <div class="colors-app">
+    <div class="colors-head">
+      <div class="colors-logo">COLORS</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="mode-fun" onclick="setMode('fun')">FUN MODE</button>
+        <button class="mode-btn" id="mode-sol" onclick="setMode('sol')">SOLANA MODE</button>
+      </div>
+      <button class="colors-help" onclick="openRules()">ⓘ RULES</button>
+    </div>
+
+    <div class="colors-body">
+      <!-- LEFT: stage + picker -->
+      <div>
+        <div class="stage" id="stage">
+          <div class="prompt" id="stage-prompt">SELECT UP TO 3 COLORS</div>
+          <div class="die yellow" id="die-0" style="display:none;">?</div>
+          <div class="die pink" id="die-1" style="display:none;">?</div>
+          <div class="die blue" id="die-2" style="display:none;">?</div>
+        </div>
+
+        <div class="picker-title">Select Colors (up to 3)</div>
+        <div class="color-grid" id="color-grid">
+          <div class="color-pick" data-c="yellow" onclick="pick('yellow')"><div class="dot yellow"></div><div class="cname">Yellow</div></div>
+          <div class="color-pick" data-c="orange" onclick="pick('orange')"><div class="dot orange"></div><div class="cname">Orange</div></div>
+          <div class="color-pick" data-c="pink" onclick="pick('pink')"><div class="dot pink"></div><div class="cname">Pink</div></div>
+          <div class="color-pick" data-c="blue" onclick="pick('blue')"><div class="dot blue"></div><div class="cname">Blue</div></div>
+          <div class="color-pick" data-c="green" onclick="pick('green')"><div class="dot green"></div><div class="cname">Green</div></div>
+          <div class="color-pick" data-c="red" onclick="pick('red')"><div class="dot red"></div><div class="cname">Red</div></div>
+        </div>
+
+        <div class="result" id="result">
+          <div class="rbig" id="result-big">—</div>
+          <div class="rsmall" id="result-small">—</div>
+          <div class="to-treasury" id="result-treasury">—</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: controls -->
+      <div>
+        <div class="panel-box">
+          <div class="plabel">Balance</div>
+          <div class="balance-val"><span id="balance">1000.00</span> <span class="unit" id="balance-unit">PTS</span></div>
+        </div>
+
+        <div class="panel-box">
+          <div class="plabel">Bet Amount</div>
+          <div class="bet-row">
+            <button class="bet-step" onclick="stepBet(-10)">−</button>
+            <input class="bet-input" id="bet" type="number" value="100" min="1" />
+            <button class="bet-step" onclick="stepBet(10)">+</button>
+          </div>
+          <div class="quick-bets">
+            <button class="quick-bet" onclick="setBet(50)">50</button>
+            <button class="quick-bet" onclick="setBet(100)">100</button>
+            <button class="quick-bet" onclick="setBet(250)">250</button>
+            <button class="quick-bet" onclick="maxBet()">MAX</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="place-btn" onclick="placeBet()">Place Bet</button>
+        <button class="btn-roll" id="roll-btn" onclick="roll()" disabled>🎲 Roll</button>
+
+        <div class="panel-box" style="margin-top:14px;">
+          <div class="plabel">Your Stake This Round</div>
+          <div style="font-family:'SF Mono',monospace; font-size:16px; color:#fff;" id="stake-preview">— (pick colors)</div>
+          <div class="mnote" style="font-size:11px; color:var(--dim); margin-top:4px;">each color costs your full bet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE TREASURY (live) -->
+  <div class="treasury-panel">
+    <div class="treasury-head">
+      <h3>🏛️ The Treasury — Live</h3>
+      <div class="total" id="treasury-total">◎ 0.0000</div>
+    </div>
+    <div class="desc">watch it fill as you play. every Colors roll routes its house cut here, split three ways in real time. this is the same treasury every attraction feeds.</div>
+
+    <div class="meters">
+      <div class="meter burn">
+        <div class="mtop"><span class="mname">🔥 Buyback &amp; Burn</span><span class="mval" id="m-burn">◎ 0.0000</span></div>
+        <div class="bar"><div class="fill" id="fill-burn"></div></div>
+        <div class="mnote"><span id="burn-tokens">0</span> tokens burned · supply ↓</div>
+      </div>
+      <div class="meter believers">
+        <div class="mtop"><span class="mname">⭐ Believers' Pool</span><span class="mval" id="m-believers">◎ 0.0000</span></div>
+        <div class="bar"><div class="fill" id="fill-believers"></div></div>
+        <div class="mnote">waiting to drop to holders</div>
+      </div>
+      <div class="meter build">
+        <div class="mtop"><span class="mname">🔧 Build Fund</span><span class="mval" id="m-build">◎ 0.0000</span></div>
+        <div class="bar"><div class="fill" id="fill-build"></div></div>
+        <div class="mnote">funds the next attraction</div>
+      </div>
+    </div>
+
+    <div class="believers-drop">
+      <div class="bd-txt">
+        ⭐ <b>Believers' Pool</b> distributes to holders every time it fills. your share right now: <b id="your-share">◎ 0.0000</b>
+      </div>
+      <button class="bd-btn" onclick="claimDrop()">CLAIM SHARE</button>
+    </div>
+  </div>
+
+  <!-- ATTRACTIONS -->
+  <div class="sec">
+    <div class="kick">◆ one treasury · many attractions ◆</div>
+    <h2>The Midway</h2>
+    <div class="sub">every game and tool plugs into the same loop — the tech works for all</div>
+  </div>
+
+  <div class="attractions">
+    <div class="attraction">
+      <span class="status live">● LIVE</span>
+      <span class="ico">🎨</span>
+      <h3>Colors</h3>
+      <p>pick 3, roll the dice, feed the treasury. the arcade classic, made honest — the edge comes back to you.</p>
+      <div class="feeds">→ feeds treasury: 5% of every roll</div>
+    </div>
+    <div class="attraction">
+      <span class="status live">● LIVE</span>
+      <span class="ico">🥊</span>
+      <h3>Glitch Pits</h3>
+      <p>8-bit rumble royale. enter fighters, win the pot. the house rake routes straight into the same loop.</p>
+      <div class="feeds">→ feeds treasury: rake on every rumble</div>
+    </div>
+    <div class="attraction">
+      <span class="status soon">SOON</span>
+      <span class="ico">🖼️</span>
+      <h3>NFT Launchpad</h3>
+      <p>mint drops where royalties + mint fees don't vanish — they buy back and burn, and pay the community.</p>
+      <div class="feeds">→ feeds treasury: mint fee + resale royalty</div>
+    </div>
+    <div class="attraction">
+      <span class="status soon">SOON</span>
+      <span class="ico">🪙</span>
+      <h3>Token Tools</h3>
+      <p>launch or trade tokens through Midway rails. every swap's fee flows back to holders and the build.</p>
+      <div class="feeds">→ feeds treasury: swap + launch fees</div>
+    </div>
+  </div>
+
+  <!-- HONEST -->
+  <div class="honest">
+    <h3><span class="d"></span> On-Chain &amp; Honest</h3>
+    <div class="honest-grid">
+      <div class="honest-item">
+        <b>Provably fair rolls.</b>
+        <p>every Colors roll uses cryptographically secure RNG. verify the exact dice + server seed after any roll.</p>
+      </div>
+      <div class="honest-item">
+        <b>Transparent treasury.</b>
+        <p>the 40/40/20 split is enforced on-chain. anyone can watch the cut come in and the burn go out.</p>
+      </div>
+      <div class="honest-item">
+        <b>No cut disappears.</b>
+        <p>the house edge that other platforms pocket is the exact thing that funds your rewards here.</p>
+      </div>
+      <div class="honest-item">
+        <b>Believing pays.</b>
+        <p>the longer you hold and play, the larger your slice of every Believers' Pool distribution.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">
+  <div class="big">🎡 THE MIDWAY · every cut comes home</div>
+  Colors live demo &middot; <a href="https://colors-beta-nine.vercel.app/" target="_blank">colors-beta-nine.vercel.app</a><br>
+  fun-mode demo · not financial advice · play responsibly · the treasury numbers here are a live simulation of the loop
+</div>
+
+</div>
+
+<!-- RULES MODAL -->
+<div class="modal-bg" id="rules-modal">
+  <div class="modal">
+    <button class="close" onclick="closeRules()">×</button>
+    <h3>🎲 Colors — Game Rules</h3>
+    <h4>How to Play</h4>
+    <p>Bet on up to 3 colors from 6: Yellow, Orange, Pink, Blue, Green, Red. Three dice roll at once. Win if any of your colors match the dice.</p>
+    <p style="color:var(--dim)"><b style="color:var(--gold)">Example:</b> bet Blue + Green, dice show Blue, Blue, Red → 2 matches, you win!</p>
+    <h4>Payouts (5% house edge)</h4>
+    <p>1 match: Bet + (Bet × 1.04)<br>2 matches: Bet + (Bet × 1.04 × 2)<br>3 matches (Jackpot): Bet + (Bet × 4.5)</p>
+    <p style="color:var(--dim)">Each color costs your full bet amount.</p>
+    <h4>The Midway Twist</h4>
+    <p>Unlike a normal arcade, the 5% house edge doesn't vanish. Every roll routes it into the shared Treasury → 40% buyback &amp; burn, 40% believers' pool, 20% build fund. <b style="color:var(--gold)">The edge comes home.</b></p>
+    <h4>Modes</h4>
+    <p><b>Fun Mode:</b> virtual points, 1000 starting balance, risk-free.<br><b>Solana Mode:</b> real SOL — connect Phantom/Solflare (in the full build).</p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   THE MIDWAY — Colors + treasury loop
+   ============================================================ */
+const COLOR_KEYS = ['yellow','orange','pink','blue','green','red'];
+const COLOR_LABEL = { yellow:'YEL', orange:'ORG', pink:'PNK', blue:'BLU', green:'GRN', red:'RED' };
+
+const state = {
+  mode: 'fun',
+  balance: 1000,
+  bet: 100,
+  picked: new Set(),
+  phase: 'select',      // select | placed | rolling | done
+  stake: 0,
+  treasury: 0,          // total ◎ collected
+  burn: 0, believers: 0, build: 0,
+  burnedTokens: 0,
+  yourShare: 0,
+};
+
+/* ---- mode ---- */
+function setMode(m) {
+  state.mode = m;
+  document.getElementById('mode-fun').classList.toggle('active', m === 'fun');
+  document.getElementById('mode-sol').classList.toggle('active', m === 'sol');
+  if (m === 'fun') {
+    state.balance = 1000;
+    document.getElementById('balance-unit').textContent = 'PTS';
+  } else {
+    state.balance = 5;   // demo: pretend 5 SOL
+    document.getElementById('balance-unit').textContent = 'SOL';
+    alert('SOLANA MODE (demo): in the full build this connects Phantom/Solflare and plays with real SOL. Wins + the house cut settle on-chain, and the treasury split is enforced by the program. For now, enjoy the simulation.');
+  }
+  resetRound();
+  render();
+}
+
+/* ---- betting ---- */
+function stepBet(d) { setBet(Math.max(1, (parseFloat(document.getElementById('bet').value)||0) + d)); }
+function setBet(v) { document.getElementById('bet').value = v; state.bet = v; updateStakePreview(); }
+function maxBet() {
+  const n = Math.max(1, state.picked.size);
+  const perColor = Math.floor(state.balance / n);
+  setBet(perColor > 0 ? perColor : 1);
+}
+document.getElementById('bet').addEventListener('input', e => { state.bet = parseFloat(e.target.value)||0; updateStakePreview(); });
+
+/* ---- color pick ---- */
+function pick(c) {
+  if (state.phase === 'placed' || state.phase === 'rolling') return;
+  if (state.picked.has(c)) state.picked.delete(c);
+  else { if (state.picked.size >= 3) return; state.picked.add(c); }
+  document.querySelector(`.color-pick[data-c="${c}"]`).classList.toggle('picked', state.picked.has(c));
+  updateStakePreview();
+}
+
+function updateStakePreview() {
+  const n = state.picked.size;
+  state.stake = state.bet * n;
+  const el = document.getElementById('stake-preview');
+  if (n === 0) { el.textContent = '— (pick colors)'; }
+  else {
+    const unit = state.mode === 'fun' ? 'pts' : '◎';
+    el.textContent = `${state.bet} × ${n} = ${fmt(state.stake)} ${unit}`;
+  }
+}
+
+/* ---- place bet ---- */
+function placeBet() {
+  if (state.phase !== 'select') return;
+  if (state.picked.size === 0) { flashPrompt('PICK AT LEAST ONE COLOR'); return; }
+  state.stake = state.bet * state.picked.size;
+  if (state.stake > state.balance || state.stake <= 0) { flashPrompt('NOT ENOUGH BALANCE'); return; }
+
+  state.balance -= state.stake;
+  state.phase = 'placed';
+  document.getElementById('place-btn').disabled = true;
+  document.getElementById('roll-btn').disabled = false;
+  document.getElementById('stage-prompt').textContent = 'READY — HIT ROLL';
+  // reveal dice as "?"
+  [0,1,2].forEach(i => { const d = document.getElementById('die-'+i); d.style.display='flex'; d.textContent='?'; });
+  document.getElementById('result').classList.remove('show');
+  render();
+}
+
+/* ---- roll ---- */
+function roll() {
+  if (state.phase !== 'placed') return;
+  state.phase = 'rolling';
+  document.getElementById('roll-btn').disabled = true;
+  document.getElementById('stage-prompt').textContent = '';
+
+  const dice = [0,1,2].map(() => COLOR_KEYS[Math.floor(Math.random()*6)]);
+
+  // animate
+  const dieEls = [0,1,2].map(i => document.getElementById('die-'+i));
+  dieEls.forEach(d => d.classList.add('rolling'));
+  let ticks = 0;
+  const spin = setInterval(() => {
+    dieEls.forEach(d => {
+      const rc = COLOR_KEYS[Math.floor(Math.random()*6)];
+      d.className = 'die ' + rc + ' rolling';
+      d.textContent = COLOR_LABEL[rc];
+    });
+    ticks++;
+    if (ticks > 12) {
+      clearInterval(spin);
+      // settle
+      dieEls.forEach((d,i) => {
+        d.className = 'die ' + dice[i];
+        d.textContent = COLOR_LABEL[dice[i]];
+      });
+      settle(dice);
+    }
+  }, 80);
+}
+
+function settle(dice) {
+  // matches = # of dice whose color is picked
+  let matches = 0;
+  dice.forEach((c,i) => {
+    if (state.picked.has(c)) {
+      matches++;
+      document.getElementById('die-'+i).classList.add('hit');
+    }
+  });
+
+  // payout per rules (Bet = base bet, not stake)
+  let winnings = 0;
+  if (matches === 1) winnings = state.bet + state.bet * 1.04;
+  else if (matches === 2) winnings = state.bet + state.bet * 1.04 * 2;
+  else if (matches === 3) winnings = state.bet + state.bet * 4.5;
+
+  state.balance += winnings;
+
+  // THE LOOP: house cut = 5% of stake, routed to treasury (the edge that comes home)
+  const cut = state.stake * 0.05;
+  routeToTreasury(cut);
+
+  // result banner
+  const res = document.getElementById('result');
+  const big = document.getElementById('result-big');
+  const small = document.getElementById('result-small');
+  const treas = document.getElementById('result-treasury');
+  const unit = state.mode === 'fun' ? 'pts' : '◎';
+
+  res.classList.remove('win','lose','jackpot');
+  if (matches === 3) {
+    res.classList.add('jackpot','show');
+    big.textContent = '🎰 JACKPOT · 3 MATCHES!';
+    small.textContent = `+${fmt(winnings)} ${unit} · all three dice came home`;
+  } else if (matches > 0) {
+    res.classList.add('win','show');
+    big.textContent = `✨ WIN · ${matches} MATCH${matches>1?'ES':''}`;
+    small.textContent = `+${fmt(winnings)} ${unit} returned`;
+  } else {
+    res.classList.add('lose','show');
+    big.textContent = '✕ NO MATCH';
+    small.textContent = `−${fmt(state.stake)} ${unit} this round`;
+  }
+  treas.innerHTML = `🏛️ +${fmt(cut)} ${unit} → treasury &nbsp;·&nbsp; 🔥 ${fmt(cut*0.4)} burn &nbsp;·&nbsp; ⭐ ${fmt(cut*0.4)} believers &nbsp;·&nbsp; 🔧 ${fmt(cut*0.2)} build`;
+
+  state.phase = 'done';
+  setTimeout(resetRound, 100);
+  render();
+}
+
+/* ---- treasury loop ---- */
+function routeToTreasury(amt) {
+  state.treasury += amt;
+  state.burn += amt * 0.4;
+  state.believers += amt * 0.4;
+  state.build += amt * 0.2;
+  state.burnedTokens += Math.round(amt * 0.4 * 1200);   // pretend token price
+  state.yourShare += amt * 0.4 * 0.02;                  // your slice of believers pool (demo 2%)
+  renderTreasury();
+}
+
+function claimDrop() {
+  if (state.yourShare <= 0) { alert('Nothing to claim yet — play a few rounds to fill the Believers\' Pool.'); return; }
+  const unit = state.mode === 'fun' ? 'pts' : '◎';
+  state.balance += state.yourShare;
+  alert(`⭐ Claimed ${fmt(state.yourShare)} ${unit} from the Believers' Pool.\n\nThis is the cut coming home — because you played and believed. In the full build this settles on-chain to your wallet.`);
+  state.believers = Math.max(0, state.believers - state.yourShare / 0.02 * 0.4 * 0 - state.yourShare); // reduce pool a touch
+  state.yourShare = 0;
+  renderTreasury();
+  render();
+}
+
+function resetRound() {
+  state.phase = 'select';
+  document.getElementById('place-btn').disabled = false;
+  document.getElementById('roll-btn').disabled = true;
+  document.getElementById('stage-prompt').textContent = state.picked.size ? 'PLACE YOUR BET' : 'SELECT UP TO 3 COLORS';
+  document.getElementById('stage-prompt').style.opacity = '1';
+  [0,1,2].forEach(i => document.getElementById('die-'+i).classList.remove('hit'));
+}
+
+/* ---- render ---- */
+function fmt(n) { return Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:4}); }
+
+function render() {
+  document.getElementById('balance').textContent = fmt(state.balance);
+  updateStakePreview();
+}
+
+function renderTreasury() {
+  const unit = state.mode === 'fun' ? '' : '';
+  document.getElementById('treasury-total').textContent = '◎ ' + fmt(state.treasury);
+  document.getElementById('top-treasury').textContent = '◎ ' + fmt(state.treasury);
+  document.getElementById('m-burn').textContent = '◎ ' + fmt(state.burn);
+  document.getElementById('m-believers').textContent = '◎ ' + fmt(state.believers);
+  document.getElementById('m-build').textContent = '◎ ' + fmt(state.build);
+  document.getElementById('burn-tokens').textContent = state.burnedTokens.toLocaleString();
+  document.getElementById('your-share').textContent = '◎ ' + fmt(state.yourShare);
+
+  // fills relative to treasury total (visual)
+  const max = Math.max(state.treasury, 1);
+  document.getElementById('fill-burn').style.width = (state.burn/max*100) + '%';
+  document.getElementById('fill-believers').style.width = (state.believers/max*100) + '%';
+  document.getElementById('fill-build').style.width = (state.build/max*100) + '%';
+}
+
+function flashPrompt(msg) {
+  const p = document.getElementById('stage-prompt');
+  const old = p.textContent;
+  p.textContent = msg;
+  p.style.color = '#e83b50';
+  setTimeout(() => { p.textContent = old; p.style.color = ''; }, 1400);
+}
+
+/* ---- rules modal ---- */
+function openRules() { document.getElementById('rules-modal').classList.add('show'); }
+function closeRules() { document.getElementById('rules-modal').classList.remove('show'); }
+document.getElementById('rules-modal').addEventListener('click', e => { if (e.target.id === 'rules-modal') closeRules(); });
+
+/* init */
+render();
+renderTreasury();
+</script>
+
+</body>
+</html>
