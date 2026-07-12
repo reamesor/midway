@@ -6,6 +6,7 @@ type OsDialogProps = {
   title: string;
   body: string;
   detail?: string;
+  shareHref?: string;
   onRetry?: () => void;
   onClose: () => void;
 };
@@ -16,6 +17,7 @@ export function OsDialog({
   title,
   body,
   detail,
+  shareHref,
   onRetry,
   onClose,
 }: OsDialogProps) {
@@ -60,11 +62,21 @@ export function OsDialog({
           <div className="font-heading text-lg chroma">{title}</div>
           <p className="text-base">{body}</p>
           {detail && <p className="num text-sm text-acid">{detail}</p>}
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-wrap gap-2 pt-2">
             {variant === "lose" && onRetry && (
               <button type="button" className="bevel-btn bevel-btn-hot flex-1 py-2" onClick={onRetry}>
                 RETRY
               </button>
+            )}
+            {shareHref && variant !== "lose" && (
+              <a
+                href={shareHref}
+                target="_blank"
+                rel="noreferrer"
+                className="bevel-btn flex-1 py-2 text-center text-cyber"
+              >
+                SHARE → X
+              </a>
             )}
             <button type="button" className="bevel-btn flex-1 py-2" onClick={onClose}>
               {variant === "lose" ? "CANCEL" : "OK"}

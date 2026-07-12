@@ -18,7 +18,7 @@ export function ResultBanner({
   winnings,
   stake,
   houseCut,
-  unit,
+  unit = "SOL",
 }: ResultBannerProps) {
   const parts = splitCut(houseCut);
   const kind =

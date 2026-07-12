@@ -27,11 +27,17 @@ export const COLOR_HEX: Record<ColorKey, string> = {
   red: "#e83b50",
 };
 
-/** LITERAL = HTML rules (multipliers on base bet). STAKE_BASED = multipliers on total stake. PER_COLOR = each color settled alone. */
+/**
+ * LITERAL = screenshot / HTML rules (multipliers on unit bet).
+ * STAKE_BASED = multipliers on total stake (bet × colors).
+ * PER_COLOR = each picked color settled alone vs its own dice hits.
+ *
+ * Default is LITERAL so displayed rules match settlement.
+ */
 export type PayoutMode = "LITERAL" | "STAKE_BASED" | "PER_COLOR";
 
 export const PAYOUT_MODE: PayoutMode =
-  (process.env.NEXT_PUBLIC_PAYOUT_MODE as PayoutMode) || "STAKE_BASED";
+  (process.env.NEXT_PUBLIC_PAYOUT_MODE as PayoutMode) || "LITERAL";
 
 export type SettleResult = {
   matches: number;

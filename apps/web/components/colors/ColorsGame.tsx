@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ColorPicker } from "./ColorPicker";
 import { BetPanel } from "./BetPanel";
+import { ColorsRules } from "./ColorsRules";
 import { OsDialog } from "@/components/os/OsDialog";
 import { useOs } from "@/components/os/OsContext";
 import type { ColorKey } from "@/lib/colors/engine";
@@ -18,7 +19,6 @@ const DiceStage = dynamic(
 );
 
 type Phase = "select" | "placed" | "rolling" | "done";
-type Mode = "fun" | "sol";
 
 type Fairness = {
   serverSeedHash: string;
@@ -29,6 +29,8 @@ type Fairness = {
 };
 
 const AUTOBET_OPTIONS = [0, 5, 10, 20, 50, 100, -1] as const;
+/** Demo SOL buffer until on-chain wallet settlement lands. */
+const DEMO_SOL_BALANCE = 1;
 
 type ColorsGameProps = {
   onHouseCut: (houseCut: number) => void;
@@ -36,12 +38,10 @@ type ColorsGameProps = {
 
 export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   const { openWin } = useOs();
-  const [mode, setMode] = useState<Mode>("fun");
-  const [balance, setBalance] = useState(1000);
-  const [bet, setBet] = useState(100);
+  const [balance, setBalance] = useState(DEMO_SOL_BALANCE);
+  const [bet, setBet] = useState(0.05);
   const [picked, setPicked] = useState<Set<ColorKey>>(new Set());
   const [phase, setPhase] = useState<Phase>("select");
-  const [stake, setStake] = useState(0);
   const [dice, setDice] = useState<ColorKey[] | null>(null);
   const [hits, setHits] = useState<boolean[]>([false, false, false]);
   const [prompt, setPrompt] = useState("SELECT UP TO 3 COLORS");
@@ -57,6 +57,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
   const [autobet, setAutobet] = useState(0);
   const [autoLeft, setAutoLeft] = useState(0);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(false);
 
   const pickedRef = useRef(picked);
   const betRef = useRef(bet);
@@ -80,15 +81,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     phaseRef.current = phase;
   }, [phase]);
 
-  const unit = mode === "fun" ? "PTS" : "SOL";
-  const unitLower = mode === "fun" ? "pts" : "◎";
   const locked = phase === "placed" || phase === "rolling";
-
-  const stakePreview = useMemo(() => {
-    if (picked.size === 0) return "— (pick colors)";
-    const s = bet * picked.size;
-    return `${bet} × ${picked.size} = ${s.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${unitLower}`;
-  }, [bet, picked.size, unitLower]);
 
   const toggleColor = (c: ColorKey) => {
     if (locked) return;
@@ -109,19 +102,12 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     setPrompt(picked.size ? "PLACE YOUR BET" : "SELECT UP TO 3 COLORS");
   }, [picked.size, phase]);
 
-  const switchMode = (m: Mode) => {
-    setMode(m);
-    setBalance(m === "fun" ? 1000 : 5);
-    setPhase("select");
-    setDice(null);
-    setResult(null);
-    setDialogOpen(false);
-    setHits([false, false, false]);
-    setAutoLeft(0);
-    setAutobet(0);
-    if (m === "sol") {
-      alert("SOLANA MODE (demo): wallet connect lands in Phase 6.");
-    }
+  const requestConnect = () => {
+    // Wallet adapter lands later — keep a clear Connect affordance in SOL mode.
+    alert(
+      "Connect wallet (Phantom / Solflare) lands with on-chain settlement. Demo SOL balance is active for now.",
+    );
+    setWalletConnected(false);
   };
 
   const runRound = useCallback(async () => {
@@ -132,14 +118,13 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       setPrompt("PICK AT LEAST ONE COLOR");
       return false;
     }
-    const nextStake = currentBet * currentPicked.size;
-    if (nextStake > currentBalance || nextStake <= 0) {
-      setPrompt("NOT ENOUGH BALANCE");
+    const cost = currentBet * currentPicked.size;
+    if (cost > currentBalance || cost <= 0) {
+      setPrompt("NOT ENOUGH SOL");
       return false;
     }
 
-    setBalance((b) => b - nextStake);
-    setStake(nextStake);
+    setBalance((b) => b - cost);
     setPhase("rolling");
     setPrompt("");
     setDice(null);
@@ -189,7 +174,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     } catch (err) {
       console.error(err);
       setPrompt("ROLL FAILED — TRY AGAIN");
-      setBalance((b) => b + nextStake);
+      setBalance((b) => b + cost);
       setPhase("select");
       return false;
     }
@@ -204,13 +189,12 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       setPrompt("PICK AT LEAST ONE COLOR");
       return;
     }
-    const nextStake = currentBet * currentPicked.size;
-    if (nextStake > currentBalance || nextStake <= 0) {
-      setPrompt("NOT ENOUGH BALANCE");
+    const cost = currentBet * currentPicked.size;
+    if (cost > currentBalance || cost <= 0) {
+      setPrompt("NOT ENOUGH SOL");
       return;
     }
-    setBalance((b) => b - nextStake);
-    setStake(nextStake);
+    setBalance((b) => b - cost);
     setPhase("placed");
     setPrompt("READY — PULL THE LEVER");
     setDice(null);
@@ -295,22 +279,13 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     <div className="font-heading text-xs">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b-2 border-line pb-2">
         <div className="chroma text-sm text-hot">COLORS.EXE</div>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
+          <span className="bevel-inset px-2 py-1 text-[10px] text-acid">SOL</span>
           <button
             type="button"
-            onClick={() => switchMode("fun")}
-            className={`bevel-btn px-2 py-1 ${mode === "fun" ? "bevel-btn-hot" : ""}`}
+            className="bevel-btn px-2 py-1"
+            onClick={() => setRulesOpen(true)}
           >
-            FUN
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("sol")}
-            className={`bevel-btn px-2 py-1 ${mode === "sol" ? "bevel-btn-hot" : ""}`}
-          >
-            SOLANA
-          </button>
-          <button type="button" className="bevel-btn px-2 py-1" onClick={() => setRulesOpen(true)}>
             ?
           </button>
         </div>
@@ -344,7 +319,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
                 <div>client: {fairness.clientSeed}</div>
                 <div>nonce: {fairness.nonce}</div>
                 <div>dice: {fairness.dice.join(", ")}</div>
-                <div>mode: {PAYOUT_MODE}</div>
+                <div>payout: {PAYOUT_MODE}</div>
               </div>
             </details>
           )}
@@ -353,19 +328,19 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         <div>
           <BetPanel
             balance={balance}
-            unit={unit}
             bet={bet}
-            stakePreview={stakePreview}
             canPlace={phase === "select"}
             canRoll={phase === "placed"}
             placingDisabled={picked.size === 0}
             leverArmed={phase === "placed"}
+            walletConnected={walletConnected}
             onBetChange={setBet}
             onPlace={placeOnly}
             onPullLever={() => void rollOnly()}
+            onConnect={requestConnect}
             onMax={() => {
               const n = Math.max(1, picked.size);
-              setBet(Math.max(1, Math.floor(balance / n)));
+              setBet(Math.max(0.01, Math.floor((balance / n) * 10000) / 10000));
             }}
           />
 
@@ -420,13 +395,20 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         body={
           result
             ? result.matches > 0
-              ? `+${fmt(result.winnings)} ${unitLower} returned to your wallet buffer.`
-              : `−${fmt(result.stake)} ${unitLower} this round. The cut still comes home.`
+              ? `+${fmt(result.winnings)} SOL returned.`
+              : `−${fmt(result.stake)} SOL this round. The cut still comes home.`
             : ""
         }
         detail={
           parts
-            ? `◎ +${fmt(result!.houseCut)} → treasury · burn ${fmt(parts.burn)} · believers ${fmt(parts.believers)} · build ${fmt(parts.build)}`
+            ? `◎ +${fmt(result!.houseCut)} SOL → treasury · burn ${fmt(parts.burn)} · believers ${fmt(parts.believers)} · build ${fmt(parts.build)}`
+            : undefined
+        }
+        shareHref={
+          result && result.matches > 0
+            ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                `Hit ${result.matches} match${result.matches > 1 ? "es" : ""} on MIDWAY COLORS — +${fmt(result.winnings)} SOL. The cut comes home.`,
+              )}`
             : undefined
         }
         onRetry={() => {
@@ -436,34 +418,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         onClose={() => setDialogOpen(false)}
       />
 
-      {rulesOpen && (
-        <div
-          className="fixed inset-0 z-[160] flex items-center justify-center bg-black/70 p-4"
-          onClick={() => setRulesOpen(false)}
-        >
-          <div
-            className="bevel hard-shadow-lg max-h-[80vh] w-full max-w-md overflow-y-auto bg-panel p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="win-titlebar focused mb-3">
-              <span>RULES.TXT</span>
-              <div className="win-controls">
-                <button type="button" onClick={() => setRulesOpen(false)}>
-                  ×
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2 font-mono text-[14px] text-ink">
-              <p>Pick up to 3 colors. Three dice roll. Matches = dice in your pick.</p>
-              <p>
-                Payout mode: <span className="text-acid">{PAYOUT_MODE}</span> (stake-based
-                default).
-              </p>
-              <p>5% house cut always feeds the treasury. Pull the lever to roll.</p>
-            </div>
-          </div>
-        </div>
-      )}
+      <ColorsRules open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </div>
   );
 }
