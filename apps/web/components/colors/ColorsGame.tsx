@@ -123,8 +123,13 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
   useEffect(() => {
     if (phase !== "select") return;
+    // Keep stage clear while dice results / ERROR.EXE are still up.
+    if (dialogOpen || dice) {
+      setPrompt("");
+      return;
+    }
     setPrompt(picked.size ? "PLACE YOUR BET" : "SELECT UP TO 3 COLORS");
-  }, [picked.size, phase]);
+  }, [picked.size, phase, dialogOpen, dice]);
 
   const ensureWalletAndBalance = (cost: number) => {
     if (!connectedRef.current) {
@@ -376,7 +381,14 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
             dice={dice}
             rolling={phase === "rolling"}
             hits={hits}
-            prompt={phase === "rolling" ? "" : prompt}
+            prompt={
+              phase === "rolling" ||
+              phase === "done" ||
+              dialogOpen ||
+              Boolean(dice)
+                ? ""
+                : prompt
+            }
           />
           <ColorPicker picked={picked} locked={locked} onToggle={toggleColor} />
 

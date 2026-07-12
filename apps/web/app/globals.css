@@ -405,6 +405,111 @@ html.dark .desktop-wallpaper {
   text-align: center;
   opacity: 0.88;
 }
+.idle-tent-stage {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto;
+  overflow: visible;
+}
+.idle-tent-stage .idle-brand-tent {
+  position: relative;
+  z-index: 2;
+  width: 72px;
+  height: 72px;
+}
+.tent-walkers {
+  position: absolute;
+  inset: -18px -42px -6px;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+.tent-walker {
+  position: absolute;
+  left: 50%;
+  bottom: 6%;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(1px 1px 0 color-mix(in srgb, var(--ink) 16%, transparent));
+  image-rendering: pixelated;
+  will-change: transform, opacity;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  opacity: 0;
+}
+.tent-walker-icon {
+  image-rendering: pixelated;
+}
+.tent-walker.is-static {
+  opacity: 0.9;
+  transform: translateX(-50%);
+  animation: none;
+}
+/* Door sits ~center-bottom of the 16×16 tent; paths dive through that hole. */
+.tent-walker--left-in-right-out {
+  animation-name: tent-walk-l2r;
+}
+.tent-walker--right-in-left-out {
+  animation-name: tent-walk-r2l;
+}
+.tent-walker--loop-left {
+  animation-name: tent-walk-loop-l;
+}
+.tent-walker--loop-right {
+  animation-name: tent-walk-loop-r;
+}
+@keyframes tent-walk-l2r {
+  0% { opacity: 0; transform: translate(-64px, 4px) scaleX(1); }
+  8% { opacity: 1; transform: translate(-52px, 2px) scaleX(1); }
+  32% { opacity: 1; transform: translate(-10px, 6px) scaleX(1); }
+  40% { opacity: 1; transform: translate(-2px, 8px) scale(0.72); }
+  46% { opacity: 0; transform: translate(0, 10px) scale(0.35); }
+  54% { opacity: 0; transform: translate(0, 10px) scale(0.35); }
+  60% { opacity: 1; transform: translate(2px, 8px) scale(0.72) scaleX(-1); }
+  68% { opacity: 1; transform: translate(12px, 6px) scaleX(-1); }
+  92% { opacity: 1; transform: translate(52px, 2px) scaleX(-1); }
+  100% { opacity: 0; transform: translate(64px, 4px) scaleX(-1); }
+}
+@keyframes tent-walk-r2l {
+  0% { opacity: 0; transform: translate(64px, 3px) scaleX(-1); }
+  8% { opacity: 1; transform: translate(50px, 1px) scaleX(-1); }
+  32% { opacity: 1; transform: translate(12px, 5px) scaleX(-1); }
+  40% { opacity: 1; transform: translate(3px, 8px) scale(0.72) scaleX(-1); }
+  46% { opacity: 0; transform: translate(0, 10px) scale(0.35); }
+  54% { opacity: 0; transform: translate(0, 10px) scale(0.35); }
+  60% { opacity: 1; transform: translate(-3px, 8px) scale(0.72); }
+  70% { opacity: 1; transform: translate(-14px, 5px) scaleX(1); }
+  92% { opacity: 1; transform: translate(-50px, 1px) scaleX(1); }
+  100% { opacity: 0; transform: translate(-64px, 3px) scaleX(1); }
+}
+@keyframes tent-walk-loop-l {
+  0% { opacity: 0; transform: translate(-58px, 0); }
+  10% { opacity: 1; transform: translate(-46px, 2px); }
+  28% { opacity: 1; transform: translate(-8px, 7px); }
+  36% { opacity: 0; transform: translate(0, 10px) scale(0.4); }
+  48% { opacity: 0; transform: translate(0, 10px) scale(0.4); }
+  56% { opacity: 1; transform: translate(-8px, 7px) scaleX(-1); }
+  78% { opacity: 1; transform: translate(-46px, 2px) scaleX(-1); }
+  90% { opacity: 0; transform: translate(-58px, 0) scaleX(-1); }
+  100% { opacity: 0; transform: translate(-58px, 0); }
+}
+@keyframes tent-walk-loop-r {
+  0% { opacity: 0; transform: translate(58px, 1px) scaleX(-1); }
+  10% { opacity: 1; transform: translate(44px, 2px) scaleX(-1); }
+  28% { opacity: 1; transform: translate(8px, 7px) scaleX(-1); }
+  36% { opacity: 0; transform: translate(0, 10px) scale(0.4); }
+  48% { opacity: 0; transform: translate(0, 10px) scale(0.4); }
+  56% { opacity: 1; transform: translate(8px, 7px); }
+  78% { opacity: 1; transform: translate(44px, 2px); }
+  90% { opacity: 0; transform: translate(58px, 1px); }
+  100% { opacity: 0; transform: translate(58px, 1px) scaleX(-1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tent-walker {
+    animation: none !important;
+  }
+}
 .idle-brand-tent {
   filter: drop-shadow(2px 3px 0 color-mix(in srgb, var(--ink) 12%, transparent));
 }

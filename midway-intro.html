@@ -75,11 +75,80 @@
   body.run .brk .bl{animation-delay:.41s;} body.run .brk .br{animation-delay:.54s;}
   @keyframes brkIn{from{opacity:0;transform:scale(1.4);}to{opacity:.9;transform:scale(1);}}
 
-  /* tent unfurl */
-  .tent{width:150px;height:150px;opacity:0;transform:scale(.2) translateY(20px);}
-  body.run .tent{animation:tentPop .7s cubic-bezier(.34,1.56,.4,1) .5s forwards, bob 3s ease-in-out 1.3s infinite;}
+  /* tent stage + doorway walkers (door D pixels omitted = hole) */
+  .tent-stage{position:relative;width:150px;height:150px;overflow:visible;}
+  .tent-stage--sm{width:56px;height:56px;}
+  .tent{position:relative;z-index:2;width:100%;height:100%;opacity:0;transform:scale(.2) translateY(20px);}
+  body.run .tent-stage--lg .tent{animation:tentPop .7s cubic-bezier(.34,1.56,.4,1) .5s forwards, bob 3s ease-in-out 1.3s infinite;}
+  .tent-stage--sm .tent{opacity:1;transform:none;}
   @keyframes tentPop{to{opacity:1;transform:scale(1) translateY(0);}}
   @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+
+  .tent-walkers{position:absolute;inset:-20px -56px -4px;z-index:1;pointer-events:none;overflow:visible;}
+  .tent-stage--sm .tent-walkers{inset:-10px -28px -2px;}
+  .walker{position:absolute;left:50%;bottom:8%;width:28px;height:28px;opacity:0;
+    image-rendering:pixelated;will-change:transform,opacity;
+    filter:drop-shadow(1px 1px 0 rgba(47,90,56,.18));
+    animation:tentWalkL2R 11s linear infinite;}
+  .tent-stage--sm .walker{width:14px;height:14px;bottom:6%;}
+  .walker svg{width:100%;height:100%;}
+  .walker.w2{animation-name:tentWalkR2L;animation-duration:13s;animation-delay:2.2s;}
+  .walker.w3{animation-name:tentWalkLoopL;animation-duration:15s;animation-delay:4.4s;}
+  .walker.w4{animation-name:tentWalkLoopR;animation-duration:12.5s;animation-delay:1.2s;}
+  .walker.w5{animation-name:tentWalkL2R;animation-duration:14s;animation-delay:6.5s;width:24px;height:24px;}
+  .walker.w6{animation-name:tentWalkR2L;animation-duration:16s;animation-delay:3.5s;width:22px;height:22px;}
+  .tent-stage--sm .walker.w3,.tent-stage--sm .walker.w4,.tent-stage--sm .walker.w5,.tent-stage--sm .walker.w6{display:none;}
+  body.run .tent-stage--lg .walker{animation-play-state:running;}
+  /* Hold intro walkers until tent pops; hero walkers start immediately */
+  .tent-stage--lg .walker{animation-delay:calc(1.4s + var(--d,0s));}
+  .tent-stage--sm .walker{animation-delay:var(--d,0s);}
+
+  @keyframes tentWalkL2R{
+    0%{opacity:0;transform:translate(-70px,4px) scaleX(1);}
+    8%{opacity:1;transform:translate(-56px,2px) scaleX(1);}
+    30%{opacity:1;transform:translate(-12px,8px) scaleX(1);}
+    38%{opacity:1;transform:translate(-2px,10px) scale(.7);}
+    44%{opacity:0;transform:translate(0,12px) scale(.3);}
+    52%{opacity:0;transform:translate(0,12px) scale(.3);}
+    58%{opacity:1;transform:translate(2px,10px) scale(.7) scaleX(-1);}
+    68%{opacity:1;transform:translate(14px,8px) scaleX(-1);}
+    92%{opacity:1;transform:translate(56px,2px) scaleX(-1);}
+    100%{opacity:0;transform:translate(70px,4px) scaleX(-1);}
+  }
+  @keyframes tentWalkR2L{
+    0%{opacity:0;transform:translate(70px,3px) scaleX(-1);}
+    8%{opacity:1;transform:translate(54px,1px) scaleX(-1);}
+    30%{opacity:1;transform:translate(12px,7px) scaleX(-1);}
+    38%{opacity:1;transform:translate(3px,10px) scale(.7) scaleX(-1);}
+    44%{opacity:0;transform:translate(0,12px) scale(.3);}
+    52%{opacity:0;transform:translate(0,12px) scale(.3);}
+    58%{opacity:1;transform:translate(-3px,10px) scale(.7);}
+    70%{opacity:1;transform:translate(-16px,7px);}
+    92%{opacity:1;transform:translate(-54px,1px);}
+    100%{opacity:0;transform:translate(-70px,3px);}
+  }
+  @keyframes tentWalkLoopL{
+    0%{opacity:0;transform:translate(-62px,0);}
+    12%{opacity:1;transform:translate(-48px,2px);}
+    28%{opacity:1;transform:translate(-10px,9px);}
+    36%{opacity:0;transform:translate(0,12px) scale(.35);}
+    48%{opacity:0;transform:translate(0,12px) scale(.35);}
+    56%{opacity:1;transform:translate(-10px,9px) scaleX(-1);}
+    78%{opacity:1;transform:translate(-48px,2px) scaleX(-1);}
+    90%{opacity:0;transform:translate(-62px,0) scaleX(-1);}
+    100%{opacity:0;transform:translate(-62px,0);}
+  }
+  @keyframes tentWalkLoopR{
+    0%{opacity:0;transform:translate(62px,1px) scaleX(-1);}
+    12%{opacity:1;transform:translate(46px,2px) scaleX(-1);}
+    28%{opacity:1;transform:translate(10px,9px) scaleX(-1);}
+    36%{opacity:0;transform:translate(0,12px) scale(.35);}
+    48%{opacity:0;transform:translate(0,12px) scale(.35);}
+    56%{opacity:1;transform:translate(10px,9px);}
+    78%{opacity:1;transform:translate(46px,2px);}
+    90%{opacity:0;transform:translate(62px,1px);}
+    100%{opacity:0;transform:translate(62px,1px) scaleX(-1);}
+  }
 
   /* wordmark assemble */
   .word{display:flex;gap:6px;}
@@ -112,6 +181,10 @@
   @media (prefers-reduced-motion: reduce){
     body.run .hero{animation:none;opacity:1;transform:scale(1);}
     body.run .intro{display:none!important;}
+    .walker{animation:none!important;opacity:.85;transform:translateX(-50%);}
+    .walker.w1{left:28%;bottom:10%;}
+    .walker.w2{left:62%;bottom:8%;}
+    .walker.w3,.walker.w4,.walker.w5,.walker.w6{display:none;}
   }
 </style>
 </head>
@@ -121,7 +194,10 @@
   <div class="hero">
     <div class="side-l"><span>Midway · Alpha</span><span>07.12.2026</span></div>
     <div class="side-r"><span>Every Cut Comes Home</span><span>v3.1</span></div>
-    <div class="mini-mark" data-pixel id="mini-mark"></div>
+    <div class="tent-stage tent-stage--sm" id="hero-tent-stage">
+      <div class="tent-walkers" id="hero-walkers" aria-hidden="true"></div>
+      <div class="tent mini-mark" data-pixel id="mini-mark"></div>
+    </div>
     <h1>every cut<br><span class="soft">comes home.</span></h1>
     <p>the boardwalk, rebuilt honest. play, mint, trade — the house cut flows back to everyone.</p>
     <a class="btn" href="/arcade"><span data-pixel style="width:12px;height:12px" id="btn-glyph"></span> Enter the Midway</a>
@@ -133,7 +209,10 @@
     <div class="curtain r"></div>
     <div class="center">
       <div class="brk"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div>
-      <div class="tent" data-pixel id="intro-tent"></div>
+      <div class="tent-stage tent-stage--lg" id="intro-tent-stage">
+        <div class="tent-walkers" id="intro-walkers" aria-hidden="true"></div>
+        <div class="tent" data-pixel id="intro-tent"></div>
+      </div>
       <div class="word" id="word"></div>
       <div class="tagline">every cut comes home</div>
       <div class="spectrum"><span class="cap">Luck</span><div class="bar"></div><span class="knob"></span><div class="bar"></div><span class="cap">Logic</span></div>
@@ -146,7 +225,39 @@ function rects(g,p,px){let s='';for(let r=0;r<g.length;r++){const row=g[r];for(l
 function icon(g,p,px){const cols=Math.max(...g.map(r=>r.length)),rows=g.length;return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cols*px} ${rows*px}" width="100%" height="100%" shape-rendering="crispEdges">${rects(g,p,px)}</svg>`;}
 
 const TENT=["........KYYY....","........KYY.....","........KY......",".......KYK......","......KRWRK.....",".....KRWRWRK....","....KRWRWRWRK...","...KRWRWRWRWRK..","..KRWRWRWRWRWRK.","..KYKYKYKYKYKYK.","...KRWRWRWRWK...","...KRWRDDRWRK...","...KRWRDDRWRK...","...KRWRDDRWRK...","...KRWRDDRWRK...","...KKKKDDKKKK..."];
-const P_TENT={K:'#2f5a38',R:'#7fae74',W:'#eef4e6',Y:'#c08a2e',D:'#254a2d'};
+const P_TENT={K:'#2f5a38',R:'#7fae74',W:'#eef4e6',Y:'#c08a2e'};
+/* Door D omitted so walkers show through the doorway hole */
+
+const CHARS={
+  blue:{
+    a:[".....KK.....","....KBBK....","...KBBHBK...","..KBHEEHBK..",".KBHEW.WEBK.","KBHE....EHBK","KBHEW..WEHBK",".KBHEEEHBK..","..KBBHHBK...","...KBBBK....","....K.K.....","...KK.KK...."],
+    b:[".....KK.....","....KBBK....","...KBBHBK...","..KBHEEHBK..",".KBHEW.WEBK.","KBHE....EHBK","KBHEW..WEHBK",".KBHEEEHBK..","..KBBHHBK...","...KBBBK....","...K...K....","..KK...KK..."]
+  },
+  red:{
+    a:["..KK....KK..",".KBBK..KBBK.","KBBHBKKBHBBK","KBHEEEEEHBK.","KBHEW.WEHBK.",".KBH....HBK.","..KBHEEHBK..","...KBBHBK...","....KBBK....",".....KK.....","....K..K....","...KK..KK..."],
+    b:["..KK....KK..",".KBBK..KBBK.","KBBHBKKBHBBK","KBHEEEEEHBK.","KBHEW.WEHBK.",".KBH....HBK.","..KBHEEHBK..","...KBBHBK...","....KBBK....",".....KK.....","...K....K...","..KK....KK.."]
+  },
+  yellow:{
+    a:["....KKKK....","...KBBBBK...","..KBBHHBBK..",".KBHEEEHBK..","KBHEW.WEHBK.","KBHE....HBK.","KBHEW.WEHBK.",".KBHEEEHBK..","..KBBHHBBK..","...KBBBBK...","....K..K....","...KK..KK..."],
+    b:["....KKKK....","...KBBBBK...","..KBBHHBBK..",".KBHEEEHBK..","KBHEW.WEHBK.","KBHE....HBK.","KBHEW.WEHBK.",".KBHEEEHBK..","..KBBHHBBK..","...KBBBBK...","...K....K...","..KK....KK.."]
+  },
+  green:{
+    a:[".....KK.....","....KDDK....",".....KK.....","....KBBK....","...KBHHBK...","..KBHEEHBK..",".KBHEW.WEBK.","KBHE....EHBK",".KBHEEEHBK..","..KBBHHBK...","...KB..BK...","..KK....KK.."],
+    b:[".....KK.....","....KDDK....",".....KK.....","....KBBK....","...KBHHBK...","..KBHEEHBK..",".KBHEW.WEBK.","KBHE....EHBK",".KBHEEEHBK..","..KBBHHBK...","..KB....BK..",".KK......KK."]
+  },
+  pink:{
+    a:["..KK....KK..",".KBBK..KBBK.","KBBHBKKBHBBK","KBHEEEEEHBK.","KBHEW.WEHBK.",".KBH....HBK.",".KBHEEEHBK..","..KBBHHBK...","...KBBBK....","...KB.BK....","..KK...KK...","............"],
+    b:["..KK....KK..",".KBBK..KBBK.","KBBHBKKBHBBK","KBHEEEEEHBK.","KBHEW.WEHBK.",".KBH....HBK.",".KBHEEEHBK..","..KBBHHBK...","...KBBBK....","..KB...BK...",".KK.....KK..","............"]
+  },
+  orange:{
+    a:["...KK..KK...","..KBBKKBBK..",".KBBHHBBBK..","KBBHEEHBBBK.","KBHEW.WEHBBK","KBHE....HBBK",".KBHEEEHBBK.","..KBBHHBBK..","...KBBBBK...","...KB..BK...","..KK....KK..","............"],
+    b:["...KK..KK...","..KBBKKBBK..",".KBBHHBBBK..","KBBHEEHBBBK.","KBHEW.WEHBBK","KBHE....HBBK",".KBHEEEHBBK.","..KBBHHBBK..","...KBBBBK...","....KB.BK...","....KK..KK..","............"]
+  }
+};
+const HEX={blue:'#3b9fe8',red:'#e83b50',yellow:'#e9d839',green:'#3ce84a',pink:'#d93ba8',orange:'#e8722c'};
+function charPal(body){
+  return {K:'#2f5a38',B:body,H:body,D:'#254a2d',E:'#1a241c',W:'#eef4e6'};
+}
 
 const FONT={
 M:["X...X","XX.XX","X.X.X","X.X.X","X...X","X...X","X...X"],
@@ -166,6 +277,45 @@ const word=document.getElementById('word');
 
 function glyph(id){const el=document.getElementById(id);if(el){el.innerHTML=icon(PLAY,{K:'currentColor'},3);el.querySelectorAll('rect').forEach(r=>r.setAttribute('fill','currentColor'));}}
 glyph('btn-glyph');
+
+/* Mount Colors walkers into tent stages */
+(function mountWalkers(){
+  var specs=[
+    {cls:'walker w1', color:'blue', d:'0s'},
+    {cls:'walker w2', color:'red', d:'2.2s'},
+    {cls:'walker w3', color:'yellow', d:'4.4s'},
+    {cls:'walker w4', color:'green', d:'1.2s'},
+    {cls:'walker w5', color:'pink', d:'6.5s'},
+    {cls:'walker w6', color:'orange', d:'3.5s'}
+  ];
+  function fill(host, limit){
+    if(!host) return;
+    specs.slice(0, limit).forEach(function(s, i){
+      var el=document.createElement('span');
+      el.className=s.cls;
+      el.style.setProperty('--d', s.d);
+      el.setAttribute('data-frame','a');
+      var frames=CHARS[s.color];
+      el.innerHTML=icon(frames.a, charPal(HEX[s.color]), 2);
+      el._frames=frames;
+      el._pal=charPal(HEX[s.color]);
+      host.appendChild(el);
+    });
+  }
+  fill(document.getElementById('intro-walkers'), 6);
+  fill(document.getElementById('hero-walkers'), 2);
+
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced) return;
+  setInterval(function(){
+    document.querySelectorAll('.walker').forEach(function(el){
+      if(!el._frames) return;
+      var next=el.getAttribute('data-frame')==='a'?'b':'a';
+      el.setAttribute('data-frame', next);
+      el.innerHTML=icon(el._frames[next], el._pal, 2);
+    });
+  }, 220);
+})();
 
 /* intro replay / skip-seen */
 (function(){

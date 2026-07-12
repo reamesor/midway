@@ -14,6 +14,9 @@ type DiceStageProps = {
 };
 
 export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
+  // Never show bet/select copy over rolling or settled dice (labels live only as solid faces).
+  const showPrompt = Boolean(prompt) && !rolling && !dice;
+
   return (
     <div className="bevel-inset relative isolate min-h-[300px] overflow-hidden bg-[#1a1a22]">
       <div
@@ -24,13 +27,13 @@ export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
         }}
         aria-hidden
       />
-      {prompt && (
+      {showPrompt ? (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
           <p className="font-heading text-[12px] tracking-[0.2em] text-acid blink">
             {prompt}
           </p>
         </div>
-      )}
+      ) : null}
       <Canvas
         camera={{ position: [0, 0.6, 7.5], fov: 40 }}
         dpr={[1, 1.25]}

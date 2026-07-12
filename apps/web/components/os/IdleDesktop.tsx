@@ -23,6 +23,7 @@ import {
   dieFaceColors,
   idleCharPalette,
 } from "@/lib/idleCubeChars";
+import { TentWalkers } from "./TentWalkers";
 import { useOs } from "./OsContext";
 
 type CubeSpec = {
@@ -448,13 +449,16 @@ export function IdleDesktop() {
                       }
                 }
               >
-                <PixelIcon
-                  grid={[...TENT]}
-                  palette={tentPalette}
-                  px={3}
-                  className="idle-brand-tent"
-                  style={{ width: 72, height: 72 }}
-                />
+                <div className="idle-tent-stage">
+                  <TentWalkers ink={ink} reduced={reduced} />
+                  <PixelIcon
+                    grid={[...TENT]}
+                    palette={{ ...tentPalette, D: "" }}
+                    px={3}
+                    className="idle-brand-tent"
+                    style={{ width: 72, height: 72 }}
+                  />
+                </div>
                 <div className="idle-brand-copy">
                   <div className="idle-brand-word">MIDWAY</div>
                   <div className="idle-brand-tag">EVERY CUT COMES HOME</div>
