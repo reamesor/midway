@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
   type MouseEvent,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
   motion,
@@ -15,7 +14,7 @@ import {
   type Transition,
 } from "framer-motion";
 import { PixelIcon, TENT, P_TENT } from "@/lib/pixel";
-import { COLOR_HEX, COLOR_KEYS, type ColorKey } from "@/lib/colors/engine";
+import { COLOR_HEX, type ColorKey } from "@/lib/colors/engine";
 import {
   IDLE_CHAR_MOTION,
   IDLE_CUBE_CHARS,
@@ -26,8 +25,11 @@ import {
 import { TentWalkers } from "./TentWalkers";
 import { useOs } from "./OsContext";
 
+type CubeBehavior = "drift" | "roller";
+
 type CubeSpec = {
-  id: ColorKey;
+  id: string;
+  color: ColorKey;
   x: number;
   y: number;
   size: number;
@@ -36,24 +38,36 @@ type CubeSpec = {
   rot: number;
   duration: number;
   delay: number;
+  behavior: CubeBehavior;
+  /** Stagger offset (ms) before first autonomous tumble for rollers. */
+  rollEvery: number;
+  rollOffset: number;
 };
 
 type CubePhase = "idle" | "rolling" | "character" | "returning";
 
-const CUBE_LAYOUT: Omit<CubeSpec, "id">[] = [
-  { x: 18, y: 28, size: 52, driftX: 14, driftY: 10, rot: 8, duration: 22, delay: 0 },
-  { x: 72, y: 22, size: 44, driftX: -12, driftY: 14, rot: -10, duration: 26, delay: 1.2 },
-  { x: 28, y: 68, size: 48, driftX: 16, driftY: -12, rot: 6, duration: 24, delay: 0.6 },
-  { x: 78, y: 62, size: 56, driftX: -14, driftY: -10, rot: -7, duration: 28, delay: 2 },
-  { x: 48, y: 18, size: 40, driftX: 10, driftY: 16, rot: 12, duration: 20, delay: 1.5 },
-  { x: 58, y: 74, size: 46, driftX: -10, driftY: 12, rot: -9, duration: 25, delay: 0.3 },
+/** Calm scatter around center tent — no overlap with brand mark. */
+const CUBE_LAYOUT: CubeSpec[] = [
+  { id: "c0", color: "blue", x: 12, y: 30, size: 48, driftX: 10, driftY: 8, rot: 7, duration: 24, delay: 0, behavior: "roller", rollEvery: 11000, rollOffset: 1800 },
+  { id: "c1", color: "yellow", x: 50, y: 12, size: 38, driftX: 8, driftY: 12, rot: 11, duration: 21, delay: 1.1, behavior: "drift", rollEvery: 0, rollOffset: 0 },
+  { id: "c2", color: "orange", x: 86, y: 26, size: 44, driftX: -10, driftY: 10, rot: -9, duration: 26, delay: 0.8, behavior: "roller", rollEvery: 13000, rollOffset: 4200 },
+  { id: "c3", color: "green", x: 18, y: 58, size: 42, driftX: 12, driftY: -8, rot: 5, duration: 23, delay: 1.6, behavior: "drift", rollEvery: 0, rollOffset: 0 },
+  { id: "c4", color: "pink", x: 84, y: 54, size: 50, driftX: -12, driftY: -9, rot: -6, duration: 27, delay: 0.4, behavior: "roller", rollEvery: 14500, rollOffset: 2600 },
+  { id: "c5", color: "red", x: 34, y: 82, size: 46, driftX: 9, driftY: -10, rot: 8, duration: 25, delay: 2.0, behavior: "drift", rollEvery: 0, rollOffset: 0 },
+  { id: "c6", color: "yellow", x: 68, y: 80, size: 40, driftX: -8, driftY: 9, rot: -10, duration: 22, delay: 1.3, behavior: "roller", rollEvery: 12000, rollOffset: 6500 },
+  { id: "c7", color: "green", x: 72, y: 16, size: 36, driftX: -7, driftY: 11, rot: 9, duration: 20, delay: 2.4, behavior: "drift", rollEvery: 0, rollOffset: 0 },
+  { id: "c8", color: "blue", x: 28, y: 16, size: 34, driftX: 7, driftY: 10, rot: -8, duration: 28, delay: 0.2, behavior: "drift", rollEvery: 0, rollOffset: 0 },
+  { id: "c9", color: "orange", x: 10, y: 74, size: 40, driftX: 11, driftY: -7, rot: 6, duration: 24, delay: 1.9, behavior: "roller", rollEvery: 15500, rollOffset: 8000 },
+  { id: "c10", color: "pink", x: 90, y: 72, size: 38, driftX: -9, driftY: -8, rot: -7, duration: 23, delay: 0.7, behavior: "drift", rollEvery: 0, rollOffset: 0 },
+  { id: "c11", color: "red", x: 54, y: 88, size: 42, driftX: -6, driftY: 7, rot: 10, duration: 26, delay: 2.8, behavior: "roller", rollEvery: 16000, rollOffset: 10000 },
 ];
 
 const FACE_NAMES = ["px", "nx", "py", "ny", "pz", "nz"] as const;
 const ROLL_MS = 720;
+const TUMBLE_MS = 1050;
 const RETURN_MS = 520;
 const CHAR_HOLD_MS = 3200;
-const CYCLE_GAP_MS = 4200;
+const CYCLE_GAP_MS = 5600;
 const WALK_FRAME_MS = 220;
 
 function softHex(hex: string) {
@@ -63,16 +77,12 @@ function softHex(hex: string) {
 function IdleCube({
   spec,
   reduced,
-  pointer,
-  attract,
   ink,
   forcedShow,
   onCycleDone,
 }: {
   spec: CubeSpec;
   reduced: boolean;
-  pointer: { x: number; y: number };
-  attract: boolean;
   ink: string;
   forcedShow: boolean;
   onCycleDone?: () => void;
@@ -81,18 +91,28 @@ function IdleCube({
   const [flash, setFlash] = useState(false);
   const [phase, setPhase] = useState<CubePhase>("idle");
   const [walkFrame, setWalkFrame] = useState(0);
+  const [tumbleSlow, setTumbleSlow] = useState(false);
   const flashTimer = useRef<number | null>(null);
   const phaseTimer = useRef<number | null>(null);
   const holdTimer = useRef<number | null>(null);
+  const tumbleTimer = useRef<number | null>(null);
   const hovered = useRef(false);
   const cycleActive = useRef(false);
+  const phaseRef = useRef<CubePhase>("idle");
 
-  const faces = useMemo(() => dieFaceColors(spec.id), [spec.id]);
-  const charPalette = useMemo(() => idleCharPalette(spec.id, ink), [spec.id, ink]);
-  const motionStyle = IDLE_CHAR_MOTION[spec.id];
+  const faces = useMemo(() => dieFaceColors(spec.color), [spec.color]);
+  const charPalette = useMemo(
+    () => idleCharPalette(spec.color, ink),
+    [spec.color, ink],
+  );
+  const motionStyle = IDLE_CHAR_MOTION[spec.color];
   const half = spec.size / 2;
   const usesWalkFrames =
     motionStyle === "walk" || motionStyle === "strut" || motionStyle === "bounce";
+
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   const clearPhaseTimer = useCallback(() => {
     if (phaseTimer.current) {
@@ -108,19 +128,17 @@ function IdleCube({
     }
   }, []);
 
-  const baseX =
-    (reduced ? 0 : (pointer.x - 0.5) * (attract ? 10 : 18) * (spec.x > 50 ? -1 : 1) * 0.35) +
-    (attract ? (pointer.x * 100 - spec.x) * 0.08 : 0) +
-    nudge.x;
-  const baseY =
-    (reduced ? 0 : (pointer.y - 0.5) * (attract ? 8 : 14) * (spec.y > 50 ? -1 : 1) * 0.35) +
-    (attract ? (pointer.y * 100 - spec.y) * 0.08 : 0) +
-    nudge.y;
+  const clearTumbleTimer = useCallback(() => {
+    if (tumbleTimer.current) {
+      window.clearTimeout(tumbleTimer.current);
+      tumbleTimer.current = null;
+    }
+  }, []);
 
   const driftTransition: Transition = reduced
     ? { duration: 0 }
     : {
-        duration: attract ? spec.duration * 1.85 : spec.duration,
+        duration: spec.duration,
         repeat: Infinity,
         repeatType: "mirror",
         ease: "easeInOut",
@@ -131,6 +149,7 @@ function IdleCube({
     if (!hovered.current) {
       setPhase("idle");
       setWalkFrame(0);
+      setTumbleSlow(false);
       if (cycleActive.current) {
         cycleActive.current = false;
         onCycleDone?.();
@@ -144,6 +163,7 @@ function IdleCube({
     if (reduced) {
       setPhase("idle");
       setWalkFrame(0);
+      setTumbleSlow(false);
       if (cycleActive.current) {
         cycleActive.current = false;
         onCycleDone?.();
@@ -154,10 +174,28 @@ function IdleCube({
     phaseTimer.current = window.setTimeout(finishReturn, RETURN_MS);
   }, [clearHoldTimer, clearPhaseTimer, finishReturn, onCycleDone, reduced]);
 
+  /** Autonomous Colors-style tumble that settles back as a die (no character). */
+  const startTumble = useCallback(() => {
+    if (reduced) return;
+    if (hovered.current || cycleActive.current) return;
+    if (phaseRef.current !== "idle") return;
+
+    clearPhaseTimer();
+    clearHoldTimer();
+    setTumbleSlow(true);
+    setPhase("rolling");
+    phaseTimer.current = window.setTimeout(() => {
+      if (hovered.current || cycleActive.current) return;
+      setPhase("returning");
+      phaseTimer.current = window.setTimeout(finishReturn, RETURN_MS);
+    }, TUMBLE_MS);
+  }, [clearHoldTimer, clearPhaseTimer, finishReturn, reduced]);
+
   const enterCharacter = useCallback(
     (fromCycle: boolean) => {
       clearPhaseTimer();
       clearHoldTimer();
+      setTumbleSlow(false);
       if (fromCycle) cycleActive.current = true;
 
       if (reduced) {
@@ -188,26 +226,58 @@ function IdleCube({
   const enterHover = useCallback(() => {
     hovered.current = true;
     clearHoldTimer();
-    if (phase === "character" || phase === "rolling") return;
+    if (phaseRef.current === "character") return;
+    // Autonomous tumble in progress — convert into a proper morph roll.
+    if (phaseRef.current === "rolling" && cycleActive.current) return;
     enterCharacter(false);
-  }, [clearHoldTimer, enterCharacter, phase]);
+  }, [clearHoldTimer, enterCharacter]);
 
   const leaveHover = useCallback(() => {
     hovered.current = false;
-    if (cycleActive.current && phase === "character") {
+    if (cycleActive.current && phaseRef.current === "character") {
       holdTimer.current = window.setTimeout(() => {
         if (!hovered.current) startReturn();
       }, Math.min(900, CHAR_HOLD_MS));
       return;
     }
     startReturn();
-  }, [phase, startReturn]);
+  }, [startReturn]);
 
   useEffect(() => {
     if (!forcedShow || hovered.current) return;
-    if (phase !== "idle") return;
+    if (phaseRef.current !== "idle") return;
     enterCharacter(true);
-  }, [enterCharacter, forcedShow, phase]);
+  }, [enterCharacter, forcedShow]);
+
+  /* Autonomous staggered rolls for roller cubes — never cursor-driven. */
+  useEffect(() => {
+    if (reduced || spec.behavior !== "roller" || !spec.rollEvery) {
+      clearTumbleTimer();
+      return;
+    }
+
+    let cancelled = false;
+    const schedule = (ms: number) => {
+      clearTumbleTimer();
+      tumbleTimer.current = window.setTimeout(() => {
+        if (cancelled) return;
+        startTumble();
+        schedule(spec.rollEvery);
+      }, ms);
+    };
+    schedule(spec.rollOffset || spec.rollEvery);
+    return () => {
+      cancelled = true;
+      clearTumbleTimer();
+    };
+  }, [
+    clearTumbleTimer,
+    reduced,
+    spec.behavior,
+    spec.rollEvery,
+    spec.rollOffset,
+    startTumble,
+  ]);
 
   useEffect(() => {
     if (phase !== "character" || reduced || !usesWalkFrames) {
@@ -230,9 +300,9 @@ function IdleCube({
         return;
       }
       setNudge({
-        x: (Math.random() - 0.5) * 28,
-        y: (Math.random() - 0.5) * 28,
-        rot: (Math.random() - 0.5) * 18,
+        x: (Math.random() - 0.5) * 16,
+        y: (Math.random() - 0.5) * 16,
+        rot: (Math.random() - 0.5) * 12,
       });
       setFlash(true);
       if (flashTimer.current) window.clearTimeout(flashTimer.current);
@@ -249,8 +319,9 @@ function IdleCube({
       if (flashTimer.current) window.clearTimeout(flashTimer.current);
       clearPhaseTimer();
       clearHoldTimer();
+      clearTumbleTimer();
     };
-  }, [clearHoldTimer, clearPhaseTimer]);
+  }, [clearHoldTimer, clearPhaseTimer, clearTumbleTimer]);
 
   const showCharacter = phase === "character";
   const isRolling = phase === "rolling";
@@ -258,8 +329,8 @@ function IdleCube({
   const dieActive = !reduced && (isRolling || showCharacter);
   const charGrid =
     showCharacter && walkFrame === 1
-      ? IDLE_CUBE_CHARS_WALK[spec.id]
-      : IDLE_CUBE_CHARS[spec.id];
+      ? IDLE_CUBE_CHARS_WALK[spec.color]
+      : IDLE_CUBE_CHARS[spec.color];
 
   return (
     <div
@@ -268,12 +339,12 @@ function IdleCube({
     >
       <motion.button
         type="button"
-        aria-label={`${spec.id} cube`}
+        aria-label="Decorative cube"
         className={`idle-cube${flash ? " is-flash" : ""}${phase !== "idle" ? ` is-${phase}` : ""}`}
         style={{
           width: spec.size,
           height: spec.size,
-          ["--cube" as string]: softHex(COLOR_HEX[spec.id]),
+          ["--cube" as string]: softHex(COLOR_HEX[spec.color]),
           ["--cube-size" as string]: `${spec.size}px`,
           ["--cube-half" as string]: `${half}px`,
         }}
@@ -284,14 +355,14 @@ function IdleCube({
         animate={
           reduced
             ? {
-                x: baseX,
-                y: baseY,
+                x: nudge.x,
+                y: nudge.y,
                 rotate: spec.rot * 0.2 + nudge.rot,
                 scale: phase === "character" ? 1.08 : 1,
               }
             : {
-                x: [baseX, baseX + spec.driftX],
-                y: [baseY, baseY + spec.driftY],
+                x: [nudge.x, nudge.x + spec.driftX],
+                y: [nudge.y, nudge.y + spec.driftY],
                 rotate: [spec.rot * 0.35 + nudge.rot, -spec.rot * 0.35 + nudge.rot],
               }
         }
@@ -305,7 +376,7 @@ function IdleCube({
       >
         <span className="idle-cube-scene" aria-hidden>
           <span
-            className={`idle-die idle-die--${spec.id}${isRolling ? " is-rolling" : ""}${isReturning ? " is-returning" : ""}${showCharacter ? " is-morphed" : ""}`}
+            className={`idle-die idle-die--${spec.color}${isRolling ? " is-rolling" : ""}${tumbleSlow && isRolling ? " is-rolling-slow" : ""}${isReturning ? " is-returning" : ""}${showCharacter ? " is-morphed" : ""}`}
           >
             {FACE_NAMES.map((name, i) => (
               <span
@@ -338,29 +409,20 @@ function IdleCube({
 export function IdleDesktop() {
   const { open, theme } = useOs();
   const reduced = useReducedMotion() ?? false;
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [pointer, setPointer] = useState({ x: 0.5, y: 0.5 });
-  const [attract, setAttract] = useState(false);
-  const [cycleId, setCycleId] = useState<ColorKey | null>(null);
+  const [cycleId, setCycleId] = useState<string | null>(null);
   const cycleIndex = useRef(0);
 
   const empty = useMemo(() => Object.values(open).every((v) => !v), [open]);
 
-  // Hard stop: never keep idle cubes mounted under any open window.
   useEffect(() => {
     if (empty) return;
     setCycleId(null);
-    setAttract(false);
-    setPointer({ x: 0.5, y: 0.5 });
   }, [empty]);
 
-  const cubes = useMemo<CubeSpec[]>(
-    () =>
-      COLOR_KEYS.map((id, i) => ({
-        id,
-        ...CUBE_LAYOUT[i]!,
-      })),
-    [],
+  const cubes = useMemo(() => CUBE_LAYOUT, []);
+  const morphCycleIds = useMemo(
+    () => cubes.filter((c) => c.behavior === "drift").map((c) => c.id),
+    [cubes],
   );
 
   const ink = theme === "dark" ? "#e9e6df" : "#2f5a38";
@@ -370,38 +432,25 @@ export function IdleDesktop() {
   }, []);
 
   useEffect(() => {
-    if (!empty || reduced) {
+    if (!empty || reduced || morphCycleIds.length === 0) {
       setCycleId(null);
       return;
     }
     const tick = () => {
       setCycleId((current) => {
         if (current) return current;
-        const next = COLOR_KEYS[cycleIndex.current % COLOR_KEYS.length]!;
+        const next = morphCycleIds[cycleIndex.current % morphCycleIds.length]!;
         cycleIndex.current += 1;
         return next;
       });
     };
     const id = window.setInterval(tick, CYCLE_GAP_MS);
-    const kick = window.setTimeout(tick, 1800);
+    const kick = window.setTimeout(tick, 2400);
     return () => {
       window.clearInterval(id);
       window.clearTimeout(kick);
     };
-  }, [empty, reduced]);
-
-  const onMove = useCallback(
-    (e: ReactPointerEvent<HTMLDivElement>) => {
-      const el = rootRef.current;
-      if (!el || reduced) return;
-      const rect = el.getBoundingClientRect();
-      setPointer({
-        x: (e.clientX - rect.left) / Math.max(1, rect.width),
-        y: (e.clientY - rect.top) / Math.max(1, rect.height),
-      });
-    },
-    [reduced],
-  );
+  }, [empty, morphCycleIds, reduced]);
 
   const tentPalette =
     theme === "dark"
@@ -412,75 +461,59 @@ export function IdleDesktop() {
   if (!empty) return null;
 
   return (
-        <motion.div
-          key="idle-desktop"
-          ref={rootRef}
-          className="idle-desktop"
-          aria-label="Idle desktop scene"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: reduced ? 0.12 : 0.35, ease: "easeOut" }}
-          onPointerMove={onMove}
-          onPointerEnter={() => setAttract(true)}
-          onPointerLeave={() => {
-            setAttract(false);
-            setPointer({ x: 0.5, y: 0.5 });
-          }}
-        >
-          <div className="idle-desktop-stage pointer-events-none">
-            <motion.div
-              className="idle-brand"
-              animate={{
-                x: reduced ? 0 : (pointer.x - 0.5) * -12,
-                y: reduced ? 0 : (pointer.y - 0.5) * -8,
-              }}
-              transition={{ type: "spring", stiffness: 45, damping: 20 }}
-            >
-              <motion.div
-                animate={reduced ? { y: 0 } : { y: [0, -6] }}
-                transition={
-                  reduced
-                    ? { duration: 0 }
-                    : {
-                        duration: 7.5,
-                        repeat: Infinity,
-                        repeatType: "mirror",
-                        ease: "easeInOut",
-                      }
-                }
-              >
-                <div className="idle-tent-stage">
-                  <TentWalkers ink={ink} reduced={reduced} />
-                  <PixelIcon
-                    grid={[...TENT]}
-                    palette={{ ...tentPalette, D: "" }}
-                    px={3}
-                    className="idle-brand-tent"
-                    style={{ width: 72, height: 72 }}
-                  />
-                </div>
-                <div className="idle-brand-copy">
-                  <div className="idle-brand-word">MIDWAY</div>
-                  <div className="idle-brand-tag">EVERY CUT COMES HOME</div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-
-          <div className="idle-cubes">
-            {cubes.map((spec) => (
-              <IdleCube
-                key={spec.id}
-                spec={spec}
-                reduced={reduced}
-                pointer={pointer}
-                attract={attract}
-                ink={ink}
-                forcedShow={cycleId === spec.id}
-                onCycleDone={onCycleDone}
+    <motion.div
+      key="idle-desktop"
+      className="idle-desktop"
+      aria-label="Idle desktop scene"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: reduced ? 0.12 : 0.35, ease: "easeOut" }}
+    >
+      <div className="idle-desktop-stage pointer-events-none">
+        <div className="idle-brand">
+          <motion.div
+            animate={reduced ? { y: 0 } : { y: [0, -5] }}
+            transition={
+              reduced
+                ? { duration: 0 }
+                : {
+                    duration: 7.5,
+                    repeat: Infinity,
+                    repeatType: "mirror",
+                    ease: "easeInOut",
+                  }
+            }
+          >
+            <div className="idle-tent-stage">
+              <TentWalkers ink={ink} reduced={reduced} />
+              <PixelIcon
+                grid={[...TENT]}
+                palette={{ ...tentPalette, D: "" }}
+                px={3}
+                className="idle-brand-tent"
+                style={{ width: 72, height: 72 }}
               />
-            ))}
-          </div>
-        </motion.div>
+            </div>
+            <div className="idle-brand-copy">
+              <div className="idle-brand-word">MIDWAY</div>
+              <div className="idle-brand-tag">EVERY CUT COMES HOME</div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="idle-cubes">
+        {cubes.map((spec) => (
+          <IdleCube
+            key={spec.id}
+            spec={spec}
+            reduced={reduced}
+            ink={ink}
+            forcedShow={cycleId === spec.id}
+            onCycleDone={onCycleDone}
+          />
+        ))}
+      </div>
+    </motion.div>
   );
 }

@@ -14,16 +14,17 @@ type WalkerSpec = {
   path: "left-in-right-out" | "right-in-left-out" | "loop-left" | "loop-right";
   duration: number;
   delay: number;
+  /** Pixel size — must fit inside the tent door hole (~9×22 on 72px stage). */
   size: number;
 };
 
 const WALKERS: WalkerSpec[] = [
-  { id: "blue", path: "left-in-right-out", duration: 11, delay: 0, size: 22 },
-  { id: "red", path: "right-in-left-out", duration: 13, delay: 2.2, size: 20 },
-  { id: "yellow", path: "loop-left", duration: 15, delay: 4.5, size: 18 },
-  { id: "green", path: "loop-right", duration: 12.5, delay: 1.1, size: 19 },
-  { id: "pink", path: "left-in-right-out", duration: 14, delay: 6.8, size: 17 },
-  { id: "orange", path: "right-in-left-out", duration: 16, delay: 3.4, size: 18 },
+  { id: "blue", path: "left-in-right-out", duration: 12, delay: 0, size: 11 },
+  { id: "red", path: "right-in-left-out", duration: 14, delay: 2.4, size: 10 },
+  { id: "yellow", path: "loop-left", duration: 16, delay: 5.0, size: 10 },
+  { id: "green", path: "loop-right", duration: 13.5, delay: 1.2, size: 10 },
+  { id: "pink", path: "left-in-right-out", duration: 15, delay: 7.2, size: 9 },
+  { id: "orange", path: "right-in-left-out", duration: 17, delay: 3.6, size: 9 },
 ];
 
 const WALK_FRAME_MS = 240;
@@ -51,12 +52,11 @@ function TentWalker({
   }, [reduced]);
 
   if (reduced) {
-    // Static cameo near the doorway — no looping motion.
     const staticX = spec.path.includes("right") ? "58%" : "28%";
     return (
       <span
         className="tent-walker is-static"
-        style={{ left: staticX, bottom: "8%", width: spec.size, height: spec.size }}
+        style={{ left: staticX, bottom: "2%", width: spec.size, height: spec.size }}
         aria-hidden
       >
         <PixelIcon
@@ -75,6 +75,7 @@ function TentWalker({
       style={{
         width: spec.size,
         height: spec.size,
+        marginLeft: -spec.size / 2,
         animationDuration: `${spec.duration}s`,
         animationDelay: `${spec.delay}s`,
       }}
