@@ -14,6 +14,8 @@ import {
 import { DEMO_GUEST_PUBKEY } from "@/components/wallet/DemoGuestContext";
 import type { MidwayWalletLedgerEntry } from "@/lib/midway-wallet/types";
 import type { WalletSlot } from "@/lib/profile/walletHub";
+import { AvatarPicker } from "@/components/os/AvatarPicker";
+import { ProfileAvatarView } from "@/components/os/ProfileAvatarView";
 
 function fmtTime(ts?: number) {
   if (!ts) return "—";
@@ -61,6 +63,7 @@ export function DashboardPanel() {
     play,
     username,
     profile,
+    avatar,
     stats,
     hub,
     maxWallets,
@@ -69,6 +72,7 @@ export function DashboardPanel() {
     pnl,
     winRate,
     setUsername,
+    setAvatar,
     unlinkWallet,
     makePrimary,
     switchActive,
@@ -95,6 +99,13 @@ export function DashboardPanel() {
     if (pubkey) return truncateAddress(pubkey, 6, 6);
     return "Not connected";
   })();
+
+  const nftOwner =
+    adapterPubkey && adapterPubkey !== DEMO_GUEST_PUBKEY
+      ? adapterPubkey
+      : pubkey && pubkey !== DEMO_GUEST_PUBKEY
+        ? pubkey
+        : null;
 
   const onSave = () => {
     setError(null);
@@ -138,10 +149,15 @@ export function DashboardPanel() {
   return (
     <div className="font-heading text-xs space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-line pb-2">
-        <div>
-          <div className="chroma text-sm text-hot">PROFILE.EXE</div>
-          <div className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-            Identity hub · multi-wallet · local DEMO ledger
+        <div className="flex min-w-0 items-center gap-2">
+          {(connected || hub.slots.length > 0) && pubkey && (
+            <ProfileAvatarView avatar={avatar} size={40} px={2} />
+          )}
+          <div className="min-w-0">
+            <div className="chroma text-sm text-hot">PROFILE.EXE</div>
+            <div className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+              Identity hub · multi-wallet · local DEMO ledger
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -155,8 +171,8 @@ export function DashboardPanel() {
           LOCAL ONLY
         </strong>
         {" — "}
-        Username, play pot, tx log, and P/L persist per wallet pubkey in this browser.
-        Reconnect the same address to restore state.
+        Username, avatar, play pot, tx log, and P/L persist per wallet pubkey in this
+        browser. Reconnect the same address to restore state.
       </div>
 
       {!connected && hub.slots.length === 0 && (
@@ -175,16 +191,23 @@ export function DashboardPanel() {
 
       {(connected || hub.slots.length > 0) && (
         <>
-          <section className="bevel-inset p-3 space-y-2">
+          <section className="bevel-inset space-y-2 p-3">
             <div className="font-heading text-[10px] tracking-wide text-ink-dim">
               ACTIVE IDENTITY
             </div>
-            <div className="font-mono text-[12px] text-ink break-all">
-              {username ? `@${username}` : "—"} · {identityLabel}
+            <div className="flex items-start gap-2">
+              <ProfileAvatarView avatar={avatar} size={48} px={3} />
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="break-all font-mono text-[12px] text-ink">
+                  {username ? `@${username}` : "—"} · {identityLabel}
+                </div>
+                {pubkey && pubkey !== DEMO_GUEST_PUBKEY && (
+                  <div className="break-all font-mono text-[10px] text-ink-dim">
+                    {pubkey}
+                  </div>
+                )}
+              </div>
             </div>
-            {pubkey && pubkey !== DEMO_GUEST_PUBKEY && (
-              <div className="font-mono text-[10px] text-ink-dim break-all">{pubkey}</div>
-            )}
             <div className="grid grid-cols-2 gap-2 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
               <div>
                 Last session:{" "}
@@ -197,7 +220,8 @@ export function DashboardPanel() {
             </div>
             {adapterPubkey && pubkey && adapterPubkey !== pubkey && (
               <p className="font-sans text-[11px] normal-case text-cyber">
-                Viewing linked ledger · extension still {truncateAddress(adapterPubkey, 4, 4)}
+                Viewing linked ledger · extension still{" "}
+                {truncateAddress(adapterPubkey, 4, 4)}
               </p>
             )}
             {demoGuest && (
@@ -207,7 +231,7 @@ export function DashboardPanel() {
             )}
           </section>
 
-          <section className="bevel-inset p-3 space-y-2">
+          <section className="bevel-inset space-y-2 p-3">
             <div className="font-heading text-[10px] tracking-wide text-ink-dim">
               USERNAME
             </div>
@@ -243,6 +267,21 @@ export function DashboardPanel() {
             </p>
           </section>
 
+          <AvatarPicker
+            pubkey={pubkey}
+            avatar={avatar}
+            nftOwner={nftOwner}
+            onSave={setAvatar}
+            onStatus={(m) => {
+              setError(null);
+              setStatus(m);
+            }}
+            onError={(m) => {
+              setStatus(null);
+              setError(m);
+            }}
+          />
+
           <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label="PLAY SOL" value={play.sol.toFixed(2)} />
             <Stat label="ROUNDS" value={String(stats?.rounds ?? 0)} />
@@ -253,24 +292,28 @@ export function DashboardPanel() {
           <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label="BET SPENT" value={pnl.betSpent.toFixed(2)} />
             <Stat label="WINS BACK" value={pnl.winsReturned.toFixed(2)} />
-            <Stat label="SHARES" value={(stats?.sharesClaimed ?? pnl.claims).toFixed(4)} />
+            <Stat
+              label="SHARES"
+              value={(stats?.sharesClaimed ?? pnl.claims).toFixed(4)}
+            />
             <Stat label="NET P/L" value={pnl.net.toFixed(2)} accent={netTone} />
           </section>
 
-          <section className="bevel-inset p-3 space-y-1">
+          <section className="bevel-inset space-y-1 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="font-heading text-[10px] tracking-wide text-ink-dim">
                 BELIEVERS SHARE
               </div>
-              <span className="num text-acid">◎ {claimableShare.toFixed(4)} claimable</span>
+              <span className="num text-acid">
+                ◎ {claimableShare.toFixed(4)} claimable
+              </span>
             </div>
             <p className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
               Accrues from Colors house cut · claim in TREASURY.MON
             </p>
           </section>
 
-          {/* Linked wallets */}
-          <section className="bevel-inset p-3 space-y-2">
+          <section className="bevel-inset space-y-2 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="font-heading text-[10px] tracking-wide text-ink-dim">
                 LINKED WALLETS · {hub.slots.length}/{maxWallets}
@@ -327,7 +370,7 @@ export function DashboardPanel() {
                           </span>
                         )}
                       </div>
-                      <div className="mt-1 font-mono text-[10px] text-ink-dim break-all">
+                      <div className="mt-1 break-all font-mono text-[10px] text-ink-dim">
                         {slot.pubkey}
                       </div>
                       <div className="mt-1 grid grid-cols-2 gap-1 font-sans text-[10px] normal-case tracking-normal text-ink-dim">
@@ -389,8 +432,7 @@ export function DashboardPanel() {
             )}
           </section>
 
-          {/* Transaction log */}
-          <section className="bevel-inset p-3 space-y-2">
+          <section className="bevel-inset space-y-2 p-3">
             <div className="font-heading text-[10px] tracking-wide text-ink-dim">
               TRANSACTIONS · LOCAL LOG
             </div>
@@ -401,7 +443,10 @@ export function DashboardPanel() {
             ) : (
               <ul className="max-h-40 space-y-1 overflow-auto font-mono text-[10px] text-ink-dim">
                 {txLog.slice(0, 40).map((e) => (
-                  <li key={e.id} className="flex flex-wrap justify-between gap-2 border-b border-line/40 py-0.5">
+                  <li
+                    key={e.id}
+                    className="flex flex-wrap justify-between gap-2 border-b border-line/40 py-0.5"
+                  >
                     <span>
                       <span className="text-ink">{ledgerLabel(e)}</span>
                       {" · "}
@@ -423,8 +468,8 @@ export function DashboardPanel() {
           )}
 
           <p className="font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Demo pot cap {DEMO_PLAY_SOL} SOL · wins = rounds with ≥1 color hit · net P/L =
-            wins returned − bets spent + shares claimed.
+            Demo pot cap {DEMO_PLAY_SOL} SOL · wins = rounds with ≥1 color hit · net P/L
+            = wins returned − bets spent + shares claimed.
           </p>
         </>
       )}

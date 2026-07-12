@@ -4,10 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMidwayWallet } from "@/hooks/useMidwayWallet";
 import {
   loadProfile,
+  saveAvatar,
   saveProfile,
   PROFILE_EVENT,
   type MidwayProfile,
 } from "@/lib/profile/localProfile";
+import {
+  DEFAULT_AVATAR,
+  type ProfileAvatar,
+} from "@/lib/profile/avatar";
 import {
   loadPlayerStats,
   netPnlFromStats,
@@ -95,6 +100,16 @@ export function usePlayerProfile() {
     [pubkey],
   );
 
+  const setAvatar = useCallback(
+    (avatar: ProfileAvatar) => {
+      if (!pubkey) return { ok: false as const, error: "Connect or play demo first." };
+      const res = saveAvatar(pubkey, avatar);
+      if (res.ok) setProfile(res.profile);
+      return res;
+    },
+    [pubkey],
+  );
+
   const pnl = useMemo(() => {
     if (!pubkey) {
       return { betSpent: 0, winsReturned: 0, losses: 0, claims: 0, net: 0 };
@@ -131,6 +146,7 @@ export function usePlayerProfile() {
     play,
     username: profile?.username || null,
     profile,
+    avatar: profile?.avatar ?? DEFAULT_AVATAR,
     stats,
     hub,
     maxWallets: MAX_LINKED_WALLETS,
@@ -140,6 +156,7 @@ export function usePlayerProfile() {
     winRate,
     refresh,
     setUsername,
+    setAvatar,
     linkWallet: attachWallet,
     unlinkWallet: removeWallet,
     makePrimary: setPrimaryWallet,

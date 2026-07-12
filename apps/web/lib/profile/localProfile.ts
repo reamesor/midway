@@ -1,4 +1,9 @@
-/** Local profile (username + session stamps) keyed by wallet pubkey or DEMO_GUEST. */
+/** Local profile (username + avatar + session stamps) keyed by wallet pubkey or DEMO_GUEST. */
+
+import {
+  normalizeAvatar,
+  type ProfileAvatar,
+} from "@/lib/profile/avatar";
 
 export type MidwayProfile = {
   username: string;
@@ -7,6 +12,8 @@ export type MidwayProfile = {
   lastSessionAt?: number;
   /** Last wallet connect / guest enable for this pubkey. */
   lastConnectedAt?: number;
+  /** Display picture — Midway character or wallet NFT. */
+  avatar?: ProfileAvatar;
 };
 
 export const USERNAME_MIN = 2;
@@ -72,13 +79,18 @@ export function loadProfile(pubkey: string): MidwayProfile | null {
     typeof stored.lastSessionAt === "number" ? stored.lastSessionAt : undefined;
   const lastConnectedAt =
     typeof stored.lastConnectedAt === "number" ? stored.lastConnectedAt : undefined;
-  // Empty username is only useful as a session stub.
-  if (!username && lastSessionAt == null && lastConnectedAt == null) return null;
+  const avatar =
+    stored.avatar != null ? normalizeAvatar(stored.avatar) : undefined;
+  // Empty username is only useful as a session / avatar stub.
+  if (!username && lastSessionAt == null && lastConnectedAt == null && !avatar) {
+    return null;
+  }
   return {
     username,
     updatedAt: typeof stored.updatedAt === "number" ? stored.updatedAt : Date.now(),
     lastSessionAt,
     lastConnectedAt,
+    avatar,
   };
 }
 
@@ -101,6 +113,24 @@ export function saveProfile(
     updatedAt: Date.now(),
     lastSessionAt: prev?.lastSessionAt,
     lastConnectedAt: prev?.lastConnectedAt,
+    avatar: prev?.avatar,
+  };
+  writeProfile(pubkey, profile);
+  return { ok: true, profile };
+}
+
+export function saveAvatar(
+  pubkey: string,
+  avatar: ProfileAvatar,
+): { ok: true; profile: MidwayProfile } | { ok: false; error: string } {
+  const prev = loadProfile(pubkey);
+  const next = normalizeAvatar(avatar);
+  const profile: MidwayProfile = {
+    username: prev?.username ?? "",
+    updatedAt: Date.now(),
+    lastSessionAt: prev?.lastSessionAt,
+    lastConnectedAt: prev?.lastConnectedAt,
+    avatar: next,
   };
   writeProfile(pubkey, profile);
   return { ok: true, profile };
@@ -118,6 +148,7 @@ export function touchProfileSession(
     updatedAt: prev?.updatedAt ?? now,
     lastSessionAt: now,
     lastConnectedAt: opts?.connected ? now : prev?.lastConnectedAt,
+    avatar: prev?.avatar,
   };
   // Only persist if we have a username or we're recording connect stamps in a stub.
   if (prev?.username) {

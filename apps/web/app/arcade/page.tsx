@@ -188,7 +188,7 @@ function Desktop() {
         info: { x: 180, y: 40, width: 500, height: 520 },
         token: { x: 200, y: 48, width: 480, height: 540 },
         fairness: { x: 240, y: 120, width: 480, height: 320 },
-        dashboard: { x: 180, y: 48, width: 480, height: 560 },
+        dashboard: { x: 180, y: 48, width: 480, height: 620 },
         leaderboard: { x: 260, y: 80, width: 460, height: 420 },
         soon: { x: 280, y: 160, width: 360, height: 260 },
       };

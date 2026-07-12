@@ -7,6 +7,7 @@ import { useDemoGuest } from "@/components/wallet/DemoGuestContext";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { truncateAddress } from "@/lib/solana/address";
 import { useOs } from "@/components/os/OsContext";
+import { ProfileAvatarView } from "@/components/os/ProfileAvatarView";
 
 type WalletConnectControlProps = {
   /** Compact taskbar styling vs Colors panel. */
@@ -24,7 +25,7 @@ export function WalletConnectControl({
 }: WalletConnectControlProps) {
   const { publicKey, connected, disconnect, connecting } = useWallet();
   const { demoGuest, clearDemoGuest } = useDemoGuest();
-  const { username } = usePlayerProfile();
+  const { username, avatar } = usePlayerProfile();
   const { setVisible } = useWalletModal();
   const { openWin } = useOs();
   const [menu, setMenu] = useState(false);
@@ -68,12 +69,13 @@ export function WalletConnectControl({
       ? truncateAddress(publicKey.toBase58())
       : "DEMO · GUEST";
   const label = username ? `${username} · ${addressLabel}` : addressLabel;
+  const avatarSize = size === "taskbar" ? 16 : 18;
 
   return (
     <div ref={rootRef} className={`relative inline-block ${className}`}>
       <button
         type="button"
-        className={`${btnClass} num`}
+        className={`${btnClass} num inline-flex items-center gap-1.5`}
         title={
           connected && publicKey
             ? username
@@ -87,7 +89,13 @@ export function WalletConnectControl({
         aria-expanded={menu}
         aria-haspopup="menu"
       >
-        {label}
+        <ProfileAvatarView
+          avatar={avatar}
+          size={avatarSize}
+          px={1}
+          className="shrink-0 !border"
+        />
+        <span>{label}</span>
       </button>
       {menu && (
         <div
