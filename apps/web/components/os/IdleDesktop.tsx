@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   type MouseEvent,
   type PointerEvent as ReactPointerEvent,
+  type RefObject,
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { PixelIcon, TENT, P_TENT } from "@/lib/pixel";
@@ -20,6 +21,11 @@ import {
   dieFaceColors,
   idleCharPalette,
 } from "@/lib/idleCubeChars";
+import {
+  FieldWalkers,
+  planFieldWalk,
+  type FieldWalkerSpawn,
+} from "./FieldWalkers";
 import { TentWalkers } from "./TentWalkers";
 import { useOs } from "./OsContext";
 
@@ -115,10 +121,22 @@ const SHAKE_MS = 820;
 const HATCH_MS = 680;
 const RETURN_MS = 560;
 const CHAR_HOLD_MS = 3400;
+/** Brief on-cube pop before the mascot leaves into the field. */
+const RELEASE_DELAY_MS = 480;
 const CYCLE_GAP_MS = 5400;
+const AMBIENT_WALKER_GAP_MS = 7800;
+const MAX_FIELD_WALKERS = 4;
 const WALK_FRAME_MS = 220;
 const SOFT_SHAKE_MS = 900;
 const HOVER_NUDGE_PX = 12;
+
+export type CubeReleasePayload = {
+  cubeId: string;
+  color: ColorKey;
+  x: number;
+  y: number;
+  size: number;
+};
 
 function softHex(hex: string) {
   return `color-mix(in srgb, ${hex} 72%, var(--paper))`;
@@ -129,28 +147,36 @@ function IdleCube({
   reduced,
   ink,
   forcedShow,
+  stageRef,
   onCycleDone,
+  onReleaseChar,
 }: {
   spec: CubeSpec;
   reduced: boolean;
   ink: string;
   forcedShow: boolean;
+  stageRef: RefObject<HTMLDivElement | null>;
   onCycleDone?: () => void;
+  onReleaseChar?: (payload: CubeReleasePayload) => boolean;
 }) {
   const [nudge, setNudge] = useState({ x: 0, y: 0, rot: 0 });
   const [flash, setFlash] = useState(false);
   const [phase, setPhase] = useState<CubePhase>("idle");
   const [walkFrame, setWalkFrame] = useState(0);
   const [softShake, setSoftShake] = useState(false);
+  const [charDeparted, setCharDeparted] = useState(false);
   const flashTimer = useRef<number | null>(null);
   const phaseTimer = useRef<number | null>(null);
   const holdTimer = useRef<number | null>(null);
   const wobbleTimer = useRef<number | null>(null);
+  const releaseTimer = useRef<number | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const hovered = useRef(false);
   const cycleActive = useRef(false);
   const softShakeRef = useRef(false);
   const phaseRef = useRef<CubePhase>("idle");
   const busyRef = useRef(false);
+  const releasedRef = useRef(false);
 
   const faces = useMemo(() => dieFaceColors(spec.color), [spec.color]);
   const charPalette = useMemo(
@@ -192,27 +218,69 @@ function IdleCube({
     }
   }, []);
 
+  const clearReleaseTimer = useCallback(() => {
+    if (releaseTimer.current) {
+      window.clearTimeout(releaseTimer.current);
+      releaseTimer.current = null;
+    }
+  }, []);
+
+  const measureRelease = useCallback((): CubeReleasePayload | null => {
+    const btn = buttonRef.current;
+    const stage = stageRef.current;
+    if (!btn || !stage) {
+      return {
+        cubeId: spec.id,
+        color: spec.color,
+        x: spec.x,
+        y: spec.y,
+        size: Math.max(22, Math.round(spec.size * 0.7)),
+      };
+    }
+    const br = btn.getBoundingClientRect();
+    const sr = stage.getBoundingClientRect();
+    if (sr.width < 1 || sr.height < 1) {
+      return {
+        cubeId: spec.id,
+        color: spec.color,
+        x: spec.x,
+        y: spec.y,
+        size: Math.max(22, Math.round(spec.size * 0.7)),
+      };
+    }
+    return {
+      cubeId: spec.id,
+      color: spec.color,
+      x: ((br.left + br.width / 2 - sr.left) / sr.width) * 100,
+      y: ((br.top + br.height / 2 - sr.top) / sr.height) * 100,
+      size: Math.max(22, Math.round(Math.min(br.width, br.height) * 0.72)),
+    };
+  }, [spec.color, spec.id, spec.size, spec.x, spec.y, stageRef]);
+
   const finishReturn = useCallback(() => {
-    if (!hovered.current) {
-      setPhase("idle");
-      setWalkFrame(0);
-      setSoftShake(false);
-      softShakeRef.current = false;
-      if (cycleActive.current) {
-        cycleActive.current = false;
-        onCycleDone?.();
-      }
+    setPhase("idle");
+    setWalkFrame(0);
+    setSoftShake(false);
+    softShakeRef.current = false;
+    setCharDeparted(false);
+    releasedRef.current = false;
+    if (cycleActive.current) {
+      cycleActive.current = false;
+      onCycleDone?.();
     }
   }, [onCycleDone]);
 
   const startReturn = useCallback(() => {
     clearPhaseTimer();
     clearHoldTimer();
+    clearReleaseTimer();
     if (reduced) {
       setPhase("idle");
       setWalkFrame(0);
       setSoftShake(false);
       softShakeRef.current = false;
+      setCharDeparted(false);
+      releasedRef.current = false;
       if (cycleActive.current) {
         cycleActive.current = false;
         onCycleDone?.();
@@ -221,24 +289,60 @@ function IdleCube({
     }
     setPhase((prev) => (prev === "idle" ? "idle" : "returning"));
     phaseTimer.current = window.setTimeout(finishReturn, RETURN_MS);
-  }, [clearHoldTimer, clearPhaseTimer, finishReturn, onCycleDone, reduced]);
+  }, [
+    clearHoldTimer,
+    clearPhaseTimer,
+    clearReleaseTimer,
+    finishReturn,
+    onCycleDone,
+    reduced,
+  ]);
 
-  /** Full cinematic hatch: shake → crack/pop → character. */
+  /** Pop briefly on the cube, then release a field walker and restore the egg. */
+  const releaseToField = useCallback(() => {
+    if (releasedRef.current) return;
+    const payload = measureRelease();
+    if (!payload) return;
+    const accepted = onReleaseChar?.(payload) ?? true;
+    if (!accepted) {
+      // Field is full — keep the mascot on the cube, then ease back.
+      holdTimer.current = window.setTimeout(() => {
+        if (!hovered.current) startReturn();
+      }, CHAR_HOLD_MS);
+      return;
+    }
+    releasedRef.current = true;
+    setCharDeparted(true);
+    // Cube returns to egg while the walker strolls independently.
+    holdTimer.current = window.setTimeout(() => {
+      startReturn();
+    }, hovered.current && !cycleActive.current ? 280 : 220);
+  }, [measureRelease, onReleaseChar, startReturn]);
+
+  const scheduleRelease = useCallback(() => {
+    clearReleaseTimer();
+    if (reduced) {
+      releaseToField();
+      return;
+    }
+    releaseTimer.current = window.setTimeout(releaseToField, RELEASE_DELAY_MS);
+  }, [clearReleaseTimer, reduced, releaseToField]);
+
+  /** Full cinematic hatch: shake → crack/pop → character → walk out. */
   const enterHatch = useCallback(
     (fromCycle: boolean) => {
       clearPhaseTimer();
       clearHoldTimer();
+      clearReleaseTimer();
       setSoftShake(false);
       softShakeRef.current = false;
+      setCharDeparted(false);
+      releasedRef.current = false;
       if (fromCycle) cycleActive.current = true;
 
       if (reduced) {
         setPhase("character");
-        if (fromCycle && !hovered.current) {
-          holdTimer.current = window.setTimeout(() => {
-            if (!hovered.current) startReturn();
-          }, CHAR_HOLD_MS);
-        }
+        scheduleRelease();
         return;
       }
 
@@ -249,15 +353,17 @@ function IdleCube({
         phaseTimer.current = window.setTimeout(() => {
           if (!(hovered.current || cycleActive.current)) return;
           setPhase("character");
-          if (fromCycle && !hovered.current) {
-            holdTimer.current = window.setTimeout(() => {
-              if (!hovered.current) startReturn();
-            }, CHAR_HOLD_MS);
-          }
+          scheduleRelease();
         }, HATCH_MS);
       }, SHAKE_MS);
     },
-    [clearHoldTimer, clearPhaseTimer, reduced, startReturn],
+    [
+      clearHoldTimer,
+      clearPhaseTimer,
+      clearReleaseTimer,
+      reduced,
+      scheduleRelease,
+    ],
   );
 
   /** Ambiance-only egg wobble that settles back without hatching. */
@@ -281,7 +387,11 @@ function IdleCube({
   const enterHover = useCallback(() => {
     hovered.current = true;
     clearHoldTimer();
-    if (phaseRef.current === "character") return;
+    if (phaseRef.current === "character") {
+      // Already hatched — if the walker already left, allow a fresh hatch later.
+      if (releasedRef.current || charDeparted) return;
+      return;
+    }
     if (phaseRef.current === "hatching" && cycleActive.current) return;
     // Soft ambiance shake in progress — escalate into a full hatch.
     if (phaseRef.current === "shaking" && softShakeRef.current && !cycleActive.current) {
@@ -292,16 +402,29 @@ function IdleCube({
       phaseTimer.current = window.setTimeout(() => {
         if (!hovered.current && !cycleActive.current) return;
         setPhase("character");
+        scheduleRelease();
       }, HATCH_MS);
       return;
     }
     if (phaseRef.current === "shaking" || phaseRef.current === "hatching") return;
     enterHatch(false);
-  }, [clearHoldTimer, clearPhaseTimer, enterHatch]);
+  }, [
+    charDeparted,
+    clearHoldTimer,
+    clearPhaseTimer,
+    enterHatch,
+    scheduleRelease,
+  ]);
 
   const leaveHover = useCallback(() => {
     hovered.current = false;
     setNudge({ x: 0, y: 0, rot: 0 });
+    if (releasedRef.current || charDeparted) {
+      if (phaseRef.current === "character" || phaseRef.current === "hatching") {
+        startReturn();
+      }
+      return;
+    }
     if (cycleActive.current && phaseRef.current === "character") {
       holdTimer.current = window.setTimeout(() => {
         if (!hovered.current) startReturn();
@@ -309,7 +432,7 @@ function IdleCube({
       return;
     }
     startReturn();
-  }, [startReturn]);
+  }, [charDeparted, startReturn]);
 
   /** Per-cube repulsion — cubes drift away from the pointer, not the whole scene. */
   const onPointerMove = useCallback(
@@ -391,13 +514,10 @@ function IdleCube({
       flashTimer.current = window.setTimeout(() => setFlash(false), 420);
 
       if (reduced) {
-        if (phaseRef.current === "character") {
-          startReturn();
-        } else {
+        if (phaseRef.current === "character" && !releasedRef.current) {
+          releaseToField();
+        } else if (phaseRef.current === "idle") {
           enterHatch(false);
-          holdTimer.current = window.setTimeout(() => {
-            if (!hovered.current) startReturn();
-          }, CHAR_HOLD_MS);
         }
         return;
       }
@@ -406,13 +526,14 @@ function IdleCube({
         setSoftShake(false);
         softShakeRef.current = false;
         enterHatch(false);
-        holdTimer.current = window.setTimeout(() => {
-          if (!hovered.current) startReturn();
-        }, SHAKE_MS + HATCH_MS + CHAR_HOLD_MS);
         return;
       }
 
       if (phaseRef.current === "character") {
+        if (!releasedRef.current) {
+          releaseToField();
+          return;
+        }
         setNudge({
           x: (Math.random() - 0.5) * 14,
           y: (Math.random() - 0.5) * 10,
@@ -422,7 +543,7 @@ function IdleCube({
         return;
       }
     },
-    [enterHatch, reduced, startReturn],
+    [enterHatch, reduced, releaseToField],
   );
 
   useEffect(() => {
@@ -431,14 +552,15 @@ function IdleCube({
       clearPhaseTimer();
       clearHoldTimer();
       clearWobbleTimer();
+      clearReleaseTimer();
     };
-  }, [clearHoldTimer, clearPhaseTimer, clearWobbleTimer]);
+  }, [clearHoldTimer, clearPhaseTimer, clearReleaseTimer, clearWobbleTimer]);
 
-  const showCharacter = phase === "character";
+  const showCharacter = phase === "character" && !charDeparted;
   const isShaking = phase === "shaking";
   const isHatching = phase === "hatching";
   const isReturning = phase === "returning";
-  const dieActive = !reduced && (isShaking || isHatching || showCharacter);
+  const dieActive = !reduced && (isShaking || isHatching || phase === "character");
   const charGrid =
     showCharacter && walkFrame === 1
       ? IDLE_CUBE_CHARS_WALK[spec.color]
@@ -450,7 +572,7 @@ function IdleCube({
     isShaking ? (softShake ? "is-soft-shake" : "is-shaking") : "",
     isHatching ? "is-hatching" : "",
     isReturning ? "is-returning" : "",
-    showCharacter ? "is-morphed" : "",
+    phase === "character" ? "is-morphed" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -461,6 +583,7 @@ function IdleCube({
     showCharacter ? "is-visible" : "",
     dieActive && (isShaking || isHatching) ? "is-waiting" : "",
     isHatching ? "is-popping" : "",
+    charDeparted ? "is-departed" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -491,6 +614,7 @@ function IdleCube({
         }
       >
         <motion.button
+          ref={buttonRef}
           type="button"
           aria-label="Decorative cube"
           className={`idle-cube${flash ? " is-flash" : ""}${phase !== "idle" ? ` is-${phase}` : ""}`}
@@ -510,7 +634,7 @@ function IdleCube({
             x: nudge.x,
             y: nudge.y,
             rotate: nudge.rot,
-            scale: phase === "character" ? 1.08 : 1,
+            scale: showCharacter ? 1.08 : 1,
           }}
           transition={{
             x: { type: "spring", stiffness: 220, damping: 18, mass: 0.4 },
@@ -553,18 +677,33 @@ export function IdleDesktop() {
   const { open, theme } = useOs();
   const reduced = useReducedMotion() ?? false;
   const [cycleId, setCycleId] = useState<string | null>(null);
+  const [walkers, setWalkers] = useState<FieldWalkerSpawn[]>([]);
   const cycleIndex = useRef(0);
+  const ambientIndex = useRef(2);
+  const walkerSeq = useRef(0);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const walkersRef = useRef<FieldWalkerSpawn[]>([]);
 
   const empty = useMemo(() => Object.values(open).every((v) => !v), [open]);
 
   useEffect(() => {
+    walkersRef.current = walkers;
+  }, [walkers]);
+
+  useEffect(() => {
     if (empty) return;
     setCycleId(null);
+    setWalkers([]);
+    walkersRef.current = [];
   }, [empty]);
 
   const cubes = useMemo(() => CUBE_LAYOUT, []);
   const morphCycleIds = useMemo(
     () => cubes.filter((c) => c.behavior === "drift").map((c) => c.id),
+    [cubes],
+  );
+  const cubeHomes = useMemo(
+    () => cubes.map((c) => ({ x: c.x, y: c.y })),
     [cubes],
   );
 
@@ -573,6 +712,38 @@ export function IdleDesktop() {
   const onCycleDone = useCallback(() => {
     setCycleId(null);
   }, []);
+
+  const onWalkerDone = useCallback((id: string) => {
+    setWalkers((prev) => {
+      const next = prev.filter((w) => w.id !== id);
+      walkersRef.current = next;
+      return next;
+    });
+  }, []);
+
+  const spawnWalker = useCallback(
+    (payload: CubeReleasePayload): boolean => {
+      const prev = walkersRef.current;
+      if (prev.length >= MAX_FIELD_WALKERS) return false;
+      // One active walker per Colors mascot keeps the field cinematic.
+      if (prev.some((w) => w.color === payload.color)) return false;
+      const plan = planFieldWalk(payload.x, payload.y, cubeHomes);
+      walkerSeq.current += 1;
+      const next: FieldWalkerSpawn = {
+        id: `fw-${payload.cubeId}-${walkerSeq.current}`,
+        color: payload.color,
+        x: payload.x,
+        y: payload.y,
+        size: payload.size,
+        ...plan,
+      };
+      const list = [...prev, next];
+      walkersRef.current = list;
+      setWalkers(list);
+      return true;
+    },
+    [cubeHomes],
+  );
 
   useEffect(() => {
     if (!empty || reduced || morphCycleIds.length === 0) {
@@ -588,7 +759,27 @@ export function IdleDesktop() {
       });
     };
     const id = window.setInterval(tick, CYCLE_GAP_MS);
-    const kick = window.setTimeout(tick, 2800);
+    const kick = window.setTimeout(tick, 2200);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(kick);
+    };
+  }, [empty, morphCycleIds, reduced]);
+
+  /* Extra staggered hatch so multiple walkers can share the field calmly. */
+  useEffect(() => {
+    if (!empty || reduced || morphCycleIds.length === 0) return;
+    const tick = () => {
+      setCycleId((current) => {
+        if (current) return current;
+        const next =
+          morphCycleIds[ambientIndex.current % morphCycleIds.length]!;
+        ambientIndex.current += 3;
+        return next;
+      });
+    };
+    const id = window.setInterval(tick, AMBIENT_WALKER_GAP_MS);
+    const kick = window.setTimeout(tick, 5200);
     return () => {
       window.clearInterval(id);
       window.clearTimeout(kick);
@@ -606,6 +797,7 @@ export function IdleDesktop() {
   return (
     <motion.div
       key="idle-desktop"
+      ref={stageRef}
       className="idle-desktop"
       aria-label="Idle desktop scene"
       initial={{ opacity: 0 }}
@@ -651,6 +843,13 @@ export function IdleDesktop() {
         </div>
       </div>
 
+      <FieldWalkers
+        walkers={walkers}
+        ink={ink}
+        reduced={reduced}
+        onDone={onWalkerDone}
+      />
+
       <div className="idle-cubes">
         {cubes.map((spec) => (
           <IdleCube
@@ -659,7 +858,9 @@ export function IdleDesktop() {
             reduced={reduced}
             ink={ink}
             forcedShow={cycleId === spec.id}
+            stageRef={stageRef}
             onCycleDone={onCycleDone}
+            onReleaseChar={spawnWalker}
           />
         ))}
       </div>
