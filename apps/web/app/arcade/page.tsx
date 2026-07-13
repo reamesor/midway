@@ -46,8 +46,8 @@ type WinLayoutId =
 function tileLayout(w: number, h: number): Record<WinLayoutId, Rect> {
   const task = 44;
   const usableH = Math.max(280, h - task);
-  const pad = 8;
-  const gap = 8;
+  const pad = 6;
+  const gap = 6;
 
   if (w < 768) {
     // Near full-bleed stack under the icon dock — taskbar tabs switch focus
@@ -82,7 +82,7 @@ function tileLayout(w: number, h: number): Record<WinLayoutId, Rect> {
   const colGap = gap;
   const mainW = Math.floor(workW * 0.62);
   const sideW = workW - mainW - colGap;
-  const loopH = Math.floor(workH * 0.56);
+  const loopH = Math.floor(workH * 0.54);
   const treasuryH = workH - loopH - gap;
 
   return {
@@ -167,9 +167,13 @@ function Desktop() {
     const apply = () =>
       setLayoutSize({ w: window.innerWidth, h: window.innerHeight });
     apply();
+    window.addEventListener("resize", apply);
     const mq = window.matchMedia("(max-width: 767px)");
     mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    return () => {
+      window.removeEventListener("resize", apply);
+      mq.removeEventListener("change", apply);
+    };
   }, [booted]);
 
   const narrow = layoutSize.w < 768;

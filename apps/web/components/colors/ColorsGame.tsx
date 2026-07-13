@@ -21,7 +21,7 @@ const DiceStage = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bevel-inset h-[220px] bg-black sm:h-[260px] md:h-[300px]" />
+      <div className="bevel-inset h-[180px] bg-black sm:h-[200px] md:h-[220px]" />
     ),
   },
 );
@@ -388,18 +388,18 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
   return (
     <div className="colors-game min-w-0 font-heading text-xs">
-      <div className="mb-3 flex flex-col gap-2 border-b-2 border-line pb-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <div className="mb-1.5 flex flex-col gap-1 border-b border-line pb-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="chroma text-sm text-hot">COLORS.EXE</div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="bevel-inset px-2 py-1.5 text-[10px] text-acid">
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="bevel-inset px-1.5 py-1 text-[10px] text-acid">
             {demoGuest ? "DEMO · GUEST" : "DEMO"}
           </span>
-          <span className="bevel-inset px-2 py-1.5 text-[10px] text-ink-dim">
+          <span className="bevel-inset px-1.5 py-1 text-[10px] text-ink-dim">
             MIDWAY · {DEMO_PLAY_SOL} SOL
           </span>
           <button
             type="button"
-            className="bevel-btn min-h-11 px-3 py-2"
+            className="bevel-btn min-h-11 px-2.5 py-1.5 md:min-h-8"
             onClick={() => openWin("wallet")}
             title="Open Midway wallet"
           >
@@ -407,7 +407,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           </button>
           <button
             type="button"
-            className="bevel-btn min-h-11 px-3 py-2"
+            className="bevel-btn min-h-11 px-2.5 py-1.5 md:min-h-8"
             onClick={() => openWin("dashboard")}
             title="Open dashboard"
           >
@@ -415,7 +415,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           </button>
           <button
             type="button"
-            className="bevel-btn min-h-11 min-w-11 px-3 py-2"
+            className="bevel-btn min-h-11 min-w-11 px-2.5 py-1.5 md:min-h-8 md:min-w-8"
             onClick={() => setRulesOpen(true)}
             aria-label="Rules"
           >
@@ -424,16 +424,15 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         </div>
       </div>
 
-      <div className="mb-3 bevel-inset border border-acid/40 bg-acid/10 px-2.5 py-2 font-sans text-[11px] leading-snug normal-case tracking-normal text-ink-dim sm:px-3 sm:text-[12px]">
+      <div className="mb-2 bevel-inset border border-acid/40 bg-acid/10 px-2 py-1 font-sans text-[10px] leading-snug normal-case tracking-normal text-ink-dim sm:text-[11px]">
         <strong className="font-heading text-[10px] tracking-wide text-acid">
           DEMO · NO REAL FUNDS MOVE
         </strong>
         {" — "}
-        Bets debit your Midway wallet play balance ({DEMO_PLAY_SOL} SOL DEMO seed).
-        Main wallet is for connect / withdraw — not for betting.
+        Midway play balance ({DEMO_PLAY_SOL} SOL seed). Main wallet = connect / withdraw only.
       </div>
 
-      <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,280px)]">
+      <div className="grid min-w-0 gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,260px)] lg:gap-2.5">
         <div className="min-w-0">
           <DiceStage
             dice={dice}
@@ -451,23 +450,10 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           />
           <ColorPicker picked={picked} locked={locked} onToggle={toggleColor} />
 
-          <div className="mt-3 bevel p-3 font-heading text-[11px]">
-            <div className="mb-2 text-ink-dim">AUTOBET</div>
-            <div className="grid grid-cols-4 gap-1.5">
-              {AUTOBET_OPTIONS.slice(0, 4).map((n) => (
-                <AutobetButton
-                  key={n}
-                  n={n}
-                  active={autobet === n && autoLeft !== 0}
-                  onSelect={() => {
-                    setAutobet(n);
-                    setAutoLeft(n);
-                  }}
-                />
-              ))}
-            </div>
-            <div className="mt-1.5 grid grid-cols-3 gap-1.5">
-              {AUTOBET_OPTIONS.slice(4).map((n) => (
+          <div className="mt-2 bevel p-1.5 font-heading text-[11px] md:mt-1.5 md:p-2">
+            <div className="mb-1 text-ink-dim">AUTOBET</div>
+            <div className="grid grid-cols-4 gap-1 sm:grid-cols-7">
+              {AUTOBET_OPTIONS.map((n) => (
                 <AutobetButton
                   key={n}
                   n={n}
@@ -480,11 +466,11 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
               ))}
             </div>
             {autoLeft !== 0 && (
-              <div className="mt-2 flex flex-wrap items-center gap-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
                 <span>remaining: {autoLeft < 0 ? "∞" : autoLeft}</span>
                 <button
                   type="button"
-                  className="bevel-btn min-h-11 px-3 py-2 text-burn"
+                  className="bevel-btn min-h-11 px-2.5 py-1.5 text-burn md:min-h-8"
                   onClick={() => {
                     setAutobet(0);
                     setAutoLeft(0);
@@ -499,16 +485,16 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           {fairness && (
             <button
               type="button"
-              className="bevel-btn mt-3 min-h-11 w-full py-3 text-cyber"
+              className="bevel-btn mt-1.5 min-h-11 w-full py-2 text-cyber md:min-h-8 md:py-1.5"
               onClick={() => openWin("fairness")}
             >
               ▶ VERIFY FAIRNESS.LOG
             </button>
           )}
           {fairness && (
-            <details className="mt-2 bevel-inset p-2 font-mono text-[12px] text-ink-dim">
-              <summary className="cursor-pointer py-1 text-cyber">seeds (inline)</summary>
-              <div className="mt-2 space-y-1 break-all">
+            <details className="mt-1.5 bevel-inset p-1.5 font-mono text-[11px] text-ink-dim">
+              <summary className="cursor-pointer py-0.5 text-cyber">seeds (inline)</summary>
+              <div className="mt-1.5 space-y-1 break-all">
                 <div>hash: {fairness.serverSeedHash}</div>
                 <div>server: {fairness.serverSeed}</div>
                 <div>client: {fairness.clientSeed}</div>
@@ -593,7 +579,7 @@ function AutobetButton({
     <button
       type="button"
       onClick={onSelect}
-      className={`bevel-btn min-h-11 min-w-0 px-2 py-2 ${
+      className={`bevel-btn min-h-11 min-w-0 px-1 py-1.5 text-[10px] md:min-h-8 md:py-1 ${
         active ? "bevel-btn-acid" : ""
       }`}
     >

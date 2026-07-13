@@ -12,10 +12,10 @@ type ColorPickerProps = {
 export function ColorPicker({ picked, locked, onToggle }: ColorPickerProps) {
   return (
     <div className="min-w-0">
-      <div className="mb-2 mt-3 text-center font-heading text-[10px] tracking-[0.2em] text-ink-dim">
+      <div className="mb-1 mt-2 text-center font-heading text-[10px] tracking-[0.2em] text-ink-dim md:mt-1.5">
         SELECT COLORS (UP TO 3)
       </div>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-2">
+      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-1.5">
         {COLOR_KEYS.map((c) => {
           const active = picked.has(c);
           return (
@@ -25,13 +25,13 @@ export function ColorPicker({ picked, locked, onToggle }: ColorPickerProps) {
               disabled={locked}
               onClick={() => onToggle(c)}
               aria-pressed={active}
-              className={`bevel hard-shadow-sm flex min-h-[4.5rem] flex-col items-center justify-center px-1 py-3 text-center font-heading text-[10px] uppercase transition-none disabled:opacity-50 ${
+              className={`bevel hard-shadow-sm flex min-h-11 flex-col items-center justify-center px-1 py-1.5 text-center font-heading text-[10px] uppercase transition-none disabled:opacity-50 md:min-h-0 md:py-1 ${
                 active ? "bg-acid text-black outline outline-2 outline-offset-1" : ""
               }`}
               style={active ? { outlineColor: "var(--acid)" } : undefined}
             >
               <span
-                className="colors-swatch-cube mx-auto mb-2 block"
+                className="colors-swatch-cube mx-auto mb-1 block"
                 style={{ ["--swatch" as string]: COLOR_HEX[c] }}
                 aria-hidden
               />

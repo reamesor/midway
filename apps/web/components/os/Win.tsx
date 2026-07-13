@@ -157,7 +157,7 @@ export function Win({
           </div>
         </div>
         <div className="win-body min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain bg-panel text-ink">
-          <div className="win-body-inner p-2 sm:p-3">{children}</div>
+          <div className="win-body-inner p-1.5 sm:p-2">{children}</div>
         </div>
       </div>
     </Rnd>

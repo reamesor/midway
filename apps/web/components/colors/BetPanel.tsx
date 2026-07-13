@@ -51,46 +51,45 @@ export function BetPanel({
     (Boolean(!walletConnected || needsDeposit) || !placingDisabled);
 
   return (
-    <div className="min-w-0 space-y-3 font-heading text-[11px]">
-      <div className="bevel-inset p-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="min-w-0 space-y-2 font-heading text-[11px] md:space-y-1.5">
+      <div className="bevel-inset p-2 md:p-2">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
           <div className="text-ink-dim">MIDWAY WALLET · DEMO</div>
           <WalletConnectControl size="panel" />
         </div>
-        <div className="num text-2xl text-acid">
+        <div className="num text-xl text-acid md:text-lg">
           {walletConnected ? fmtSol(balance) : "—"}{" "}
           <span className="text-sm text-ink-dim">SOL</span>
         </div>
         {!walletConnected ? (
-          <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            Connect Phantom / Solflare, or play demo without a wallet — unlocks a local 10 SOL pot.
+          <p className="mt-0.5 font-sans text-[10px] leading-snug normal-case tracking-normal text-ink-dim md:text-[11px]">
+            Connect Phantom / Solflare, or play demo — unlocks a local 10 SOL pot.
           </p>
         ) : needsDeposit ? (
-          <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+          <p className="mt-0.5 font-sans text-[10px] leading-snug normal-case tracking-normal text-ink-dim md:text-[11px]">
             Midway wallet empty —{" "}
             <button
               type="button"
-              className="min-h-11 px-1 text-hot underline"
+              className="min-h-11 px-1 text-hot underline md:min-h-0"
               onClick={onOpenWallet}
             >
               deposit or reset
             </button>{" "}
-            in WALLET. Play funds are DEMO — no real SOL moves.
+            in WALLET.
           </p>
         ) : (
-          <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-            DEMO bets debit your Midway wallet when you pull the lever — no real SOL
-            leaves your main wallet.
+          <p className="mt-0.5 hidden font-sans text-[10px] leading-snug normal-case tracking-normal text-ink-dim sm:block md:text-[11px]">
+            DEMO bets debit Midway wallet on lever pull — no real SOL leaves your main wallet.
           </p>
         )}
       </div>
 
-      <div className="bevel p-3">
+      <div className="bevel p-2">
         <div className="mb-1 text-ink-dim">BET AMOUNT (SOL)</div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <button
             type="button"
-            className="bevel-btn size-11 shrink-0 text-base"
+            className="bevel-btn size-11 shrink-0 text-base md:size-9"
             disabled={leverArmed}
             aria-label="Decrease bet"
             onClick={() => onBetChange(roundSol(Math.max(0.01, bet - step)))}
@@ -98,7 +97,7 @@ export function BetPanel({
             −
           </button>
           <input
-            className="num bevel-inset h-11 min-w-0 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none disabled:opacity-50"
+            className="num bevel-inset h-11 min-w-0 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none disabled:opacity-50 md:h-9 md:text-base"
             type="number"
             inputMode="decimal"
             min={0.01}
@@ -111,7 +110,7 @@ export function BetPanel({
           />
           <button
             type="button"
-            className="bevel-btn size-11 shrink-0 text-base"
+            className="bevel-btn size-11 shrink-0 text-base md:size-9"
             disabled={leverArmed}
             aria-label="Increase bet"
             onClick={() => onBetChange(roundSol(bet + step))}
@@ -119,12 +118,12 @@ export function BetPanel({
             +
           </button>
         </div>
-        <div className="mt-2 grid grid-cols-5 gap-1.5">
+        <div className="mt-1.5 grid grid-cols-5 gap-1">
           {BET_PRESETS.map((v) => (
             <button
               key={v}
               type="button"
-              className="bevel-btn min-h-11 min-w-0 px-1 py-2"
+              className="bevel-btn min-h-11 min-w-0 px-1 py-1.5 md:min-h-8 md:py-1"
               disabled={leverArmed}
               onClick={() => onBetChange(v)}
             >
@@ -133,15 +132,15 @@ export function BetPanel({
           ))}
           <button
             type="button"
-            className="bevel-btn min-h-11 min-w-0 px-1 py-2"
+            className="bevel-btn min-h-11 min-w-0 px-1 py-1.5 md:min-h-8 md:py-1"
             disabled={leverArmed || !walletConnected}
             onClick={onMax}
           >
             MAX
           </button>
         </div>
-        <p className="mt-2 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-          Each selected color costs the full bet in SOL. Bet cost is taken when you pull the lever.
+        <p className="mt-1.5 font-sans text-[10px] leading-snug normal-case tracking-normal text-ink-dim md:mt-1">
+          Each color costs the full bet. Taken when you pull the lever.
         </p>
       </div>
 
@@ -149,7 +148,7 @@ export function BetPanel({
         <button
           type="button"
           onClick={onCancelPlace}
-          className="bevel-btn min-h-11 w-full py-3 text-burn"
+          className="bevel-btn min-h-11 w-full py-2.5 text-burn md:min-h-9 md:py-2"
         >
           CANCEL BET
         </button>
@@ -164,7 +163,7 @@ export function BetPanel({
             }
             onPlace();
           }}
-          className="bevel-btn bevel-btn-hot min-h-11 w-full py-3 text-sm"
+          className="bevel-btn bevel-btn-hot min-h-11 w-full py-2.5 text-sm md:min-h-9 md:py-2"
         >
           {placeLabel}
         </button>
@@ -174,7 +173,7 @@ export function BetPanel({
         type="button"
         disabled={!canRoll}
         onClick={onPullLever}
-        className={`bevel-btn bevel-btn-acid relative min-h-14 w-full overflow-hidden py-5 text-sm ${
+        className={`bevel-btn bevel-btn-acid relative min-h-12 w-full overflow-hidden py-3 text-sm md:min-h-10 md:py-2.5 ${
           leverArmed ? "glitch-pulse" : ""
         }`}
       >
@@ -194,7 +193,7 @@ export function BetPanel({
             grid={[...GLYPHS.lever]}
             palette={{ K: "currentColor", Y: "currentColor" }}
             px={3}
-            style={{ width: 28, height: 28 }}
+            style={{ width: 24, height: 24 }}
           />
         </span>
       </button>

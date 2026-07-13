@@ -183,7 +183,8 @@ html.one-bit {
 
   .arcade-shell {
     overflow: hidden;
-    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
   }
 
   h1,
@@ -688,8 +689,8 @@ html.dark .colors-stage-banner {
 .colors-swatch-cube {
   --swatch: #f3e6a4;
   --swatch-rim: #f7f5ef;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border: 2px solid var(--swatch-rim);
   background:
     linear-gradient(
@@ -714,10 +715,17 @@ html.dark .colors-stage-banner {
     ),
     color-mix(in srgb, #fff 18%, var(--swatch));
   box-shadow:
-    3px 3px 0 color-mix(in srgb, var(--swatch) 78%, #f7f5ef),
-    5px 5px 0 color-mix(in srgb, #f7f5ef 70%, var(--sage));
+    2px 2px 0 color-mix(in srgb, var(--swatch) 78%, #f7f5ef),
+    3px 3px 0 color-mix(in srgb, #f7f5ef 70%, var(--sage));
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+
+@media (min-width: 768px) {
+  .colors-swatch-cube {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 /* Dark mode: settle swatch fills into the stage (keep cream rim) */

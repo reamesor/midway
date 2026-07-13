@@ -162,7 +162,7 @@ export function DiceStage({
   const showTopBanner = rolling || Boolean(dice && result);
 
   return (
-    <div className="colors-dice-stage bevel-inset relative isolate h-[220px] overflow-hidden sm:h-[260px] md:h-[300px]">
+    <div className="colors-dice-stage bevel-inset relative isolate h-[180px] overflow-hidden sm:h-[200px] md:h-[220px]">
       <div
         className="pointer-events-none absolute inset-0 dithered opacity-20"
         style={{

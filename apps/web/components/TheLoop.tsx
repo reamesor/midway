@@ -68,33 +68,33 @@ export function TheLoop() {
   const palette = inkPalette(theme);
 
   return (
-    <div className="flex flex-col gap-3 font-heading text-xs">
-      <header className="space-y-1 border-b border-line pb-2.5">
+    <div className="flex flex-col gap-2 font-heading text-xs">
+      <header className="space-y-0.5 border-b border-line pb-1.5">
         <p className="text-[11px] tracking-wide text-ink">EVERY CUT COMES HOME</p>
-        <p className="font-sans text-[13px] font-normal normal-case tracking-normal leading-snug text-ink-dim">
+        <p className="font-sans text-[12px] font-normal normal-case tracking-normal leading-snug text-ink-dim">
           Unlike deployer-only fee rails, Midway routes the house cut home — to
           operators, players, holders, and builders. Action → treasury → burn ·
           believers · build.
         </p>
       </header>
 
-      <section className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
+      <section className="grid grid-cols-1 gap-1.5 sm:grid-cols-3 sm:items-stretch">
         {STEPS.map((step, i) => (
           <div key={step.title} className="relative flex">
-            <div className="bevel hard-shadow-sm flex w-full flex-col gap-1.5 p-2.5 text-left">
-              <div className="flex items-center gap-2">
+            <div className="bevel hard-shadow-sm flex w-full flex-col gap-1 p-2 text-left">
+              <div className="flex items-center gap-1.5">
                 <PixelIcon
                   grid={[...GLYPHS[step.glyph]]}
                   palette={palette}
                   px={2}
-                  style={{ width: 18, height: 18, flexShrink: 0 }}
+                  style={{ width: 16, height: 16, flexShrink: 0 }}
                 />
                 <div className="text-[10px] tracking-wide text-ink">{step.title}</div>
               </div>
-              <div className="min-h-[2.5rem] font-sans text-[13px] font-semibold normal-case tracking-normal leading-snug text-ink">
+              <div className="font-sans text-[12px] font-semibold normal-case tracking-normal leading-snug text-ink sm:min-h-[2rem]">
                 {step.lead}
               </div>
-              <p className="min-h-[2.75rem] font-sans text-[12px] font-normal normal-case tracking-normal leading-snug text-ink-dim">
+              <p className="font-sans text-[11px] font-normal normal-case tracking-normal leading-snug text-ink-dim sm:min-h-[2.25rem]">
                 {step.detail}
               </p>
             </div>
@@ -115,15 +115,15 @@ export function TheLoop() {
         ))}
       </section>
 
-      <div className="space-y-2">
-        <p className="font-sans text-[12px] font-normal normal-case tracking-normal text-ink-dim">
+      <div className="space-y-1.5">
+        <p className="font-sans text-[11px] font-normal normal-case tracking-normal text-ink-dim">
           Treasury split — where the cut goes:
         </p>
-        <section className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
+        <section className="grid grid-cols-1 gap-1.5 sm:grid-cols-3 sm:items-stretch">
           {SPLITS.map((s) => (
             <div
               key={s.file}
-              className="bevel-inset flex flex-col gap-1 p-2.5"
+              className="bevel-inset flex flex-col gap-0.5 p-2"
               style={{ boxShadow: `inset 0 0 0 1px ${s.color}` }}
             >
               <div className="flex items-baseline justify-between gap-2">
@@ -136,12 +136,12 @@ export function TheLoop() {
                   />
                   <span className="text-[10px] tracking-wide text-ink">{s.label}</span>
                 </div>
-                <span className="num text-lg leading-none" style={{ color: s.color }}>
+                <span className="num text-base leading-none" style={{ color: s.color }}>
                   {s.pct}
                 </span>
               </div>
               <div className="text-[9px] tracking-wide text-ink-dim">{s.file}</div>
-              <p className="min-h-[2.5rem] font-sans text-[12px] font-normal normal-case tracking-normal leading-snug text-ink-dim">
+              <p className="font-sans text-[11px] font-normal normal-case tracking-normal leading-snug text-ink-dim sm:min-h-[2.25rem]">
                 {s.body}
               </p>
             </div>
