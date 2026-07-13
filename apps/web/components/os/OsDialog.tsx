@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 
 type OsDialogProps = {
   open: boolean;
@@ -22,6 +23,8 @@ type OsDialogProps = {
 const MAX_WIDTH = 448; // max-w-md
 /** Leave room for the Colors ResultBanner above the cubes. */
 const TOP_RESERVE = 120;
+/** Unique from Win's `.win-titlebar` so parent COLORS.EXE does not steal the drag. */
+const DRAG_HANDLE = "os-dialog-titlebar";
 
 function dialogWidth() {
   return Math.min(MAX_WIDTH, Math.max(260, window.innerWidth - 24));
@@ -70,6 +73,11 @@ export function OsDialog({
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [width, setWidth] = useState(MAX_WIDTH);
   const [placed, setPlaced] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -116,7 +124,7 @@ export function OsDialog({
     };
   }, [open]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   const chrome =
     variant === "lose"
@@ -127,7 +135,7 @@ export function OsDialog({
 
   const retryLabel = variant === "lose" ? "RETRY" : "PLAY AGAIN";
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[200]" role="presentation">
       <div
         className="absolute inset-0 bg-black/60"
@@ -138,9 +146,10 @@ export function OsDialog({
         <Rnd
           position={pos}
           size={{ width, height: "auto" }}
+          onDrag={(_e, d) => setPos({ x: d.x, y: d.y })}
           onDragStop={(_e, d) => setPos({ x: d.x, y: d.y })}
           bounds="window"
-          dragHandleClassName="win-titlebar"
+          dragHandleClassName={DRAG_HANDLE}
           cancel=".win-controls, .win-controls *, a, button"
           enableResizing={false}
           className="pointer-events-auto"
@@ -152,9 +161,11 @@ export function OsDialog({
             aria-modal="true"
             aria-labelledby="os-dialog-title"
             className={`bevel hard-shadow-lg flex max-h-[min(90dvh,720px)] w-full flex-col overflow-hidden bg-panel ${chrome}`}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             <div
-              className={`win-titlebar ${variant === "lose" ? "" : "focused"}`}
+              className={`win-titlebar ${DRAG_HANDLE} ${variant === "lose" ? "" : "focused"}`}
               style={
                 variant === "lose"
                   ? { background: "linear-gradient(90deg, var(--burn), #4a0000)" }
@@ -225,6 +236,7 @@ export function OsDialog({
           </div>
         </Rnd>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

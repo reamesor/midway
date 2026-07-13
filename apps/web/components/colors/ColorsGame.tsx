@@ -120,11 +120,15 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     openWin("wallet");
   };
 
-  const clearBoard = useCallback(() => {
+  /** Wipe landed faces + banner — only when a new tumble starts or picks change. */
+  const clearVisualResult = useCallback(() => {
     setResult(null);
-    setDialogOpen(false);
     setDice(null);
     setHits([false, false, false]);
+  }, []);
+
+  const closeResultDialog = useCallback(() => {
+    setDialogOpen(false);
   }, []);
 
   const toggleColor = (c: ColorKey) => {
@@ -135,7 +139,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       else if (next.size < 3) next.add(c);
       return next;
     });
-    clearBoard();
+    setDialogOpen(false);
+    clearVisualResult();
   };
 
   useEffect(() => {
@@ -237,7 +242,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
     setPhase("rolling");
     setPrompt("");
-    clearBoard();
+    setDialogOpen(false);
+    clearVisualResult();
 
     try {
       const res = await fetch("/api/colors/roll", {
@@ -270,7 +276,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- ensureWallet uses stable openWin/setVisible
   }, [
-    clearBoard,
+    clearVisualResult,
     creditPlaySol,
     debitPlaySol,
     openWin,
@@ -295,7 +301,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
     setPhase("placed");
     setPrompt("READY — PULL THE LEVER");
-    clearBoard();
+    // Keep last faces/banner until the lever starts tumbling.
+    setDialogOpen(false);
   };
 
   const cancelPlaced = () => {
@@ -325,6 +332,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
     setPhase("rolling");
     setPrompt("");
+    setDialogOpen(false);
+    clearVisualResult();
     try {
       const res = await fetch("/api/colors/roll", {
         method: "POST",
@@ -373,11 +382,6 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       cancelled = true;
     };
   }, [autoLeft, phase, picked.size, dialogOpen, runRound]);
-
-  const dismissResult = () => {
-    clearBoard();
-    setPhase("select");
-  };
 
   const dialogVariant =
     result?.matches === 3 ? "jackpot" : (result?.matches ?? 0) > 0 ? "win" : "lose";
@@ -567,8 +571,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
               )}`
             : undefined
         }
-        onRetry={dismissResult}
-        onClose={dismissResult}
+        onRetry={closeResultDialog}
+        onClose={closeResultDialog}
       />
 
       <ColorsRules open={rulesOpen} onClose={() => setRulesOpen(false)} />
