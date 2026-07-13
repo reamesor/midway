@@ -185,9 +185,15 @@ html.one-bit {
     --dock-w: 70px;
     --dock-mobile-h: 58px;
     --taskbar-h: 40px;
+    /* Desktop Chrome ignores OS dock in safe-area; keep Midway taskbar clear of it. */
+    --shell-pad-bottom: max(56px, env(safe-area-inset-bottom, 0px));
+    --chrome-bottom: calc(var(--taskbar-h) + var(--shell-pad-bottom));
+    position: relative;
     overflow: hidden;
     height: 100dvh;
     max-height: 100dvh;
+    box-sizing: border-box;
+    background-color: var(--void);
   }
 
   @media (min-width: 1100px) {
@@ -767,11 +773,27 @@ html.dark .colors-swatch-cube {
     5px 5px 0 color-mix(in srgb, #f7f5ef 55%, #1a2420);
 }
 
-/* Soft paper overlays (replacing neon CRT) */
-.crt-scanlines {
+/* Soft paper overlays (replacing neon CRT).
+   Clip off left dock + bottom chrome so mix-blend never composites through them. */
+.crt-scanlines,
+.crt-vignette,
+.crt-grain {
   pointer-events: none;
   position: fixed;
   inset: 0;
+  /* top right bottom left — keep overlays off dock rail + taskbar/safe area */
+  clip-path: inset(0 0 var(--chrome-bottom, 96px) var(--dock-w, 70px));
+}
+@media (max-width: 767px) {
+  .crt-scanlines,
+  .crt-vignette,
+  .crt-grain {
+    clip-path: inset(
+      var(--dock-mobile-h, 58px) 0 var(--chrome-bottom, 96px) 0
+    );
+  }
+}
+.crt-scanlines {
   z-index: 90;
   opacity: 0.06;
   background: repeating-linear-gradient(
@@ -781,9 +803,6 @@ html.dark .colors-swatch-cube {
   );
 }
 .crt-vignette {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
   z-index: 89;
   background: radial-gradient(
     ellipse at center,
@@ -792,9 +811,6 @@ html.dark .colors-swatch-cube {
   );
 }
 .crt-grain {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
   z-index: 88;
   opacity: 0.35;
   mix-blend-mode: multiply;
@@ -879,7 +895,8 @@ html.dark .desktop-wallpaper {
 .idle-desktop {
   position: absolute;
   inset: 0;
-  bottom: var(--taskbar-h, 40px);
+  bottom: var(--chrome-bottom, var(--taskbar-h, 40px));
+  left: var(--dock-w, 70px);
   z-index: 3;
   /* Let dock / taskbar / wallpaper receive clicks; cubes opt back in. */
   pointer-events: none;
@@ -891,13 +908,16 @@ html.dark .desktop-wallpaper {
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 16px 24px calc(var(--taskbar-h, 40px) + 8px);
-  padding-left: calc(var(--dock-w, 70px) + 16px);
+  padding: 16px 24px 8px;
+  padding-left: 16px;
 }
 @media (max-width: 767px) {
+  .idle-desktop {
+    left: 0;
+    top: var(--dock-mobile-h, 58px);
+  }
   .idle-desktop-stage {
-    padding: calc(var(--dock-mobile-h, 58px) + 12px) 16px
-      calc(var(--taskbar-h, 40px) + 8px);
+    padding: 12px 16px 8px;
     align-items: start;
   }
 }
@@ -1722,10 +1742,10 @@ html.dark .win-titlebar.focused {
 }
 .win-controls button:hover { filter: invert(1); }
 
-/* Desktop icons — fixed opaque rail (workspace clips beside / below) */
+/* Desktop icons — opaque rail above CRT; workspace clips beside / below */
 .desk-icons {
-  position: fixed;
-  z-index: 50;
+  position: absolute;
+  z-index: 95;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1737,9 +1757,11 @@ html.dark .win-titlebar.focused {
   max-width: none;
   padding: 4px 6px;
   pointer-events: none;
-  background: var(--chrome);
-  border-bottom: 2px solid;
-  border-color: var(--bevel-lo);
+  /* Fully opaque — never alpha / color-mix */
+  background-color: var(--chrome);
+  background-image: none;
+  opacity: 1;
+  border-bottom: 2px solid var(--bevel-lo);
   box-shadow: 0 2px 0 var(--shadow-cut);
   overflow-x: auto;
   overflow-y: hidden;
@@ -1747,17 +1769,28 @@ html.dark .win-titlebar.focused {
   scrollbar-width: thin;
   isolation: isolate;
 }
+/* Solid underlay so blend modes / gaps never show desktop through the rail */
+.desk-icons::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--chrome);
+  pointer-events: none;
+}
 .desk-icons > * {
   pointer-events: auto;
+  position: relative;
+  z-index: 1;
 }
 
-/* Window layer — padded so Rnd bounds never draw under dock / taskbar */
+/* Window layer — inset so Rnd bounds never draw under dock / taskbar */
 .desktop-wins {
   position: absolute;
   z-index: 8;
   top: var(--dock-mobile-h, 58px);
   right: 0;
-  bottom: var(--taskbar-h, 40px);
+  bottom: var(--chrome-bottom, var(--taskbar-h, 40px));
   left: 0;
   overflow: hidden;
   isolation: isolate;
@@ -1798,7 +1831,7 @@ html.dark .win-titlebar.focused {
     top: 0;
     left: 0;
     right: auto;
-    bottom: var(--taskbar-h, 40px);
+    bottom: var(--chrome-bottom, var(--taskbar-h, 40px));
     height: auto;
     width: var(--dock-w, 70px);
     flex-direction: column;
@@ -1807,8 +1840,8 @@ html.dark .win-titlebar.focused {
     gap: 2px;
     padding: 6px 3px 8px;
     border: none;
-    border-right: 2px solid;
-    border-color: var(--bevel-lo);
+    border-bottom: none;
+    border-right: 2px solid var(--bevel-lo);
     box-shadow: 2px 0 0 var(--shadow-cut);
     overflow-x: hidden;
     overflow-y: auto;
@@ -1911,22 +1944,44 @@ html.dark .win-titlebar.focused {
   transition: width 400ms steps(8);
 }
 
-/* Taskbar */
+/* Taskbar — sits above OS dock clearance; opaque; full-bleed under left rail gap */
 .taskbar {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
-  z-index: 100;
+  bottom: var(--shell-pad-bottom, 56px);
+  z-index: 110;
   height: var(--taskbar-h, 40px);
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
-  background: var(--chrome);
+  background-color: var(--chrome);
+  background-image: none;
+  opacity: 1;
   border-top: 2px solid var(--bevel-hi);
   box-shadow: 0 -2px 0 var(--shadow-cut);
   isolation: isolate;
+}
+.taskbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--chrome);
+  pointer-events: none;
+}
+/* Dead zone under taskbar so wallpaper never peeks through OS-dock clearance */
+.arcade-shell > .os-bottom-clearance,
+.arcade-desktop-clearance {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--shell-pad-bottom, 56px);
+  z-index: 105;
+  background-color: var(--void);
+  pointer-events: none;
 }
 
 .taskbar .menu-check {
@@ -2215,6 +2270,6 @@ html.dark .midway-wallet-modal__demo {
     height: auto;
     min-height: var(--taskbar-h, 40px);
     flex-wrap: wrap;
-    padding-bottom: max(4px, env(safe-area-inset-bottom));
+    padding-bottom: 4px;
   }
 }

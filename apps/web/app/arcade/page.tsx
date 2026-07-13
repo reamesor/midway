@@ -44,10 +44,12 @@ type WinLayoutId =
   | "soon";
 
 function tileLayout(w: number, h: number): Record<WinLayoutId, Rect> {
-  // Match --taskbar-h / --dock-w / --dock-mobile-h in globals.css.
-  // desktop-wins is already inset by dock + taskbar, so coords are relative to that pane.
+  // Match --taskbar-h / --dock-w / --shell-pad-bottom / --dock-mobile-h in globals.css.
+  // desktop-wins is already inset by dock + chrome-bottom, so coords are relative to that pane.
   const task = 40;
-  const usableH = Math.max(280, h - task);
+  const shellPadBottom = 56; // --shell-pad-bottom (macOS dock / safe-area clearance)
+  const chromeBottom = task + shellPadBottom;
+  const usableH = Math.max(280, h - chromeBottom);
   const pad = 6;
   const gap = 6;
 
@@ -351,6 +353,7 @@ function Desktop() {
         burnedTokens={treasury.burnedTokens}
         believers={treasury.believers}
       />
+      <div className="arcade-desktop-clearance" aria-hidden />
     </div>
   );
 }
