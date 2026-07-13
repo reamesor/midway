@@ -45,7 +45,8 @@ export const HOUSE_EDGE = 0.05;
  * House cut is routed to burn / believers / build from the published edge and
  * does NOT silently reduce "Returned to you".
  *
- * Multi-color stakes `bet × colors`; LITERAL still pays on the unit bet.
+ * Multi-color: stake = bet × colorsSelected. LITERAL still pays on the
+ * unit bet — e.g. unit 0.01 × 3 colors = 0.03 cost; 1 match → 0.02 returned.
  */
 export const MATCH_PAYOUT = 2;
 

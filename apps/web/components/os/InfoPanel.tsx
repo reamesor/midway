@@ -118,10 +118,10 @@ export function InfoPanel() {
       <Header>Colors — the first ride</Header>
       <p className="font-sans text-ink-dim">
         <strong className="font-semibold text-ink">Colors</strong> is a pick-up-to-3-of-6
-        dice game. Every right color pays 2× the unit bet: 1 match → Bet×2, 2 → Bet×4,
-        jackpot → Bet×6. Every roll still routes a 5% house cut of total bet cost into
-        the treasury — win or lose — so you can open TREASURY.MON and watch meters move.
-        That cut is separate from your return; it does not silently reduce payouts.
+        dice game. Returned = unit bet × 2 × matches (1 → 2×, 2 → 4×, jackpot → 6×).
+        Multi-color stakes unit × colors, but payouts still use the unit bet. Every roll
+        routes a 5% house cut of total cost into the treasury — win or lose — separate
+        from your return; it does not silently reduce payouts.
       </p>
       <p className="font-sans text-ink-dim">
         Demo uses a Midway wallet play balance (local ledger, no real transfers). Fairness

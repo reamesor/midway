@@ -75,19 +75,25 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
               </ul>
               <div className="mt-3 space-y-1 border-t border-line/50 pt-2 text-[12px] text-ink-dim">
                 <p>
-                  Example at <strong className="text-ink">0.10 SOL</strong> unit bet
-                  (1 color → bet cost 0.10 SOL):
+                  In the formula, <strong className="text-ink">Bet = unit bet</strong>{" "}
+                  (the amount you set), not total stake. Example at{" "}
+                  <strong className="text-ink">0.10 SOL</strong> unit · 1 color
+                  (cost 0.10):
                 </p>
                 <ul className="font-mono text-[12px] space-y-0.5">
                   <li>1 match → <span className="text-ink">0.20</span> SOL returned (+0.10)</li>
                   <li>2 matches → <span className="text-ink">0.40</span> SOL returned (+0.30)</li>
                   <li>3 matches → <span className="text-ink">0.60</span> SOL returned (+0.50)</li>
-                  <li>0 matches → lose bet; cut still comes home</li>
+                  <li>0 matches → lose stake; cut still comes home</li>
                 </ul>
                 <p className="pt-1">
-                  Each selected color costs the full bet (3 × 0.01 = 0.03 SOL).
-                  Payouts use the unit bet. The 5% house cut is treasury routing —
-                  it does not silently halve your return.
+                  Multi-color: each color costs the unit bet (
+                  <span className="font-mono text-ink">3 × 0.01 = 0.03</span>{" "}
+                  total cost). Payouts still use the unit: 1 match on that round
+                  returns{" "}
+                  <span className="font-mono text-ink">0.02</span> (unit × 2), not
+                  0.06. The 5% house cut is 5% of total cost → treasury only — it
+                  does not reduce Returned to you.
                 </p>
               </div>
             </div>

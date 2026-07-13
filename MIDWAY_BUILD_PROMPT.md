@@ -171,35 +171,30 @@ Port `ColorsGame` from the HTML. **The mechanics must match exactly:**
 - Bet amount (points in Fun Mode, SOL in Solana Mode). **Each selected color costs the full bet** → `stake = bet × colorsPicked`.
 - Flow: pick colors → **PLACE BET** (deduct stake, lock round) → **ROLL** → 3 dice tumble and settle → count matches → settle payout.
 - **Matches** = number of the 3 dice whose color is in the picked set (0–3).
-- **Payouts (5% house edge):**
-  - 1 match → `bet + bet × 1.04`
-  - 2 matches → `bet + bet × 1.04 × 2`
-  - 3 matches (JACKPOT) → `bet + bet × 4.5`
+- **Payouts (2× per matched color; 5% cut separate):**
+  - `returned = bet × 2 × matchCount` where `bet` is the **unit bet**, not total stake
+  - 1 match → `bet × 2`
+  - 2 matches → `bet × 4`
+  - 3 matches (JACKPOT) → `bet × 6`
   - 0 matches → lose stake
+  - House cut = `stake × 0.05` every roll (win or lose) → treasury; does **not** reduce Returned to you
 - **Autobet:** off / 5 / 10 / 20 / 50 / 100 / unlimited, reusing current color selection + bet.
 - **Provably fair:** each roll = commit-reveal. Show a "Verify Fairness" panel after any roll with server seed, client seed, nonce, and the exact dice derivation.
 
-Payout logic in `lib/colors/engine.ts`:
+Payout logic in `lib/colors/engine.ts` (LITERAL default):
 ```ts
 export function settleRoll(bet: number, picked: Set<ColorKey>, dice: ColorKey[]) {
   const matches = dice.filter(d => picked.has(d)).length;
-  let winnings = 0;
-  if (matches === 1) winnings = bet + bet * 1.04;
-  else if (matches === 2) winnings = bet + bet * 1.04 * 2;
-  else if (matches === 3) winnings = bet + bet * 4.5;
   const stake = bet * picked.size;
-  const houseCut = stake * 0.05;      // the edge that comes home
+  const houseCut = stake * 0.05; // treasury routing only
+  const winnings = matches > 0 ? bet * 2 * matches : 0;
   return { matches, winnings, stake, houseCut, net: winnings - stake };
 }
 ```
 
 **Dice:** upgrade to 3D (three.js cubes with 6 colored faces) that tumble on roll and land showing the rolled color. Winning dice get a gold ring + pulse.
 
-> ⚠️ **PAYOUT FAIRNESS NOTE — decide before launch.** As written, `Bet` in the payout table is the *base* bet, but the player stakes `bet × colorsPicked`. So a 3-color bet stakes `bet×3` yet a 1-match win only returns `bet×2.04` → the player can "win" and still net negative. This matches the current Colors rules literally, but it's punishing. **Recommended options** (pick one and implement it, expose as a config flag `PAYOUT_MODE`):
-> 1. `LITERAL` — as above (current behavior).
-> 2. `STAKE_BASED` — multipliers apply to total stake, so multi-color wins feel fair.
-> 3. `PER_COLOR` — settle each picked color independently against the dice.
-> Default to `STAKE_BASED` unless the project owner says otherwise.
+> **PAYOUT MODE** (`NEXT_PUBLIC_PAYOUT_MODE`): `LITERAL` (default) pays on unit bet; `STAKE_BASED` applies multipliers to total stake; `PER_COLOR` settles each pick alone. Product default is LITERAL: multi-color raises hit chance and stake, but returned still = unit × 2 × matches.
 
 **Acceptance:** Colors is fully playable in Fun Mode. Dice roll in 3D, matches + payouts are correct, autobet works, fairness is verifiable.
 

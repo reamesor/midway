@@ -695,9 +695,9 @@
     <h4>How to Play</h4>
     <p>Bet on up to 3 colors from 6: Yellow, Orange, Pink, Blue, Green, Red. Three dice roll at once. Win if any of your colors match the dice.</p>
     <p style="color:var(--dim)"><b style="color:var(--gold)">Example:</b> bet Blue + Green, dice show Blue, Blue, Red → 2 matches, you win!</p>
-    <h4>Payouts (5% house edge)</h4>
-    <p>1 match: Bet + (Bet × 1.04)<br>2 matches: Bet + (Bet × 1.04 × 2)<br>3 matches (Jackpot): Bet + (Bet × 4.5)</p>
-    <p style="color:var(--dim)">Each color costs your full bet amount.</p>
+    <h4>Payouts (2× per matched color)</h4>
+    <p>1 match: Bet × 2 → 2×<br>2 matches: Bet × 2 × 2 → 4×<br>3 matches (Jackpot): Bet × 2 × 3 → 6×</p>
+    <p style="color:var(--dim)">Bet = unit bet. Each color costs the full unit; multi-color stake = unit × colors. 5% of total stake routes to treasury and does not reduce your return.</p>
     <h4>The Midway Twist</h4>
     <p>Unlike a normal arcade, the 5% house edge doesn't vanish. Every roll routes it into the shared Treasury → 40% buyback &amp; burn, 40% believers' pool, 20% build fund. <b style="color:var(--gold)">The edge comes home.</b></p>
     <h4>Modes</h4>
@@ -832,11 +832,9 @@ function settle(dice) {
     }
   });
 
-  // payout per rules (Bet = base bet, not stake)
+  // payout: returned = unit bet × 2 × matches (LITERAL; not total stake)
   let winnings = 0;
-  if (matches === 1) winnings = state.bet + state.bet * 1.04;
-  else if (matches === 2) winnings = state.bet + state.bet * 1.04 * 2;
-  else if (matches === 3) winnings = state.bet + state.bet * 4.5;
+  if (matches > 0) winnings = state.bet * 2 * matches;
 
   state.balance += winnings;
 
