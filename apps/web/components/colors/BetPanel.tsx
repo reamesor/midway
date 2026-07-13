@@ -51,7 +51,7 @@ export function BetPanel({
     (Boolean(!walletConnected || needsDeposit) || !placingDisabled);
 
   return (
-    <div className="flex h-full min-w-0 flex-col gap-2 font-heading text-[11px] md:gap-1.5">
+    <div className="flex min-h-0 min-w-0 flex-col gap-2 font-heading text-[11px] md:gap-1.5 lg:h-full lg:justify-center">
       <div className="bevel-inset shrink-0 p-2">
         <div className="flex flex-wrap items-center justify-between gap-1.5">
           <div className="text-ink-dim">MIDWAY WALLET · DEMO</div>
@@ -146,7 +146,7 @@ export function BetPanel({
         </p>
       </div>
 
-      <div className="mt-auto flex shrink-0 flex-col gap-2 md:gap-1.5">
+      <div className="flex shrink-0 flex-col gap-2 md:gap-1.5">
         {leverArmed ? (
           <button
             type="button"
