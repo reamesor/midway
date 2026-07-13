@@ -39,11 +39,11 @@ export function TreasuryPanel({
   };
 
   return (
-    <div className="space-y-4 font-heading text-xs">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
+    <div className="space-y-5 px-1 py-0.5 font-heading text-xs sm:px-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0 space-y-0.5">
           <div className="text-ink-dim">SYSTEM MONITOR · LIVE</div>
-          <div className="font-sans text-[13px] normal-case tracking-normal text-ink-dim">
+          <div className="font-sans text-[13px] leading-snug normal-case tracking-normal text-ink-dim">
             every Colors roll routes its 5% house cut here — then 40/40/20
           </div>
         </div>
@@ -51,11 +51,11 @@ export function TreasuryPanel({
           value={total}
           prefix="◎ "
           decimals={4}
-          className="num text-2xl text-acid chroma"
+          className="num shrink-0 text-2xl leading-none text-acid chroma"
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
         <Vu
           label="BURN.SYS"
           value={burn}
@@ -84,27 +84,29 @@ export function TreasuryPanel({
         />
       </div>
 
-      <div className="bevel-inset space-y-2 p-3">
-        <div className="font-heading text-[10px] tracking-wide text-acid">
-          YOUR BELIEVERS SHARE · DEMO
+      <div className="bevel-inset space-y-3 px-3.5 py-3.5 sm:px-4 sm:py-4">
+        <div className="space-y-1.5">
+          <div className="font-heading text-[10px] tracking-wide text-acid">
+            YOUR BELIEVERS SHARE · DEMO
+          </div>
+          <p className="font-sans text-[12px] leading-snug normal-case tracking-normal text-ink-dim">
+            Accrues from the <span className="text-ink">Believers</span> slice of the house
+            cut — not the same as Colors win payouts (those credit Midway Play).
+          </p>
         </div>
-        <p className="font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-          Accrues from the <span className="text-ink">Believers</span> slice of the house
-          cut — not the same as Colors win payouts (those credit Midway Play).
-        </p>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="font-sans text-[14px] normal-case tracking-normal">
-            claimable:{" "}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="font-sans text-[14px] leading-none normal-case tracking-normal">
+            <span className="text-ink-dim">claimable:</span>{" "}
             <CountUp
               value={yourShare}
               prefix="◎ "
               decimals={4}
-              className="num font-heading text-acid"
+              className="num font-heading text-base text-acid"
             />
           </div>
           <button
             type="button"
-            className="bevel-btn bevel-btn-acid px-4 py-2"
+            className="bevel-btn bevel-btn-acid w-full px-4 py-2.5 sm:w-auto sm:shrink-0"
             onClick={handleClaim}
           >
             CLAIM BELIEVERS
@@ -136,11 +138,16 @@ function Vu({
   const color =
     tone === "burn" ? "var(--burn)" : tone === "acid" ? "var(--acid)" : "var(--cyber)";
   return (
-    <div>
-      <div className="mb-1 flex justify-between gap-2">
-        <span style={{ color }}>{label}</span>
-        <CountUp value={value} prefix="◎ " decimals={4} className="num text-ink" />
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <div className="truncate tracking-wide" style={{ color }} title={label}>
+        {label}
       </div>
+      <CountUp
+        value={value}
+        prefix="◎ "
+        decimals={4}
+        className="num text-base leading-none text-ink"
+      />
       <div className="vu-track">
         <div
           className="vu-fill"
@@ -150,7 +157,7 @@ function Vu({
           }}
         />
       </div>
-      <div className="mt-1 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+      <div className="font-sans text-[12px] leading-snug normal-case tracking-normal text-ink-dim">
         {note}
       </div>
     </div>
