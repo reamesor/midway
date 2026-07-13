@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  JACKPOT_PROFIT,
-  MATCH1_PROFIT,
-  MATCH2_PROFIT,
-  splitCut,
-} from "@/lib/colors/engine";
+import { MATCH_PAYOUT, payoutMultiplier, splitCut } from "@/lib/colors/engine";
 
 type ResultBreakdownProps = {
   matches: number;
@@ -83,13 +78,13 @@ export function ResultBreakdown({
 
 function formulaHint(matches: number): string | null {
   if (matches === 1) {
-    return `1 match · Bet + (Bet × ${MATCH1_PROFIT}) → ${(1 + MATCH1_PROFIT).toFixed(2)}× unit bet`;
+    return `1 match · Bet × ${MATCH_PAYOUT} → ${payoutMultiplier(1)}× unit bet`;
   }
   if (matches === 2) {
-    return `2 matches · Bet + (Bet × ${MATCH2_PROFIT}) → ${(1 + MATCH2_PROFIT).toFixed(2)}× unit bet`;
+    return `2 matches · Bet × ${MATCH_PAYOUT} × 2 → ${payoutMultiplier(2)}× unit bet`;
   }
   if (matches === 3) {
-    return `Jackpot · Bet + (Bet × ${JACKPOT_PROFIT}) → ${(1 + JACKPOT_PROFIT).toFixed(2)}× unit bet`;
+    return `Jackpot · Bet × ${MATCH_PAYOUT} × 3 → ${payoutMultiplier(3)}× unit bet`;
   }
   if (matches === 0) {
     return "0 matches · no payout · bet lost · 5% cut still routes home";

@@ -32,9 +32,9 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
           <header className="border-b-2 border-line pb-3">
             <div className="font-heading text-sm text-hot">COLORS GAME RULES</div>
             <p className="mt-1 text-[12px] text-ink-dim">
-              Fair published odds · ~5% house edge · transparent cut. Match and
-              you get paid the formulas below. The edge is not pocketed — it
-              routes home as burn / believers / build.
+              Every right color pays 2× · transparent 5% house cut. Match and you
+              get paid the formulas below. The cut is not pocketed — it routes home
+              as burn / believers / build, separate from your return.
             </p>
           </header>
 
@@ -57,37 +57,37 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
           <Section title="PAYOUTS">
             <div className="rounded border-2 border-line bg-paper-2/90 p-3">
               <p className="mb-2 font-heading text-[11px] text-acid">
-                5% HOUSE EDGE · LITERAL (UNIT BET)
+                EVERY RIGHT COLOR · 2× UNIT BET
               </p>
               <ul className="space-y-1.5 font-mono text-[13px]">
                 <li>
-                  <span className="text-hot">1 match:</span> Bet + (Bet × 1.04)
-                  <span className="text-ink-dim"> → 2.04×</span>
+                  <span className="text-hot">1 match:</span> Bet × 2
+                  <span className="text-ink-dim"> → 2×</span>
                 </li>
                 <li>
-                  <span className="text-hot">2 matches:</span> Bet + (Bet × 1.04 × 2)
-                  <span className="text-ink-dim"> → 3.08×</span>
+                  <span className="text-hot">2 matches:</span> Bet × 2 × 2
+                  <span className="text-ink-dim"> → 4×</span>
                 </li>
                 <li>
-                  <span className="text-hot">3 matches (Jackpot):</span> Bet + (Bet × 4.5)
-                  <span className="text-ink-dim"> → 5.5×</span>
+                  <span className="text-hot">3 matches (Jackpot):</span> Bet × 2 × 3
+                  <span className="text-ink-dim"> → 6×</span>
                 </li>
               </ul>
               <div className="mt-3 space-y-1 border-t border-line/50 pt-2 text-[12px] text-ink-dim">
                 <p>
-                  Example at <strong className="text-ink">1 SOL</strong> unit bet
-                  (1 color → bet cost 1 SOL):
+                  Example at <strong className="text-ink">0.10 SOL</strong> unit bet
+                  (1 color → bet cost 0.10 SOL):
                 </p>
                 <ul className="font-mono text-[12px] space-y-0.5">
-                  <li>1 match → <span className="text-ink">2.04</span> SOL returned</li>
-                  <li>2 matches → <span className="text-ink">3.08</span> SOL returned</li>
-                  <li>3 matches → <span className="text-ink">5.50</span> SOL returned</li>
+                  <li>1 match → <span className="text-ink">0.20</span> SOL returned (+0.10)</li>
+                  <li>2 matches → <span className="text-ink">0.40</span> SOL returned (+0.30)</li>
+                  <li>3 matches → <span className="text-ink">0.60</span> SOL returned (+0.50)</li>
                   <li>0 matches → lose bet; cut still comes home</li>
                 </ul>
                 <p className="pt-1">
                   Each selected color costs the full bet (3 × 0.01 = 0.03 SOL).
-                  Payouts use the unit bet. Single-color RTP ≈ 95% — fair odds,
-                  sustainable edge.
+                  Payouts use the unit bet. The 5% house cut is treasury routing —
+                  it does not silently halve your return.
                 </p>
               </div>
             </div>

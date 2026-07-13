@@ -32,23 +32,28 @@ export const COLOR_HEX: Record<ColorKey, string> = {
 export const HOUSE_EDGE = 0.05;
 
 /**
- * LITERAL payout profit multipliers on the unit bet (screenshot / RULES.TXT):
- *   1 match:           Bet + (Bet × MATCH1_PROFIT)     → 2.04× return
- *   2 matches:         Bet + (Bet × MATCH2_PROFIT)     → 3.08× return
- *   3 matches (JP):    Bet + (Bet × JACKPOT_PROFIT)    → 5.50× return
+ * Each correct / matched color pays 2× the bet base:
+ *   1 match → bet × 2
+ *   2 matches → bet × 2 × 2 = bet × 4
+ *   3 matches → bet × 2 × 3 = bet × 6
  *
- * Worked examples (LITERAL, bet = 1 SOL, one color → stake = 1):
- *   1 match → winnings 2.04, houseCut 0.05 → burn 0.02 / believers 0.02 / build 0.01
- *   2 match → winnings 3.08, houseCut 0.05 → same 40/40/20 split of the cut
- *   3 match → winnings 5.50, houseCut 0.05
+ * Worked examples (LITERAL, bet = 0.10 SOL, one color → stake = 0.10):
+ *   1 match → returned 0.20, profit +0.10, houseCut 0.005
+ *   2 match → returned 0.40, profit +0.30
+ *   3 match → returned 0.60, profit +0.50
  *
- * Single-color EV ≈ 94.8% RTP (≈5.2% edge) — sustainable for the house,
- * fair published odds for players. Multi-color stakes `bet × colors`;
- * LITERAL still pays on the unit bet (as documented).
+ * House cut is routed to burn / believers / build from the published edge and
+ * does NOT silently reduce "Returned to you".
+ *
+ * Multi-color stakes `bet × colors`; LITERAL still pays on the unit bet.
  */
-export const MATCH1_PROFIT = 1.04;
-export const MATCH2_PROFIT = 1.04 * 2; // 2.08
-export const JACKPOT_PROFIT = 4.5;
+export const MATCH_PAYOUT = 2;
+
+/** Return multiplier for a match count (0 → 0). */
+export function payoutMultiplier(matches: number): number {
+  if (matches <= 0) return 0;
+  return MATCH_PAYOUT * matches;
+}
 
 /** Treasury split of every house cut. */
 export const CUT_BURN = 0.4;
@@ -56,7 +61,7 @@ export const CUT_BELIEVERS = 0.4;
 export const CUT_BUILD = 0.2;
 
 /**
- * LITERAL = screenshot / HTML rules (multipliers on unit bet).
+ * LITERAL = multipliers on unit bet.
  * STAKE_BASED = multipliers on total stake (bet × colors).
  * PER_COLOR = each picked color settled alone vs its own dice hits.
  *
@@ -75,11 +80,9 @@ export type SettleResult = {
   net: number;
 };
 
-function literalWinnings(bet: number, matches: number): number {
-  if (matches === 1) return bet + bet * MATCH1_PROFIT;
-  if (matches === 2) return bet + bet * MATCH2_PROFIT;
-  if (matches === 3) return bet + bet * JACKPOT_PROFIT;
-  return 0;
+/** Gross amount returned to the player for `matches` on a bet base. */
+export function matchWinnings(base: number, matches: number): number {
+  return base * payoutMultiplier(matches);
 }
 
 export function settleRoll(
@@ -90,21 +93,22 @@ export function settleRoll(
 ): SettleResult {
   const pickedSet = picked instanceof Set ? picked : new Set(picked);
   const stake = bet * pickedSet.size;
-  // Every round: 5% of total cost → treasury (win or lose).
+  // Every round: 5% of total cost → treasury (win or lose). Display / routing only —
+  // does not reduce the player return below matchWinnings.
   const houseCut = stake * HOUSE_EDGE;
   const matches = dice.filter((d) => pickedSet.has(d)).length;
 
   let winnings = 0;
 
   if (mode === "LITERAL") {
-    winnings = literalWinnings(bet, matches);
+    winnings = matchWinnings(bet, matches);
   } else if (mode === "STAKE_BASED") {
-    winnings = literalWinnings(stake, matches);
+    winnings = matchWinnings(stake, matches);
   } else {
     // PER_COLOR: each picked color pays independently vs dice presence
     for (const color of pickedSet) {
       const hits = dice.filter((d) => d === color).length;
-      winnings += literalWinnings(bet, hits);
+      winnings += matchWinnings(bet, hits);
     }
   }
 
