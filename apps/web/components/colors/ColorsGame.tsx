@@ -21,7 +21,7 @@ const DiceStage = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bevel-inset min-h-[180px] flex-1 bg-black sm:min-h-[200px] md:min-h-[210px] lg:h-[240px] lg:max-h-[240px] lg:flex-none" />
+      <div className="bevel-inset min-h-[180px] flex-1 bg-black sm:min-h-[200px] md:min-h-[210px]" />
     ),
   },
 );
@@ -442,8 +442,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         Midway play balance ({DEMO_PLAY_SOL} SOL seed). Main wallet = connect / withdraw only.
       </div>
 
-      <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,260px)] lg:grid-rows-[minmax(0,1fr)] lg:items-stretch lg:gap-3">
-        <div className="flex h-full min-h-0 min-w-0 flex-col gap-2 md:gap-1.5 lg:justify-center lg:gap-2">
+      <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,260px)] lg:grid-rows-[minmax(0,1fr)] lg:items-stretch lg:gap-2.5">
+        <div className="flex h-full min-h-0 min-w-0 flex-col gap-1.5 md:gap-1">
           <DiceStage
             dice={dice}
             rolling={phase === "rolling"}
@@ -459,7 +459,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
                 : prompt
             }
           />
-          <div className="flex shrink-0 flex-col gap-1.5 md:gap-1">
+          <div className="flex shrink-0 flex-col gap-1 md:gap-1">
             <ColorPicker picked={picked} locked={locked} onToggle={toggleColor} />
 
             <div className="bevel px-1.5 py-1 font-heading text-[11px] md:px-1.5 md:py-0.5">

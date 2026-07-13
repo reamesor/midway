@@ -205,7 +205,7 @@ export function DiceStage({
 
   return (
     <div
-      className={`colors-dice-stage bevel-inset relative isolate min-h-[180px] flex-1 overflow-hidden sm:min-h-[200px] md:min-h-[210px] lg:h-[240px] lg:max-h-[240px] lg:flex-none${
+      className={`colors-dice-stage bevel-inset relative isolate min-h-[180px] flex-1 overflow-hidden sm:min-h-[200px] md:min-h-[210px]${
         isJackpot ? " is-jackpot" : ""
       }${celebrate ? " is-jackpot-fx" : ""}`}
     >
