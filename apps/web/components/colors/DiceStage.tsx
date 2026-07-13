@@ -44,12 +44,12 @@ const SHADE_INK = "#7a9a72";
 /** Cream / paper rim — must read in dark mode (not black). */
 const FACE_RIM = "#f7f5ef";
 
-/** Medium roll — readable tumble, not frantic blur or lazy drift. */
-const ROLL_SPIN_X = 0.2;
-const ROLL_SPIN_Y = 0.24;
-const ROLL_BOB_HZ = 11;
+/** Medium-fast roll — snappier tumble, still readable (not frantic). */
+const ROLL_SPIN_X = 0.24;
+const ROLL_SPIN_Y = 0.28;
+const ROLL_BOB_HZ = 13;
 const ROLL_BOB_AMP = 0.16;
-const ROLL_FACE_MS = 95;
+const ROLL_FACE_MS = 80;
 const SETTLE_LERP = 0.1;
 
 function shadeHex(hex: string, shade: FaceShade): string {
