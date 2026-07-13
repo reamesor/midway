@@ -12,7 +12,7 @@ type ColorPickerProps = {
 export function ColorPicker({ picked, locked, onToggle }: ColorPickerProps) {
   return (
     <div className="min-w-0">
-      <div className="mb-1 mt-2 text-center font-heading text-[10px] tracking-[0.2em] text-ink-dim md:mt-1.5">
+      <div className="mb-1 text-center font-heading text-[10px] tracking-[0.2em] text-ink-dim">
         SELECT COLORS (UP TO 3)
       </div>
       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-1.5">

@@ -432,8 +432,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         Midway play balance ({DEMO_PLAY_SOL} SOL seed). Main wallet = connect / withdraw only.
       </div>
 
-      <div className="grid min-w-0 gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,260px)] lg:gap-2.5">
-        <div className="min-w-0">
+      <div className="grid min-w-0 items-start gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,260px)] lg:items-stretch lg:gap-2.5">
+        <div className="flex min-w-0 flex-col gap-2 md:gap-1.5">
           <DiceStage
             dice={dice}
             rolling={phase === "rolling"}
@@ -450,7 +450,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           />
           <ColorPicker picked={picked} locked={locked} onToggle={toggleColor} />
 
-          <div className="mt-2 bevel p-1.5 font-heading text-[11px] md:mt-1.5 md:p-2">
+          <div className="bevel p-1.5 font-heading text-[11px] md:p-2">
             <div className="mb-1 text-ink-dim">AUTOBET</div>
             <div className="grid grid-cols-4 gap-1 sm:grid-cols-7">
               {AUTOBET_OPTIONS.map((n) => (
@@ -485,14 +485,14 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           {fairness && (
             <button
               type="button"
-              className="bevel-btn mt-1.5 min-h-11 w-full py-2 text-cyber md:min-h-8 md:py-1.5"
+              className="bevel-btn min-h-11 w-full py-2 text-cyber md:min-h-8 md:py-1.5"
               onClick={() => openWin("fairness")}
             >
               ▶ VERIFY FAIRNESS.LOG
             </button>
           )}
           {fairness && (
-            <details className="mt-1.5 bevel-inset p-1.5 font-mono text-[11px] text-ink-dim">
+            <details className="bevel-inset p-1.5 font-mono text-[11px] text-ink-dim">
               <summary className="cursor-pointer py-0.5 text-cyber">seeds (inline)</summary>
               <div className="mt-1.5 space-y-1 break-all">
                 <div>hash: {fairness.serverSeedHash}</div>
@@ -506,7 +506,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           )}
         </div>
 
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col lg:h-full lg:min-h-0">
           <BetPanel
             balance={balance}
             bet={bet}
