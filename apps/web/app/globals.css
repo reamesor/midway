@@ -303,11 +303,13 @@ html.one-bit {
   }
 
   .arcade-shell .win-titlebar,
+  .arcade-shell .os-dialog-titlebar,
   .arcade-shell .cursor-grab {
     cursor: var(--mw-cur-grab);
   }
 
   .arcade-shell .win-titlebar:active,
+  .arcade-shell .os-dialog-titlebar:active,
   .arcade-shell .cursor-grabbing {
     cursor: var(--mw-cur-grabbing);
   }
@@ -1688,8 +1690,11 @@ html.dark .desktop-wallpaper {
   to { transform: translateX(-50%); }
 }
 
-/* Window chrome — ink/sage titlebars (fixed within .win; only .win-body scrolls) */
-.win-titlebar {
+/* Window chrome — ink/sage titlebars (fixed within .win; only .win-body scrolls).
+   `.os-dialog-titlebar` mirrors this for portaled WIN/ERROR/JACKPOT dialogs — must
+   stay a distinct class so COLORS.EXE react-rnd does not steal the drag. */
+.win-titlebar,
+.os-dialog-titlebar {
   position: relative;
   z-index: 2;
   flex-shrink: 0;
@@ -1706,6 +1711,7 @@ html.dark .desktop-wallpaper {
   text-transform: uppercase;
   cursor: var(--mw-cur-grab);
   user-select: none;
+  touch-action: none;
 }
 .win-body {
   -webkit-overflow-scrolling: touch;
@@ -1715,13 +1721,17 @@ html.dark .desktop-wallpaper {
 .win-body .info-tldr {
   top: 0;
 }
-.win-titlebar:active { cursor: var(--mw-cur-grabbing); }
-.win-titlebar.focused {
+.win-titlebar:active,
+.os-dialog-titlebar:active { cursor: var(--mw-cur-grabbing); }
+.win-titlebar.focused,
+.os-dialog-titlebar.focused {
   background: linear-gradient(90deg, var(--ink), var(--ink-dim) 55%, var(--chrome));
   color: var(--btn);
 }
 html[data-theme="dark"] .win-titlebar.focused,
-html.dark .win-titlebar.focused {
+html.dark .win-titlebar.focused,
+html[data-theme="dark"] .os-dialog-titlebar.focused,
+html.dark .os-dialog-titlebar.focused {
   background: linear-gradient(90deg, var(--gold), #8a6420 45%, var(--chrome));
   color: #121a14;
 }
@@ -1797,7 +1807,8 @@ html.dark .win-titlebar.focused {
 }
 
 @media (max-width: 767px) {
-  .win-titlebar {
+  .win-titlebar,
+  .os-dialog-titlebar {
     min-height: 40px;
     padding: 6px 8px;
   }

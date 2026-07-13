@@ -23,7 +23,11 @@ type OsDialogProps = {
 const MAX_WIDTH = 448; // max-w-md
 /** Leave room for the Colors ResultBanner above the cubes. */
 const TOP_RESERVE = 120;
-/** Unique from Win's `.win-titlebar` so parent COLORS.EXE does not steal the drag. */
+/**
+ * Distinct from Win's `.win-titlebar`. Portal events still bubble through the
+ * React tree into COLORS' react-rnd; that library matches handles by class on
+ * the event target without requiring the node to live inside the window DOM.
+ */
 const DRAG_HANDLE = "os-dialog-titlebar";
 
 function dialogWidth() {
@@ -154,6 +158,8 @@ export function OsDialog({
           enableResizing={false}
           className="pointer-events-auto"
           style={{ zIndex: 1 }}
+          /* After this Rnd accepts the start, stop React portal bubbling into COLORS. */
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <div
             id="os-dialog-window"
@@ -161,11 +167,9 @@ export function OsDialog({
             aria-modal="true"
             aria-labelledby="os-dialog-title"
             className={`bevel hard-shadow-lg flex max-h-[min(90dvh,720px)] w-full flex-col overflow-hidden bg-panel ${chrome}`}
-            onMouseDown={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
           >
             <div
-              className={`win-titlebar ${DRAG_HANDLE} ${variant === "lose" ? "" : "focused"}`}
+              className={`${DRAG_HANDLE} ${variant === "lose" ? "" : "focused"}`}
               style={
                 variant === "lose"
                   ? { background: "linear-gradient(90deg, var(--burn), #4a0000)" }

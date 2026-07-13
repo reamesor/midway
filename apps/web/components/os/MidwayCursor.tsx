@@ -19,7 +19,7 @@ const POINTER_SEL =
 const TEXT_SEL =
   'input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),textarea,[contenteditable="true"],[contenteditable=""]';
 
-const GRAB_SEL = ".win-titlebar,.cursor-grab";
+const GRAB_SEL = ".win-titlebar,.os-dialog-titlebar,.cursor-grab";
 const GRABBING_SEL = ".cursor-grabbing";
 const SKIP_SEL =
   ':disabled,[aria-disabled="true"],.cursor-not-allowed,.cursor-wait';
