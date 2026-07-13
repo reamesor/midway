@@ -14,6 +14,8 @@ type DiceStageProps = {
   hits: boolean[];
   prompt: string;
   result?: StageResult | null;
+  /** Brief non-blocking celebrate burst after a 3-match jackpot. */
+  jackpotFx?: boolean;
 };
 
 /** Per-die idle face layout — mixed Colors palette, like desktop jewelry cubes. */
@@ -81,6 +83,8 @@ function makePixelFaceTexture(
   hex: string,
   shade: FaceShade,
   dark: boolean,
+  /** Result tops: keep chroma punchy so PNK vs BLU stay unmistakable. */
+  vivid = false,
 ): THREE.CanvasTexture {
   const size = 32;
   const canvas =
@@ -98,10 +102,15 @@ function makePixelFaceTexture(
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
-  const base = faceBaseHex(hex, dark);
+  // Vivid tops: less stage-ink crush so banner chips match cube tops.
+  const base = vivid
+    ? dark
+      ? mixHex(hex, STAGE_INK, 0.12)
+      : hex
+    : faceBaseHex(hex, dark);
   const fill = shadeHex(base, shade, dark);
-  const lit = mixHex(fill, "#ffffff", dark ? 0.12 : 0.28);
-  const darkBand = mixHex(fill, SHADE_INK, dark ? 0.18 : 0.1);
+  const lit = mixHex(fill, "#ffffff", dark ? (vivid ? 0.18 : 0.12) : 0.28);
+  const darkBand = mixHex(fill, SHADE_INK, dark ? (vivid ? 0.1 : 0.18) : 0.1);
 
   ctx.fillStyle = fill;
   ctx.fillRect(0, 0, size, size);
@@ -122,8 +131,14 @@ function makePixelFaceTexture(
     }
   }
 
-  // Soft sage pixel lattice — keep chroma readable.
-  ctx.fillStyle = dark ? "rgba(74,122,82,0.1)" : "rgba(74,122,82,0.05)";
+  // Soft sage pixel lattice — keep chroma readable (lighter on result tops).
+  ctx.fillStyle = vivid
+    ? dark
+      ? "rgba(74,122,82,0.04)"
+      : "rgba(74,122,82,0.03)"
+    : dark
+      ? "rgba(74,122,82,0.1)"
+      : "rgba(74,122,82,0.05)";
   for (let i = 0; i < size; i += 4) {
     ctx.fillRect(i, 0, 1, size);
     ctx.fillRect(0, i, size, 1);
@@ -142,7 +157,15 @@ function makePixelFaceTexture(
 
 /**
  * BoxGeometry material order: +X, -X, +Y, -Y, +Z, -Z.
- * Result / winning color is always material index 2 (+Y top).
+ * Engine result ALWAYS paints material index 2 (+Y).
+ *
+ * Settle pose MUST tip +Y toward the camera (positive rot.x).
+ * Negative rot.x tips +Z upward — d500437 painted results on +Y but kept a
+ * negative settle tip, so the visible “top” diamond was still idle +Z paint
+ * (e.g. PNK/BLU/BLU banner while cubes showed green/orange/yellow tops).
+ *
+ * Manual check: dice [pink, blue, blue] → each mesh’s +Y face is that color
+ * and must dominate the silhouette after settle.
  */
 const RESULT_FACE = 2;
 
@@ -155,8 +178,14 @@ const FACE_SHADES: FaceShade[] = [
   "deep", // -Z
 ];
 
-/** Settled pose: tip top (+Y) toward camera; mild Y so sides don't dominate. */
-const SETTLE_ROT = { x: -0.42, y: 0.28, z: 0 } as const;
+/**
+ * Tip +Y (result) toward +Z/camera. Shared target quat so Euler spin from the
+ * tumble cannot leave dice on mismatched faces (lerp of huge Euler angles is
+ * unstable; slerp to this pose is exact).
+ */
+const SETTLE_QUAT = new THREE.Quaternion().setFromEuler(
+  new THREE.Euler(0.78, 0.32, -0.06, "XYZ"),
+);
 
 export function DiceStage({
   dice,
@@ -164,14 +193,21 @@ export function DiceStage({
   hits,
   prompt,
   result = null,
+  jackpotFx = false,
 }: DiceStageProps) {
   const { theme } = useOs();
   const dark = theme === "dark";
   const showPrompt = Boolean(prompt) && !rolling && !dice;
   const showTopBanner = rolling || Boolean(dice && result);
+  const isJackpot = Boolean(result && result.matches === 3);
+  const celebrate = jackpotFx && isJackpot && !rolling;
 
   return (
-    <div className="colors-dice-stage bevel-inset relative isolate min-h-[220px] flex-1 overflow-hidden sm:min-h-[240px] md:min-h-[260px]">
+    <div
+      className={`colors-dice-stage bevel-inset relative isolate min-h-[220px] flex-1 overflow-hidden sm:min-h-[240px] md:min-h-[260px]${
+        isJackpot ? " is-jackpot" : ""
+      }${celebrate ? " is-jackpot-fx" : ""}`}
+    >
       <div
         className="pointer-events-none absolute inset-0 dithered opacity-20"
         style={{
@@ -180,6 +216,13 @@ export function DiceStage({
         }}
         aria-hidden
       />
+      {celebrate ? (
+        <div className="colors-jackpot-fx" aria-hidden>
+          <div className="colors-jackpot-fx__flash" />
+          <div className="colors-jackpot-fx__scan" />
+          <div className="colors-jackpot-fx__vignette" />
+        </div>
+      ) : null}
       {showTopBanner ? (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center px-2 pt-2 sm:px-3 sm:pt-3">
           <ResultBanner
@@ -187,6 +230,7 @@ export function DiceStage({
             dice={dice}
             hits={hits}
             result={result}
+            celebrate={celebrate}
           />
         </div>
       ) : null}
@@ -198,8 +242,8 @@ export function DiceStage({
         </div>
       ) : null}
       <Canvas
-        // Slight high angle so settled +Y (result) tops read clearly, not foreshortened.
-        camera={{ position: [0, 3.05, 6.35], fov: 38 }}
+        // High angle so settled +Y (result) tops dominate over side faces.
+        camera={{ position: [0, 4.35, 5.15], fov: 34 }}
         dpr={[1, 1]}
         gl={{ antialias: false, alpha: true }}
         className="!h-full !w-full"
@@ -217,6 +261,7 @@ export function DiceStage({
             rolling={rolling}
             hit={Boolean(hits[i])}
             dark={dark}
+            celebrate={celebrate}
           />
         ))}
       </Canvas>
@@ -231,6 +276,7 @@ function DieMesh({
   rolling,
   hit,
   dark,
+  celebrate,
 }: {
   index: number;
   x: number;
@@ -238,10 +284,35 @@ function DieMesh({
   rolling: boolean;
   hit: boolean;
   dark: boolean;
+  celebrate: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
   const [spin, setSpin] = useState<ColorKey>(IDLE_FACES[index]![RESULT_FACE]!);
   const idleFaces = IDLE_FACES[index]!;
+  const celebrateAt = useRef(0);
+  const reduceMotion = useRef(false);
+  const scratchTarget = useRef(new THREE.Quaternion());
+  const scratchSpin = useRef(new THREE.Quaternion());
+  const settleQuat = useMemo(() => {
+    const q = SETTLE_QUAT.clone();
+    q.multiply(
+      new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        (index - 1) * 0.1,
+      ),
+    );
+    return q;
+  }, [index]);
+
+  useEffect(() => {
+    reduceMotion.current =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
+
+  useEffect(() => {
+    if (celebrate) celebrateAt.current = performance.now();
+  }, [celebrate]);
 
   useEffect(() => {
     if (!rolling) return;
@@ -265,15 +336,29 @@ function DieMesh({
     }
 
     if (color) {
-      // Settle with +Y (result color) facing up / toward the high camera.
-      group.current.rotation.x +=
-        (SETTLE_ROT.x - group.current.rotation.x) * SETTLE_LERP;
-      group.current.rotation.y +=
-        (SETTLE_ROT.y - group.current.rotation.y) * SETTLE_LERP;
-      group.current.rotation.z +=
-        (SETTLE_ROT.z - group.current.rotation.z) * SETTLE_LERP;
-      const bob = hit ? Math.sin(t * 3.2 + phase) * 0.06 : Math.sin(t * 1.6 + phase) * 0.03;
-      group.current.position.y += (bob - group.current.position.y) * 0.15;
+      // Slerp to a known +Y-up pose (not Euler lerp from unbounded tumble angles).
+      // Jackpot flourish: yaw-only spin so RESULT_FACE (+Y) stays on top.
+      const elapsed = (performance.now() - celebrateAt.current) / 1000;
+      const burst =
+        celebrate && hit && !reduceMotion.current
+          ? Math.max(0, 1 - elapsed / 1.45)
+          : 0;
+      const target = scratchTarget.current.copy(settleQuat);
+      if (burst > 0) {
+        scratchSpin.current.setFromAxisAngle(
+          new THREE.Vector3(0, 1, 0),
+          burst * Math.PI * 2.1 * (1 - burst) +
+            Math.sin(elapsed * 9 + phase) * 0.12 * burst,
+        );
+        target.multiply(scratchSpin.current);
+      }
+      group.current.quaternion.slerp(target, SETTLE_LERP);
+      const bobBase = hit
+        ? Math.sin(t * 3.2 + phase) * 0.06
+        : Math.sin(t * 1.6 + phase) * 0.03;
+      const bob =
+        bobBase + burst * Math.abs(Math.sin(elapsed * 11 + phase)) * 0.28;
+      group.current.position.y += (bob - group.current.position.y) * 0.18;
       return;
     }
 
@@ -312,17 +397,20 @@ function DieMesh({
 
   const materials = useMemo(() => {
     return faceKeys.map((key, i) => {
-      const tex = makePixelFaceTexture(COLOR_HEX[key], FACE_SHADES[i]!, dark);
-      const mat = new THREE.MeshBasicMaterial({
+      const isResult = i === RESULT_FACE;
+      // Result tops stay true to COLOR_HEX (no gold multiply — that washed BLU→yellow).
+      const tex = makePixelFaceTexture(
+        COLOR_HEX[key],
+        isResult ? "lit" : FACE_SHADES[i]!,
+        dark,
+        isResult,
+      );
+      return new THREE.MeshBasicMaterial({
         map: tex,
         toneMapped: false,
       });
-      if (hit && !rolling && i === RESULT_FACE) {
-        mat.color = new THREE.Color(dark ? "#e8d080" : "#fff4b0");
-      }
-      return mat;
     });
-  }, [faceKeys, hit, rolling, dark]);
+  }, [faceKeys, dark]);
 
   useEffect(() => {
     return () => {
@@ -340,12 +428,12 @@ function DieMesh({
   const edgeMat = useMemo(
     () =>
       new THREE.LineBasicMaterial({
-        color: FACE_RIM,
+        color: celebrate && hit ? "#f5c542" : FACE_RIM,
         toneMapped: false,
         depthTest: true,
         transparent: false,
       }),
-    [],
+    [celebrate, hit],
   );
 
   useEffect(() => {
@@ -366,8 +454,11 @@ function DieMesh({
       <lineSegments geometry={edges} material={edgeMat} renderOrder={2} />
       {hit && !rolling && (
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-          <torusGeometry args={[1.05, 0.06, 4, 16]} />
-          <meshBasicMaterial color="#f5c542" toneMapped={false} />
+          <torusGeometry args={[1.05, celebrate ? 0.085 : 0.06, 4, 16]} />
+          <meshBasicMaterial
+            color={celebrate ? "#ffe066" : "#f5c542"}
+            toneMapped={false}
+          />
         </mesh>
       )}
     </group>
