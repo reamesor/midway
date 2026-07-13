@@ -43,7 +43,7 @@ export function WalletConnectControl({
   const btnClass =
     size === "taskbar"
       ? "bevel-btn px-2 py-1 text-[10px] whitespace-nowrap"
-      : "bevel-btn px-2 py-0.5 text-[10px] text-hot";
+      : "bevel-btn min-h-11 px-3 py-2 text-[10px] text-hot";
 
   const identified = (connected && publicKey) || demoGuest;
 
@@ -100,14 +100,14 @@ export function WalletConnectControl({
       {menu && (
         <div
           role="menu"
-          className={`absolute z-[130] min-w-[180px] bevel hard-shadow bg-panel p-1 font-heading text-[11px] ${
+          className={`absolute z-[130] min-w-[180px] max-w-[calc(100vw-1.5rem)] bevel hard-shadow bg-panel p-1 font-heading text-[11px] ${
             size === "taskbar" ? "bottom-9 right-0" : "top-full right-0 mt-1"
           }`}
         >
           <button
             type="button"
             role="menuitem"
-            className="block w-full px-3 py-1.5 text-left hover:bg-ink hover:text-[var(--btn)]"
+            className="block min-h-11 w-full px-3 py-2.5 text-left hover:bg-ink hover:text-[var(--btn)]"
             onClick={() => {
               openWin("dashboard");
               setMenu(false);
@@ -118,7 +118,7 @@ export function WalletConnectControl({
           <button
             type="button"
             role="menuitem"
-            className="block w-full px-3 py-1.5 text-left hover:bg-ink hover:text-[var(--btn)]"
+            className="block min-h-11 w-full px-3 py-2.5 text-left hover:bg-ink hover:text-[var(--btn)]"
             onClick={() => {
               openWin("wallet");
               setMenu(false);
@@ -129,7 +129,7 @@ export function WalletConnectControl({
           <button
             type="button"
             role="menuitem"
-            className="block w-full px-3 py-1.5 text-left hover:bg-ink hover:text-[var(--btn)]"
+            className="block min-h-11 w-full px-3 py-2.5 text-left hover:bg-ink hover:text-[var(--btn)]"
             onClick={() => {
               setVisible(true);
               setMenu(false);
@@ -141,7 +141,7 @@ export function WalletConnectControl({
           <button
             type="button"
             role="menuitem"
-            className="block w-full px-3 py-1.5 text-left text-burn hover:bg-ink hover:text-[var(--btn)]"
+            className="block min-h-11 w-full px-3 py-2.5 text-left text-burn hover:bg-ink hover:text-[var(--btn)]"
             onClick={() => {
               if (connected) void disconnect();
               if (demoGuest) clearDemoGuest();

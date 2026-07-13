@@ -5,12 +5,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { ColorKey } from "@/lib/colors/engine";
 import { COLOR_HEX, COLOR_KEYS } from "@/lib/colors/engine";
+import { ResultBanner, type StageResult } from "./ResultBanner";
 
 type DiceStageProps = {
   dice: ColorKey[] | null;
   rolling: boolean;
   hits: boolean[];
   prompt: string;
+  result?: StageResult | null;
 };
 
 /** Per-die idle face layout — mixed Colors palette, like desktop jewelry cubes. */
@@ -133,11 +135,18 @@ const FACE_SHADES: FaceShade[] = [
   "deep", // -Z
 ];
 
-export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
+export function DiceStage({
+  dice,
+  rolling,
+  hits,
+  prompt,
+  result = null,
+}: DiceStageProps) {
   const showPrompt = Boolean(prompt) && !rolling && !dice;
+  const showTopBanner = rolling || Boolean(dice && result);
 
   return (
-    <div className="colors-dice-stage bevel-inset relative isolate min-h-[300px] overflow-hidden">
+    <div className="colors-dice-stage bevel-inset relative isolate h-[220px] overflow-hidden sm:h-[260px] md:h-[300px]">
       <div
         className="pointer-events-none absolute inset-0 dithered opacity-20"
         style={{
@@ -146,9 +155,19 @@ export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
         }}
         aria-hidden
       />
+      {showTopBanner ? (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center px-2 pt-2 sm:px-3 sm:pt-3">
+          <ResultBanner
+            rolling={rolling}
+            dice={dice}
+            hits={hits}
+            result={result}
+          />
+        </div>
+      ) : null}
       {showPrompt ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
-          <p className="colors-stage-prompt rounded-sm px-3 py-1 font-heading text-[11px] tracking-[0.18em] blink">
+        <div className="pointer-events-none absolute inset-x-0 bottom-2 z-10 flex justify-center px-2 sm:bottom-3 sm:px-3">
+          <p className="colors-stage-prompt max-w-full rounded-sm px-2 py-1.5 text-center font-heading text-[10px] tracking-[0.14em] blink sm:px-3 sm:text-[11px] sm:tracking-[0.18em]">
             {prompt}
           </p>
         </div>
@@ -157,7 +176,8 @@ export function DiceStage({ dice, rolling, hits, prompt }: DiceStageProps) {
         camera={{ position: [0, 1.1, 7.2], fov: 40 }}
         dpr={[1, 1]}
         gl={{ antialias: false, alpha: true }}
-        style={{ height: 300, imageRendering: "pixelated" }}
+        className="!h-full !w-full"
+        style={{ imageRendering: "pixelated" }}
       >
         {/* Flat arcade light — avoid soft PBR bloom */}
         <ambientLight intensity={1} />

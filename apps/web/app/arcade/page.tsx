@@ -161,6 +161,15 @@ function Desktop() {
     burnedTokens: 0,
   });
   const [yourShare, setYourShare] = useState(0);
+  const [narrow, setNarrow] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setNarrow(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     if (!pubkey) {
@@ -194,10 +203,10 @@ function Desktop() {
       };
     }
     return tileLayout(window.innerWidth, window.innerHeight);
-  }, [booted]);
+  }, [booted, narrow]);
 
-  // Remount windows after boot so Rnd picks up measured viewport tiles
-  const layoutKey = booted ? "live" : "boot";
+  // Remount when boot finishes or phone/desktop breakpoint flips so tiles fit
+  const layoutKey = `${booted ? "live" : "boot"}-${narrow ? "m" : "d"}`;
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
@@ -213,7 +222,7 @@ function Desktop() {
           id="loop"
           title="LOOP.EXE"
           default={winDefaults.loop}
-          minWidth={280}
+          minWidth={narrow ? 260 : 280}
           minHeight={300}
         >
           <TheLoop />
@@ -224,8 +233,8 @@ function Desktop() {
           id="colors"
           title="COLORS.EXE"
           default={winDefaults.colors}
-          minWidth={300}
-          minHeight={360}
+          minWidth={narrow ? 260 : 300}
+          minHeight={narrow ? 320 : 360}
         >
           <ColorsGame
             onHouseCut={(cut) => {
@@ -243,7 +252,7 @@ function Desktop() {
           id="treasury"
           title="TREASURY.MON — SYSTEM MONITOR"
           default={winDefaults.treasury}
-          minWidth={280}
+          minWidth={narrow ? 260 : 280}
           minHeight={220}
         >
           <TreasuryPanel
@@ -269,7 +278,7 @@ function Desktop() {
           id="wallet"
           title="WALLET.EXE — MIDWAY WALLET"
           default={winDefaults.wallet}
-          minWidth={300}
+          minWidth={narrow ? 260 : 300}
           minHeight={360}
         >
           <MidwayWalletPanel />
@@ -280,7 +289,7 @@ function Desktop() {
           id="info"
           title="INFO.TXT — WHAT IS MIDWAY"
           default={winDefaults.info}
-          minWidth={300}
+          minWidth={narrow ? 260 : 300}
           minHeight={280}
         >
           <InfoPanel />
@@ -291,7 +300,7 @@ function Desktop() {
           id="token"
           title="TOKEN.INFO — MIDWAY TOKEN"
           default={winDefaults.token}
-          minWidth={300}
+          minWidth={narrow ? 260 : 300}
           minHeight={280}
         >
           <TokenInfoPanel />
@@ -302,7 +311,7 @@ function Desktop() {
           id="fairness"
           title="FAIRNESS.LOG"
           default={winDefaults.fairness}
-          minWidth={280}
+          minWidth={narrow ? 260 : 280}
           minHeight={200}
         >
           <FairnessPanel />
@@ -313,7 +322,7 @@ function Desktop() {
           id="dashboard"
           title="PROFILE.EXE — IDENTITY"
           default={winDefaults.dashboard}
-          minWidth={300}
+          minWidth={narrow ? 260 : 300}
           minHeight={320}
         >
           <DashboardPanel />
@@ -324,7 +333,7 @@ function Desktop() {
           id="leaderboard"
           title="BOARD.EXE — LEADERBOARD"
           default={winDefaults.leaderboard}
-          minWidth={300}
+          minWidth={narrow ? 260 : 300}
           minHeight={280}
         >
           <LeaderboardPanel />
@@ -335,7 +344,7 @@ function Desktop() {
           id="soon"
           title={soonTitle || "COMING.SOON"}
           default={winDefaults.soon}
-          minWidth={280}
+          minWidth={narrow ? 260 : 280}
           minHeight={isNftLaunch ? 360 : 200}
         >
           {isNftLaunch ? <NftLaunchPanel /> : <ComingSoonStub />}

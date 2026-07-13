@@ -12,11 +12,11 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[160] flex items-center justify-center bg-black/65 p-4"
+      className="fixed inset-0 z-[160] flex items-end justify-center bg-black/65 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
-        className="bevel hard-shadow-lg max-h-[85vh] w-full max-w-lg overflow-y-auto bg-panel"
+        className="bevel hard-shadow-lg max-h-[min(90dvh,720px)] w-full max-w-lg overflow-y-auto bg-panel"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="win-titlebar focused">
@@ -99,10 +99,16 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
               <strong className="text-hot">5% house cut</strong> of your total
               cost into the Midway treasury, then splits:
             </p>
-            <ul className="mt-2 grid grid-cols-3 gap-2 font-heading text-[11px]">
-              <li className="bevel px-2 py-2 text-center text-burn">40% BURN</li>
-              <li className="bevel px-2 py-2 text-center text-hot">40% BELIEVERS</li>
-              <li className="bevel px-2 py-2 text-center text-acid">20% BUILD</li>
+            <ul className="mt-2 grid grid-cols-3 gap-1.5 font-heading text-[10px] sm:gap-2 sm:text-[11px]">
+              <li className="bevel px-1.5 py-2.5 text-center leading-tight text-burn sm:px-2 sm:py-3">
+                40% BURN
+              </li>
+              <li className="bevel px-1.5 py-2.5 text-center leading-tight text-hot sm:px-2 sm:py-3">
+                40% BELIEVERS
+              </li>
+              <li className="bevel px-1.5 py-2.5 text-center leading-tight text-acid sm:px-2 sm:py-3">
+                20% BUILD
+              </li>
             </ul>
             <p className="mt-2 text-[12px] text-ink-dim">
               Example cut on 1 SOL bet:{" "}
@@ -176,7 +182,7 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
 
           <button
             type="button"
-            className="bevel-btn bevel-btn-hot w-full py-2"
+            className="bevel-btn bevel-btn-hot min-h-11 w-full py-3"
             onClick={onClose}
           >
             GOT IT

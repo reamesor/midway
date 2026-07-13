@@ -45,7 +45,7 @@ export function OsDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-black/60 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center sm:p-4"
       role="presentation"
       onClick={onClose}
     >
@@ -53,7 +53,7 @@ export function OsDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="os-dialog-title"
-        className={`bevel hard-shadow-lg w-full max-w-md bg-panel ${chrome}`}
+        className={`bevel hard-shadow-lg max-h-[min(90dvh,720px)] w-full max-w-md overflow-y-auto bg-panel ${chrome}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -81,17 +81,17 @@ export function OsDialog({
             </button>
           </div>
         </div>
-        <div className="space-y-3 p-4 text-ink">
-          <div id="os-dialog-title" className="font-heading text-lg chroma">
+        <div className="space-y-3 p-3 text-ink sm:p-4">
+          <div id="os-dialog-title" className="chroma font-heading text-base leading-snug sm:text-lg">
             {title}
           </div>
-          <div className="text-base">{body}</div>
+          <div className="text-sm sm:text-base">{body}</div>
           {detail && <div className="num text-sm text-acid">{detail}</div>}
-          <div className="flex flex-wrap gap-2 pt-2">
+          <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:flex-wrap">
             {onRetry && (
               <button
                 type="button"
-                className={`bevel-btn flex-1 py-2 ${
+                className={`bevel-btn min-h-11 flex-1 py-3 ${
                   variant === "lose" ? "bevel-btn-hot" : "bevel-btn-acid"
                 }`}
                 onClick={onRetry}
@@ -104,12 +104,16 @@ export function OsDialog({
                 href={shareHref}
                 target="_blank"
                 rel="noreferrer"
-                className="bevel-btn flex-1 py-2 text-center text-cyber"
+                className="bevel-btn min-h-11 flex-1 py-3 text-center text-cyber"
               >
                 SHARE → X
               </a>
             )}
-            <button type="button" className="bevel-btn flex-1 py-2" onClick={onClose}>
+            <button
+              type="button"
+              className="bevel-btn min-h-11 flex-1 py-3"
+              onClick={onClose}
+            >
               OK
             </button>
           </div>

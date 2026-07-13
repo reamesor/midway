@@ -11,11 +11,11 @@ type ColorPickerProps = {
 
 export function ColorPicker({ picked, locked, onToggle }: ColorPickerProps) {
   return (
-    <div>
+    <div className="min-w-0">
       <div className="mb-2 mt-3 text-center font-heading text-[10px] tracking-[0.2em] text-ink-dim">
         SELECT COLORS (UP TO 3)
       </div>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-2">
         {COLOR_KEYS.map((c) => {
           const active = picked.has(c);
           return (
@@ -24,7 +24,8 @@ export function ColorPicker({ picked, locked, onToggle }: ColorPickerProps) {
               type="button"
               disabled={locked}
               onClick={() => onToggle(c)}
-              className={`bevel hard-shadow-sm px-1 py-3 text-center font-heading text-[10px] uppercase transition-none disabled:opacity-50 ${
+              aria-pressed={active}
+              className={`bevel hard-shadow-sm flex min-h-[4.5rem] flex-col items-center justify-center px-1 py-3 text-center font-heading text-[10px] uppercase transition-none disabled:opacity-50 ${
                 active ? "bg-acid text-black outline outline-2 outline-offset-1" : ""
               }`}
               style={active ? { outlineColor: "var(--acid)" } : undefined}

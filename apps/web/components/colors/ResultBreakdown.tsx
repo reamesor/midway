@@ -146,8 +146,8 @@ function SplitCell({
   const color =
     tone === "burn" ? "text-burn" : tone === "acid" ? "text-acid" : "text-cyber";
   return (
-    <div className="bevel px-1.5 py-1.5 text-center">
-      <div className={color}>{label}</div>
+    <div className="bevel px-1 py-1.5 text-center leading-tight sm:px-1.5">
+      <div className={`${color} break-words`}>{label}</div>
       <div className="num mt-0.5 text-[11px] text-ink">{fmt(amount)}</div>
     </div>
   );

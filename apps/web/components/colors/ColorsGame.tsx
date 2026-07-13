@@ -20,7 +20,9 @@ const DiceStage = dynamic(
   () => import("./DiceStage").then((m) => m.DiceStage),
   {
     ssr: false,
-    loading: () => <div className="bevel-inset min-h-[300px] bg-black" />,
+    loading: () => (
+      <div className="bevel-inset h-[220px] bg-black sm:h-[260px] md:h-[300px]" />
+    ),
   },
 );
 
@@ -381,19 +383,19 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     result?.matches === 3 ? "jackpot" : (result?.matches ?? 0) > 0 ? "win" : "lose";
 
   return (
-    <div className="font-heading text-xs">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b-2 border-line pb-2">
+    <div className="colors-game min-w-0 font-heading text-xs">
+      <div className="mb-3 flex flex-col gap-2 border-b-2 border-line pb-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="chroma text-sm text-hot">COLORS.EXE</div>
-        <div className="flex items-center gap-1">
-          <span className="bevel-inset px-2 py-1 text-[10px] text-acid">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="bevel-inset px-2 py-1.5 text-[10px] text-acid">
             {demoGuest ? "DEMO · GUEST" : "DEMO"}
           </span>
-          <span className="bevel-inset px-2 py-1 text-[10px] text-ink-dim">
+          <span className="bevel-inset px-2 py-1.5 text-[10px] text-ink-dim">
             MIDWAY · {DEMO_PLAY_SOL} SOL
           </span>
           <button
             type="button"
-            className="bevel-btn px-2 py-1"
+            className="bevel-btn min-h-11 px-3 py-2"
             onClick={() => openWin("wallet")}
             title="Open Midway wallet"
           >
@@ -401,7 +403,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           </button>
           <button
             type="button"
-            className="bevel-btn px-2 py-1"
+            className="bevel-btn min-h-11 px-3 py-2"
             onClick={() => openWin("dashboard")}
             title="Open dashboard"
           >
@@ -409,15 +411,16 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           </button>
           <button
             type="button"
-            className="bevel-btn px-2 py-1"
+            className="bevel-btn min-h-11 min-w-11 px-3 py-2"
             onClick={() => setRulesOpen(true)}
+            aria-label="Rules"
           >
             ?
           </button>
         </div>
       </div>
 
-      <div className="mb-3 bevel-inset border border-acid/40 bg-acid/10 px-3 py-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+      <div className="mb-3 bevel-inset border border-acid/40 bg-acid/10 px-2.5 py-2 font-sans text-[11px] leading-snug normal-case tracking-normal text-ink-dim sm:px-3 sm:text-[12px]">
         <strong className="font-heading text-[10px] tracking-wide text-acid">
           DEMO · NO REAL FUNDS MOVE
         </strong>
@@ -426,12 +429,13 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         Main wallet is for connect / withdraw — not for betting.
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-        <div>
+      <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,280px)]">
+        <div className="min-w-0">
           <DiceStage
             dice={dice}
             rolling={phase === "rolling"}
             hits={hits}
+            result={result}
             prompt={
               phase === "rolling" ||
               phase === "done" ||
@@ -446,7 +450,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           {fairness && (
             <button
               type="button"
-              className="bevel-btn mt-3 w-full py-2 text-cyber"
+              className="bevel-btn mt-3 min-h-11 w-full py-3 text-cyber"
               onClick={() => openWin("fairness")}
             >
               ▶ VERIFY FAIRNESS.LOG
@@ -454,7 +458,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           )}
           {fairness && (
             <details className="mt-2 bevel-inset p-2 font-mono text-[12px] text-ink-dim">
-              <summary className="cursor-pointer text-cyber">seeds (inline)</summary>
+              <summary className="cursor-pointer py-1 text-cyber">seeds (inline)</summary>
               <div className="mt-2 space-y-1 break-all">
                 <div>hash: {fairness.serverSeedHash}</div>
                 <div>server: {fairness.serverSeed}</div>
@@ -467,7 +471,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           )}
         </div>
 
-        <div>
+        <div className="min-w-0">
           <BetPanel
             balance={balance}
             bet={bet}
@@ -490,7 +494,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
           <div className="mt-3 bevel p-3">
             <div className="mb-2 text-ink-dim">AUTOBET</div>
-            <div className="flex flex-wrap gap-1">
+            <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap">
               {AUTOBET_OPTIONS.map((n) => (
                 <button
                   key={n}
@@ -499,7 +503,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
                     setAutobet(n);
                     setAutoLeft(n);
                   }}
-                  className={`bevel-btn px-2 py-1 ${
+                  className={`bevel-btn min-h-11 min-w-0 px-2 py-2 sm:min-w-11 sm:flex-1 ${
                     autobet === n && autoLeft !== 0 ? "bevel-btn-acid" : ""
                   }`}
                 >
@@ -508,11 +512,11 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
               ))}
             </div>
             {autoLeft !== 0 && (
-              <div className="mt-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-                remaining: {autoLeft < 0 ? "∞" : autoLeft}{" "}
+              <div className="mt-2 flex flex-wrap items-center gap-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+                <span>remaining: {autoLeft < 0 ? "∞" : autoLeft}</span>
                 <button
                   type="button"
-                  className="text-burn"
+                  className="bevel-btn min-h-11 px-3 py-2 text-burn"
                   onClick={() => {
                     setAutobet(0);
                     setAutoLeft(0);

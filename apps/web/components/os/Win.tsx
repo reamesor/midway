@@ -1,7 +1,7 @@
 "use client";
 
 import { Rnd } from "react-rnd";
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useOs, type WinId } from "./OsContext";
 
 type WinProps = {
@@ -28,9 +28,38 @@ export function Win({
   const { open, focused, zMap, focusWin, closeWin, calm } = useOs();
   const rndRef = useRef<Rnd>(null);
   const [maximized, setMaximized] = useState(false);
+  const [narrow, setNarrow] = useState(false);
   const restoreRef = useRef<{ x: number; y: number; width: number; height: number } | null>(
     null,
   );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setNarrow(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  /** On phones, snap the window to the parent tile so COLORS isn't a desktop-sized float. */
+  useEffect(() => {
+    if (!open[id] || !narrow) return;
+    const rnd = rndRef.current;
+    if (!rnd) return;
+    const parent = rnd.getParent();
+    if (!parent) return;
+    const pad = 4;
+    const maxW = Math.max(0, parent.clientWidth - pad * 2);
+    const maxH = Math.max(0, parent.clientHeight - pad * 2);
+    rnd.updatePosition({
+      x: Math.min(toNum(def.x, pad), Math.max(0, maxW - 40)),
+      y: Math.min(toNum(def.y, pad), Math.max(0, maxH - 40)),
+    });
+    rnd.updateSize({
+      width: Math.min(Math.max(toNum(def.width, minWidth), Math.min(minWidth, maxW)), maxW),
+      height: Math.min(Math.max(toNum(def.height, minHeight), Math.min(minHeight, maxH)), maxH),
+    });
+  }, [def.height, def.width, def.x, def.y, id, minHeight, minWidth, narrow, open]);
 
   const toggleMaximize = useCallback(() => {
     focusWin(id);
@@ -69,8 +98,11 @@ export function Win({
     const pad = 4;
     rnd.updatePosition({ x: pad, y: pad });
     rnd.updateSize({
-      width: Math.max(minWidth, parent.clientWidth - pad * 2),
-      height: Math.max(minHeight, parent.clientHeight - pad * 2),
+      width: Math.max(Math.min(minWidth, parent.clientWidth - pad * 2), parent.clientWidth - pad * 2),
+      height: Math.max(
+        Math.min(minHeight, parent.clientHeight - pad * 2),
+        parent.clientHeight - pad * 2,
+      ),
     });
     setMaximized(true);
   }, [def, focusWin, id, maximized, minHeight, minWidth]);
@@ -78,6 +110,10 @@ export function Win({
   if (!open[id]) return null;
 
   const isFocused = focused === id;
+  const lockChrome = maximized || calm || narrow;
+  const effectiveMinWidth = narrow
+    ? Math.min(minWidth, typeof window !== "undefined" ? Math.max(200, window.innerWidth - 16) : minWidth)
+    : minWidth;
 
   return (
     <Rnd
@@ -88,15 +124,15 @@ export function Win({
         width: def.width,
         height: def.height,
       }}
-      minWidth={minWidth}
+      minWidth={effectiveMinWidth}
       minHeight={minHeight}
       bounds="parent"
       dragHandleClassName="win-titlebar"
-      disableDragging={maximized || calm}
+      disableDragging={lockChrome}
       style={{ zIndex: zMap[id] ?? 10 }}
       onDragStart={() => focusWin(id)}
       onMouseDown={() => focusWin(id)}
-      enableResizing={!calm && !maximized}
+      enableResizing={!lockChrome}
       className="absolute pointer-events-auto"
     >
       <div
@@ -123,7 +159,7 @@ export function Win({
             </button>
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-auto bg-panel p-3 text-ink">
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-panel p-2 text-ink sm:p-3">
           {children}
         </div>
       </div>

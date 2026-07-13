@@ -1,61 +1,91 @@
 "use client";
 
-import { ResultBreakdown } from "./ResultBreakdown";
+import type { CSSProperties } from "react";
+import type { ColorKey } from "@/lib/colors/engine";
+import { COLOR_HEX, COLOR_LABEL } from "@/lib/colors/engine";
 
-type ResultBannerProps = {
-  show: boolean;
+export type StageResult = {
   matches: number;
   winnings: number;
   stake: number;
-  houseCut: number;
+};
+
+type ResultBannerProps = {
+  rolling: boolean;
+  dice: ColorKey[] | null;
+  hits: boolean[];
+  result: StageResult | null;
   unit?: string;
 };
 
-/** Inline result strip — same numbers as the WIN.EXE / ERROR.EXE dialog. */
+/**
+ * Top-of-stage status strip for COLORS.EXE:
+ * ROLLING… while tumbling, then landed faces + win/loss + profit line.
+ */
 export function ResultBanner({
-  show,
-  matches,
-  winnings,
-  stake,
-  houseCut,
+  rolling,
+  dice,
+  hits,
+  result,
   unit = "DEMO SOL",
 }: ResultBannerProps) {
-  if (!show) return null;
+  if (rolling) {
+    return (
+      <div className="colors-stage-banner colors-stage-banner--rolling" role="status">
+        <p className="colors-stage-banner__title blink">ROLLING…</p>
+      </div>
+    );
+  }
+
+  if (!dice || !result) return null;
 
   const kind =
-    matches === 3 ? "jackpot" : matches > 0 ? "win" : "lose";
-
-  const styles = {
-    win: "border-green bg-[rgba(60,232,74,0.1)]",
-    jackpot: "border-gold bg-[rgba(245,197,66,0.12)]",
-    lose: "border-[rgba(232,59,80,0.4)] bg-[rgba(232,59,80,0.08)]",
-  }[kind];
-
-  const titleColor = {
-    win: "text-green",
-    jackpot: "text-gold neon-text",
-    lose: "text-red",
-  }[kind];
-
+    result.matches === 3 ? "jackpot" : result.matches > 0 ? "win" : "lose";
+  const net = result.winnings - result.stake;
   const title =
-    matches === 3
-      ? "★ JACKPOT · 3 MATCHES!"
-      : matches > 0
-        ? `★ WIN · ${matches} MATCH${matches > 1 ? "ES" : ""}`
-        : "✕ NO MATCH";
+    result.matches === 3
+      ? "★ JACKPOT · 3 MATCHES"
+      : result.matches > 0
+        ? `★ WIN · ${result.matches} MATCH${result.matches > 1 ? "ES" : ""}`
+        : "✕ NO MATCH · YOU LOST";
 
   return (
-    <div className={`mt-4 rounded-xl border p-4 ${styles}`}>
-      <div className={`mb-3 text-center text-[22px] font-extrabold ${titleColor}`}>
-        {title}
+    <div
+      className={`colors-stage-banner colors-stage-banner--${kind}`}
+      role="status"
+      aria-live="polite"
+    >
+      <p className="colors-stage-banner__title">{title}</p>
+      <div className="colors-stage-banner__faces">
+        {dice.map((color, i) => (
+          <span
+            key={`${color}-${i}`}
+            className={`colors-stage-face${hits[i] ? " is-hit" : ""}`}
+            style={{ "--face": COLOR_HEX[color] } as CSSProperties}
+            title={color}
+          >
+            <span className="colors-stage-face__swatch" aria-hidden />
+            <span className="colors-stage-face__label">{COLOR_LABEL[color]}</span>
+          </span>
+        ))}
       </div>
-      <ResultBreakdown
-        matches={matches}
-        winnings={winnings}
-        stake={stake}
-        houseCut={houseCut}
-        unit={unit}
-      />
+      <p className="colors-stage-banner__money num">
+        <span>Bet cost −{fmt(result.stake)}</span>
+        <span aria-hidden>·</span>
+        <span>Returned +{fmt(result.winnings)}</span>
+        <span aria-hidden>·</span>
+        <span className={net >= 0 ? "is-profit" : "is-loss"}>
+          {net >= 0 ? "Your profit +" : "You lost −"}
+          {fmt(Math.abs(net))} {unit}
+        </span>
+      </p>
     </div>
   );
+}
+
+function fmt(n: number) {
+  return n.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  });
 }

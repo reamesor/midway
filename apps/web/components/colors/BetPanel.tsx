@@ -51,9 +51,9 @@ export function BetPanel({
     (Boolean(!walletConnected || needsDeposit) || !placingDisabled);
 
   return (
-    <div className="space-y-3 font-heading text-[11px]">
+    <div className="min-w-0 space-y-3 font-heading text-[11px]">
       <div className="bevel-inset p-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-ink-dim">MIDWAY WALLET · DEMO</div>
           <WalletConnectControl size="panel" />
         </div>
@@ -68,7 +68,11 @@ export function BetPanel({
         ) : needsDeposit ? (
           <p className="mt-1 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
             Midway wallet empty —{" "}
-            <button type="button" className="text-hot underline" onClick={onOpenWallet}>
+            <button
+              type="button"
+              className="min-h-11 px-1 text-hot underline"
+              onClick={onOpenWallet}
+            >
               deposit or reset
             </button>{" "}
             in WALLET. Play funds are DEMO — no real SOL moves.
@@ -83,18 +87,20 @@ export function BetPanel({
 
       <div className="bevel p-3">
         <div className="mb-1 text-ink-dim">BET AMOUNT (SOL)</div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            className="bevel-btn size-10"
+            className="bevel-btn size-11 shrink-0 text-base"
             disabled={leverArmed}
+            aria-label="Decrease bet"
             onClick={() => onBetChange(roundSol(Math.max(0.01, bet - step)))}
           >
             −
           </button>
           <input
-            className="num bevel-inset h-10 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none disabled:opacity-50"
+            className="num bevel-inset h-11 min-w-0 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none disabled:opacity-50"
             type="number"
+            inputMode="decimal"
             min={0.01}
             step={0.01}
             value={bet}
@@ -105,19 +111,20 @@ export function BetPanel({
           />
           <button
             type="button"
-            className="bevel-btn size-10"
+            className="bevel-btn size-11 shrink-0 text-base"
             disabled={leverArmed}
+            aria-label="Increase bet"
             onClick={() => onBetChange(roundSol(bet + step))}
           >
             +
           </button>
         </div>
-        <div className="mt-2 flex gap-1">
+        <div className="mt-2 grid grid-cols-5 gap-1.5">
           {BET_PRESETS.map((v) => (
             <button
               key={v}
               type="button"
-              className="bevel-btn flex-1 py-1"
+              className="bevel-btn min-h-11 min-w-0 px-1 py-2"
               disabled={leverArmed}
               onClick={() => onBetChange(v)}
             >
@@ -126,7 +133,7 @@ export function BetPanel({
           ))}
           <button
             type="button"
-            className="bevel-btn flex-1 py-1"
+            className="bevel-btn min-h-11 min-w-0 px-1 py-2"
             disabled={leverArmed || !walletConnected}
             onClick={onMax}
           >
@@ -142,7 +149,7 @@ export function BetPanel({
         <button
           type="button"
           onClick={onCancelPlace}
-          className="bevel-btn w-full py-2 text-burn"
+          className="bevel-btn min-h-11 w-full py-3 text-burn"
         >
           CANCEL BET
         </button>
@@ -157,7 +164,7 @@ export function BetPanel({
             }
             onPlace();
           }}
-          className="bevel-btn bevel-btn-hot w-full py-3 text-sm"
+          className="bevel-btn bevel-btn-hot min-h-11 w-full py-3 text-sm"
         >
           {placeLabel}
         </button>
@@ -167,7 +174,7 @@ export function BetPanel({
         type="button"
         disabled={!canRoll}
         onClick={onPullLever}
-        className={`bevel-btn bevel-btn-acid relative w-full overflow-hidden py-5 text-sm ${
+        className={`bevel-btn bevel-btn-acid relative min-h-14 w-full overflow-hidden py-5 text-sm ${
           leverArmed ? "glitch-pulse" : ""
         }`}
       >
