@@ -447,6 +447,51 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           />
           <ColorPicker picked={picked} locked={locked} onToggle={toggleColor} />
 
+          <div className="mt-3 bevel p-3 font-heading text-[11px]">
+            <div className="mb-2 text-ink-dim">AUTOBET</div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {AUTOBET_OPTIONS.slice(0, 4).map((n) => (
+                <AutobetButton
+                  key={n}
+                  n={n}
+                  active={autobet === n && autoLeft !== 0}
+                  onSelect={() => {
+                    setAutobet(n);
+                    setAutoLeft(n);
+                  }}
+                />
+              ))}
+            </div>
+            <div className="mt-1.5 grid grid-cols-3 gap-1.5">
+              {AUTOBET_OPTIONS.slice(4).map((n) => (
+                <AutobetButton
+                  key={n}
+                  n={n}
+                  active={autobet === n && autoLeft !== 0}
+                  onSelect={() => {
+                    setAutobet(n);
+                    setAutoLeft(n);
+                  }}
+                />
+              ))}
+            </div>
+            {autoLeft !== 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
+                <span>remaining: {autoLeft < 0 ? "∞" : autoLeft}</span>
+                <button
+                  type="button"
+                  className="bevel-btn min-h-11 px-3 py-2 text-burn"
+                  onClick={() => {
+                    setAutobet(0);
+                    setAutoLeft(0);
+                  }}
+                >
+                  STOP
+                </button>
+              </div>
+            )}
+          </div>
+
           {fairness && (
             <button
               type="button"
@@ -491,42 +536,6 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
               setBet(Math.max(0.01, Math.floor((balance / n) * 10000) / 10000));
             }}
           />
-
-          <div className="mt-3 bevel p-3">
-            <div className="mb-2 text-ink-dim">AUTOBET</div>
-            <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap">
-              {AUTOBET_OPTIONS.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => {
-                    setAutobet(n);
-                    setAutoLeft(n);
-                  }}
-                  className={`bevel-btn min-h-11 min-w-0 px-2 py-2 sm:min-w-11 sm:flex-1 ${
-                    autobet === n && autoLeft !== 0 ? "bevel-btn-acid" : ""
-                  }`}
-                >
-                  {n === 0 ? "OFF" : n === -1 ? "∞" : n}
-                </button>
-              ))}
-            </div>
-            {autoLeft !== 0 && (
-              <div className="mt-2 flex flex-wrap items-center gap-2 font-sans text-[12px] normal-case tracking-normal text-ink-dim">
-                <span>remaining: {autoLeft < 0 ? "∞" : autoLeft}</span>
-                <button
-                  type="button"
-                  className="bevel-btn min-h-11 px-3 py-2 text-burn"
-                  onClick={() => {
-                    setAutobet(0);
-                    setAutoLeft(0);
-                  }}
-                >
-                  STOP
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -564,6 +573,28 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
 
       <ColorsRules open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </div>
+  );
+}
+
+function AutobetButton({
+  n,
+  active,
+  onSelect,
+}: {
+  n: (typeof AUTOBET_OPTIONS)[number];
+  active: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`bevel-btn min-h-11 min-w-0 px-2 py-2 ${
+        active ? "bevel-btn-acid" : ""
+      }`}
+    >
+      {n === 0 ? "OFF" : n === -1 ? "∞" : n}
+    </button>
   );
 }
 
