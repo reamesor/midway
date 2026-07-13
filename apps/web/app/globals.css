@@ -1835,10 +1835,11 @@ html.dark .win-titlebar.focused {
     height: auto;
     width: var(--dock-w, 70px);
     flex-direction: column;
-    justify-content: flex-start;
+    /* Center icon stack mid-dock; safe falls back to start if stack overflows */
+    justify-content: safe center;
     align-items: stretch;
     gap: 2px;
-    padding: 6px 3px 8px;
+    padding: 6px 3px;
     border: none;
     border-bottom: none;
     border-right: 2px solid var(--bevel-lo);
