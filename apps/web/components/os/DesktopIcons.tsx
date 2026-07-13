@@ -86,7 +86,7 @@ export function DesktopIcons() {
             onDoubleClick={() => activate(icon)}
           >
             <span className="glyph relative">
-              <PixelIcon grid={[...GLYPHS[icon.glyph]]} palette={palette} px={3} />
+              <PixelIcon grid={[...GLYPHS[icon.glyph]]} palette={palette} px={2} />
               {badge && (
                 <span
                   className={`desk-icon-badge ${

@@ -44,39 +44,40 @@ type WinLayoutId =
   | "soon";
 
 function tileLayout(w: number, h: number): Record<WinLayoutId, Rect> {
-  const task = 44;
+  // Match --taskbar-h / --dock-w / --dock-mobile-h in globals.css.
+  // desktop-wins is already inset by dock + taskbar, so coords are relative to that pane.
+  const task = 40;
   const usableH = Math.max(280, h - task);
   const pad = 6;
   const gap = 6;
 
   if (w < 768) {
-    // Near full-bleed stack under the icon dock — taskbar tabs switch focus
-    const dock = 58;
+    // Parent already clears the top dock — stack near full-bleed in the pane
     const full: Rect = {
       x: pad,
-      y: pad + dock,
+      y: pad,
       width: Math.max(280, w - pad * 2),
-      height: Math.max(280, usableH - pad * 2 - dock),
+      height: Math.max(280, usableH - pad * 2 - 58),
     };
     return {
       colors: full,
-      loop: { ...full, x: pad + 8, y: pad + dock + 8 },
-      treasury: { ...full, x: pad + 16, y: pad + dock + 16 },
-      wallet: { ...full, x: pad + 10, y: pad + dock + 10 },
-      info: { ...full, x: pad + 12, y: pad + dock + 12 },
-      token: { ...full, x: pad + 14, y: pad + dock + 14 },
-      fairness: { ...full, x: pad + 20, y: pad + dock + 20 },
-      dashboard: { ...full, x: pad + 18, y: pad + dock + 18 },
-      leaderboard: { ...full, x: pad + 22, y: pad + dock + 22 },
-      soon: { ...full, x: pad + 24, y: pad + dock + 24 },
+      loop: { ...full, x: pad + 8, y: pad + 8 },
+      treasury: { ...full, x: pad + 16, y: pad + 16 },
+      wallet: { ...full, x: pad + 10, y: pad + 10 },
+      info: { ...full, x: pad + 12, y: pad + 12 },
+      token: { ...full, x: pad + 14, y: pad + 14 },
+      fairness: { ...full, x: pad + 20, y: pad + 20 },
+      dashboard: { ...full, x: pad + 18, y: pad + 18 },
+      leaderboard: { ...full, x: pad + 22, y: pad + 22 },
+      soon: { ...full, x: pad + 24, y: pad + 24 },
     };
   }
 
-  // Slim icon rail on the left; windows fill the rest
-  const rail = w >= 1100 ? 92 : 84;
-  const workX = rail + pad;
+  // Parent left inset = dock width; windows fill the remaining pane
+  const dock = w >= 1100 ? 76 : 70;
+  const workX = pad;
   const workY = pad;
-  const workW = Math.max(480, w - workX - pad);
+  const workW = Math.max(480, w - dock - pad * 2);
   const workH = Math.max(360, usableH - pad * 2);
 
   const colGap = gap;
@@ -210,7 +211,7 @@ function Desktop() {
       <KineticHero />
       <DesktopIcons />
 
-      <div className="pointer-events-none absolute inset-0 bottom-10 z-[8] md:bottom-11">
+      <div className="desktop-wins pointer-events-none">
         <Win
           key={`loop-${layoutKey}`}
           id="loop"

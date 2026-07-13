@@ -182,9 +182,18 @@ html.one-bit {
   }
 
   .arcade-shell {
+    --dock-w: 70px;
+    --dock-mobile-h: 58px;
+    --taskbar-h: 40px;
     overflow: hidden;
     height: 100dvh;
     max-height: 100dvh;
+  }
+
+  @media (min-width: 1100px) {
+    .arcade-shell {
+      --dock-w: 76px;
+    }
   }
 
   h1,
@@ -870,7 +879,7 @@ html.dark .desktop-wallpaper {
 .idle-desktop {
   position: absolute;
   inset: 0;
-  bottom: 40px;
+  bottom: var(--taskbar-h, 40px);
   z-index: 3;
   /* Let dock / taskbar / wallpaper receive clicks; cubes opt back in. */
   pointer-events: none;
@@ -882,13 +891,14 @@ html.dark .desktop-wallpaper {
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 0 96px 24px;
+  padding: 16px 24px calc(var(--taskbar-h, 40px) + 8px);
+  padding-left: calc(var(--dock-w, 70px) + 16px);
 }
 @media (max-width: 767px) {
   .idle-desktop-stage {
-    padding: 72px 16px 24px;
+    padding: calc(var(--dock-mobile-h, 58px) + 12px) 16px
+      calc(var(--taskbar-h, 40px) + 8px);
     align-items: start;
-    padding-top: 88px;
   }
 }
 .idle-brand {
@@ -1712,31 +1722,47 @@ html.dark .win-titlebar.focused {
 }
 .win-controls button:hover { filter: invert(1); }
 
-/* Desktop icons — slim rail dock (windows own the workspace) */
+/* Desktop icons — fixed opaque rail (workspace clips beside / below) */
 .desk-icons {
-  position: absolute;
-  z-index: 9;
+  position: fixed;
+  z-index: 50;
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
-  left: 8px;
-  top: 8px;
-  right: auto;
-  max-width: calc(100% - 16px);
-  padding: 4px;
+  gap: 4px;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: var(--dock-mobile-h, 58px);
+  max-width: none;
+  padding: 4px 6px;
   pointer-events: none;
-  background: color-mix(in srgb, var(--chrome) 72%, transparent);
-  border: 2px solid;
-  border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
-  box-shadow: 3px 3px 0 var(--shadow-cut);
+  background: var(--chrome);
+  border-bottom: 2px solid;
+  border-color: var(--bevel-lo);
+  box-shadow: 0 2px 0 var(--shadow-cut);
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  isolation: isolate;
 }
 .desk-icons > * {
   pointer-events: auto;
 }
+
+/* Window layer — padded so Rnd bounds never draw under dock / taskbar */
+.desktop-wins {
+  position: absolute;
+  z-index: 8;
+  top: var(--dock-mobile-h, 58px);
+  right: 0;
+  bottom: var(--taskbar-h, 40px);
+  left: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
 @media (max-width: 767px) {
   .win-titlebar {
     min-height: 40px;
@@ -1753,15 +1779,15 @@ html.dark .win-titlebar.focused {
   .desk-icon {
     width: auto;
     flex: 0 0 auto;
-    min-width: 48px;
-    padding: 4px 2px;
+    min-width: 44px;
+    padding: 2px 2px;
   }
   .desk-icon .glyph {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
   .desk-icon > span:last-child {
-    max-width: 52px;
+    max-width: 48px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1769,38 +1795,42 @@ html.dark .win-titlebar.focused {
 }
 @media (min-width: 768px) {
   .desk-icons {
-    top: 10px;
-    left: 8px;
+    top: 0;
+    left: 0;
     right: auto;
-    bottom: 52px;
-    max-width: none;
-    width: 76px;
+    bottom: var(--taskbar-h, 40px);
+    height: auto;
+    width: var(--dock-w, 70px);
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
-    gap: 8px;
-    padding: 8px 4px;
-    overflow-x: visible;
+    gap: 2px;
+    padding: 6px 3px 8px;
+    border: none;
+    border-right: 2px solid;
+    border-color: var(--bevel-lo);
+    box-shadow: 2px 0 0 var(--shadow-cut);
+    overflow-x: hidden;
     overflow-y: auto;
   }
-}
-@media (min-width: 1100px) {
-  .desk-icons {
-    width: 84px;
+  .desktop-wins {
+    top: 0;
+    left: var(--dock-w, 70px);
   }
 }
 
 .desk-icon {
   width: 100%;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 4px 2px;
+  gap: 1px;
+  padding: 2px 1px;
   color: var(--ink);
   font-family: var(--font-heading);
   font-size: 8px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-align: center;
   text-transform: uppercase;
   cursor: var(--mw-cur-pointer);
@@ -1815,15 +1845,15 @@ html.dark .win-titlebar.focused {
   outline: 1px solid var(--ink);
 }
 .desk-icon .glyph {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-  padding: 5px;
+  padding: 3px;
   background: var(--panel);
   border: 2px solid;
   border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
-  box-shadow: 3px 3px 0 var(--shadow-cut);
+  box-shadow: 2px 2px 0 var(--shadow-cut);
   image-rendering: pixelated;
 }
 .desk-icon .glyph > span:not(.desk-icon-badge),
@@ -1858,7 +1888,7 @@ html.dark .win-titlebar.focused {
   color: var(--btn);
 }
 .desk-icon-badge.is-soon {
-  background: var(--chrome);
+  background: var(--panel);
   color: var(--ink-dim);
   border-color: var(--line);
 }
@@ -1888,7 +1918,7 @@ html.dark .win-titlebar.focused {
   right: 0;
   bottom: 0;
   z-index: 100;
-  height: 40px;
+  height: var(--taskbar-h, 40px);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1896,6 +1926,7 @@ html.dark .win-titlebar.focused {
   background: var(--chrome);
   border-top: 2px solid var(--bevel-hi);
   box-shadow: 0 -2px 0 var(--shadow-cut);
+  isolation: isolate;
 }
 
 .taskbar .menu-check {
@@ -2178,12 +2209,11 @@ html.dark .midway-wallet-modal__demo {
 
 @media (max-width: 768px) {
   .arcade-shell {
-    overflow: auto;
+    overflow: hidden;
   }
-  body { overflow: auto; }
   .taskbar {
     height: auto;
-    min-height: 40px;
+    min-height: var(--taskbar-h, 40px);
     flex-wrap: wrap;
     padding-bottom: max(4px, env(safe-area-inset-bottom));
   }
