@@ -16,23 +16,60 @@
     --paper:#e9e6df; --paper-2:#e3e1d8; --sage:#a9c6a0; --sage-2:#b9d3b1;
     --ink:#2f5a38; --ink-2:#3d6b45; --ink-dim:#6e8a6c; --line:#4a7a52;
     --gold:#c08a2e; --btn:#f4f2ec;
-    --mw-cur-default:url("/cursors/default.png") 2 2, auto;
-    --mw-cur-pointer:url("/cursors/pointer.png") 2 2, pointer;
-    --mw-cur-text:url("/cursors/text.png") 10 14, text;
+    --mw-cur-default:url("/cursors/default.png") 1 1, auto;
+    --mw-cur-pointer:url("/cursors/pointer.png") 1 1, pointer;
+    --mw-cur-text:url("/cursors/text.png") 5 7, text;
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --mw-cur-default:url("/cursors/default-dark.png") 2 2, auto;
-      --mw-cur-pointer:url("/cursors/pointer-dark.png") 2 2, pointer;
-      --mw-cur-text:url("/cursors/text-dark.png") 10 14, text;
+      --mw-cur-default:url("/cursors/default-dark.png") 1 1, auto;
+      --mw-cur-pointer:url("/cursors/pointer-dark.png") 1 1, pointer;
+      --mw-cur-text:url("/cursors/text-dark.png") 5 7, text;
     }
   }
-  /* Static pixel cursors — fine pointers only; touch skips custom cursor */
+  /* Compact cursors — fine pointers only; glowing DOM when motion OK */
   @media (hover: hover) and (pointer: fine){
     html,body{cursor:var(--mw-cur-default);}
     a,button,summary,label[for],select,[role="button"],.btn,.music-btn,.music-spotify,.music-subed button,.music-subed a{cursor:var(--mw-cur-pointer);}
     input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),textarea,[contenteditable="true"]{cursor:var(--mw-cur-text);}
     input[type="range"],input[type="checkbox"],input[type="radio"]{cursor:var(--mw-cur-pointer);}
+    html.mw-cursor-on,html.mw-cursor-on *{cursor:none!important;}
+  }
+  .mw-cursor{position:fixed;top:0;left:0;width:16px;height:16px;z-index:2147483000;pointer-events:none;will-change:transform;}
+  .mw-cursor[hidden]{display:none!important;}
+  .mw-cursor-glow{position:absolute;inset:-7px;border-radius:50%;opacity:.7;filter:blur(1.5px);
+    background:radial-gradient(circle,color-mix(in srgb,#a9c6a0 58%,transparent) 0%,transparent 72%);
+    animation:mw-cur-glow-cycle 10s ease-in-out infinite;}
+  .mw-cursor-glyph{position:absolute;inset:0;image-rendering:pixelated;image-rendering:crisp-edges;
+    background-repeat:no-repeat;background-position:0 0;background-size:16px 16px;
+    filter:drop-shadow(0 0 1.5px color-mix(in srgb,#a9c6a0 40%,transparent));
+    animation:mw-cur-tip-glow 10s ease-in-out infinite;}
+  .mw-cursor[data-kind="default"] .mw-cursor-glyph{background-image:url("/cursors/default.png");}
+  .mw-cursor[data-kind="pointer"] .mw-cursor-glyph{background-image:url("/cursors/pointer.png");}
+  .mw-cursor[data-kind="text"] .mw-cursor-glyph{background-image:url("/cursors/text.png");}
+  @media (prefers-color-scheme: dark){
+    .mw-cursor[data-kind="default"] .mw-cursor-glyph{background-image:url("/cursors/default-dark.png");}
+    .mw-cursor[data-kind="pointer"] .mw-cursor-glyph{background-image:url("/cursors/pointer-dark.png");}
+    .mw-cursor[data-kind="text"] .mw-cursor-glyph{background-image:url("/cursors/text-dark.png");}
+    .mw-cursor-glow{animation-name:mw-cur-glow-cycle-dark;}
+  }
+  @keyframes mw-cur-glow-cycle{
+    0%,100%{background:radial-gradient(circle,color-mix(in srgb,#a9c6a0 58%,transparent) 0%,transparent 72%);}
+    33%{background:radial-gradient(circle,color-mix(in srgb,#c08a2e 52%,transparent) 0%,transparent 72%);}
+    66%{background:radial-gradient(circle,color-mix(in srgb,#2f5a38 48%,transparent) 0%,transparent 72%);}
+  }
+  @keyframes mw-cur-glow-cycle-dark{
+    0%,100%{background:radial-gradient(circle,color-mix(in srgb,#7fae74 55%,transparent) 0%,transparent 72%);}
+    33%{background:radial-gradient(circle,color-mix(in srgb,#c08a2e 50%,transparent) 0%,transparent 72%);}
+    66%{background:radial-gradient(circle,color-mix(in srgb,#a9c6a0 48%,transparent) 0%,transparent 72%);}
+  }
+  @keyframes mw-cur-tip-glow{
+    0%,100%{filter:drop-shadow(0 0 1.5px color-mix(in srgb,#a9c6a0 40%,transparent));}
+    33%{filter:drop-shadow(0 0 1.5px color-mix(in srgb,#c08a2e 42%,transparent));}
+    66%{filter:drop-shadow(0 0 1.5px color-mix(in srgb,#2f5a38 38%,transparent));}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .mw-cursor-glow,.mw-cursor-glyph{animation:none!important;}
   }
   html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);
     font-family:'Instrument Sans',system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;}
@@ -962,6 +999,67 @@ glyph('btn-glyph');
 
   syncUi();
   /* Do not autoplay — wait for unmute gesture (browser policy). */
+})();
+</script>
+<script>
+(function(){
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (!fine.matches || reduce.matches) return;
+
+  var HOTSPOT = { default:[1,1], pointer:[1,1], text:[5,7] };
+  var POINTER = 'a,button,summary,label[for],select,[role="button"],.btn,.music-btn,.music-spotify,.music-subed button,.music-subed a,input[type="range"],input[type="checkbox"],input[type="radio"]';
+  var TEXT = 'input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),textarea,[contenteditable="true"]';
+
+  var node = document.createElement('div');
+  node.className = 'mw-cursor';
+  node.setAttribute('aria-hidden', 'true');
+  node.dataset.kind = 'default';
+  node.innerHTML = '<span class="mw-cursor-glow"></span><span class="mw-cursor-glyph"></span>';
+  node.hidden = true;
+  document.body.appendChild(node);
+  document.documentElement.classList.add('mw-cursor-on');
+
+  var x = 0, y = 0, hx = 1, hy = 1, visible = false, kind = 'default', raf = 0, dirty = false;
+
+  function paint(){
+    raf = 0; dirty = false;
+    node.style.transform = 'translate3d(' + (x - hx) + 'px,' + (y - hy) + 'px,0)';
+  }
+  function schedule(){
+    if (dirty) return;
+    dirty = true;
+    raf = requestAnimationFrame(paint);
+  }
+  function resolve(el){
+    if (!el || !el.closest) return 'default';
+    if (el.closest(TEXT)) return 'text';
+    if (el.closest(POINTER)) return 'pointer';
+    return 'default';
+  }
+  function setKind(next){
+    if (!visible) node.hidden = true;
+    else node.hidden = false;
+    if (next === kind) return;
+    kind = next;
+    node.dataset.kind = next;
+    hx = HOTSPOT[next][0];
+    hy = HOTSPOT[next][1];
+    schedule();
+  }
+  function onMove(e){
+    if (e.pointerType && e.pointerType !== 'mouse') return;
+    x = e.clientX; y = e.clientY;
+    if (!visible){ visible = true; node.hidden = false; }
+    setKind(resolve(document.elementFromPoint(e.clientX, e.clientY)));
+    schedule();
+  }
+  function onLeave(){ visible = false; node.hidden = true; }
+  function onEnter(){ visible = true; node.hidden = false; }
+
+  window.addEventListener('pointermove', onMove, { passive: true });
+  document.documentElement.addEventListener('mouseleave', onLeave);
+  document.documentElement.addEventListener('mouseenter', onEnter);
 })();
 </script>
 </body>

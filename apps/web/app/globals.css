@@ -85,12 +85,12 @@ html.light {
   --shadow-cut: #1f3e26;
   color-scheme: light;
 
-  /* Midway pixel cursors — dual-halo ink/paper + gold flag tip (hotspot at tip) */
-  --mw-cur-default: url("/cursors/default.png") 2 2, auto;
-  --mw-cur-pointer: url("/cursors/pointer.png") 2 2, pointer;
-  --mw-cur-text: url("/cursors/text.png") 10 14, text;
-  --mw-cur-grab: url("/cursors/grab.png") 16 10, grab;
-  --mw-cur-grabbing: url("/cursors/grabbing.png") 16 10, grabbing;
+  /* Midway pixel cursors — 16px compact, hotspot at tip / I-beam center */
+  --mw-cur-default: url("/cursors/default.png") 1 1, auto;
+  --mw-cur-pointer: url("/cursors/pointer.png") 1 1, pointer;
+  --mw-cur-text: url("/cursors/text.png") 5 7, text;
+  --mw-cur-grab: url("/cursors/grab.png") 8 5, grab;
+  --mw-cur-grabbing: url("/cursors/grabbing.png") 8 5, grabbing;
 }
 
 /* Dark = deeper ink/void of the same tokens */
@@ -122,11 +122,11 @@ html.dark {
   --shadow-cut: #000;
   color-scheme: dark;
 
-  --mw-cur-default: url("/cursors/default-dark.png") 2 2, auto;
-  --mw-cur-pointer: url("/cursors/pointer-dark.png") 2 2, pointer;
-  --mw-cur-text: url("/cursors/text-dark.png") 10 14, text;
-  --mw-cur-grab: url("/cursors/grab-dark.png") 16 10, grab;
-  --mw-cur-grabbing: url("/cursors/grabbing-dark.png") 16 10, grabbing;
+  --mw-cur-default: url("/cursors/default-dark.png") 1 1, auto;
+  --mw-cur-pointer: url("/cursors/pointer-dark.png") 1 1, pointer;
+  --mw-cur-text: url("/cursors/text-dark.png") 5 7, text;
+  --mw-cur-grab: url("/cursors/grab-dark.png") 8 5, grab;
+  --mw-cur-grabbing: url("/cursors/grabbing-dark.png") 8 5, grabbing;
 }
 
 /* 1-BIT MODE */
@@ -148,11 +148,11 @@ html.one-bit {
   --amber: #fff;
   --gold: #fff;
   --sage: #fff;
-  --mw-cur-default: url("/cursors/default-dark.png") 2 2, auto;
-  --mw-cur-pointer: url("/cursors/pointer-dark.png") 2 2, pointer;
-  --mw-cur-text: url("/cursors/text-dark.png") 10 14, text;
-  --mw-cur-grab: url("/cursors/grab-dark.png") 16 10, grab;
-  --mw-cur-grabbing: url("/cursors/grabbing-dark.png") 16 10, grabbing;
+  --mw-cur-default: url("/cursors/default-dark.png") 1 1, auto;
+  --mw-cur-pointer: url("/cursors/pointer-dark.png") 1 1, pointer;
+  --mw-cur-text: url("/cursors/text-dark.png") 5 7, text;
+  --mw-cur-grab: url("/cursors/grab-dark.png") 8 5, grab;
+  --mw-cur-grabbing: url("/cursors/grabbing-dark.png") 8 5, grabbing;
 }
 
 @layer base {
@@ -233,8 +233,9 @@ html.one-bit {
 
 /*
   Midway custom cursors (arcade).
-  Static pixel PNGs — no animation, so prefers-reduced-motion is a no-op.
-  Only on fine pointers; touch devices keep the OS/default (usually none).
+  Fine pointers: glowing DOM cursor (MidwayCursor) when motion is OK.
+  prefers-reduced-motion / no JS: compact 16px static PNGs (no color thrash).
+  Touch / coarse pointers: OS default (usually none).
 */
 @media (hover: hover) and (pointer: fine) {
   .arcade-shell {
@@ -301,6 +302,176 @@ html.one-bit {
 
   .arcade-shell .cursor-wait {
     cursor: wait;
+  }
+
+  /* Live glowing cursor — hide system cursor while MidwayCursor is active */
+  .arcade-shell.mw-cursor-on,
+  .arcade-shell.mw-cursor-on * {
+    cursor: none !important;
+  }
+
+  .arcade-shell.mw-cursor-on :is(:disabled, [aria-disabled="true"], .cursor-not-allowed) {
+    cursor: not-allowed !important;
+  }
+
+  .arcade-shell.mw-cursor-on .cursor-wait {
+    cursor: wait !important;
+  }
+}
+
+/* Compact glowing DOM cursor (arcade + intro) */
+.mw-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  z-index: 2147483000;
+  pointer-events: none;
+  will-change: transform;
+  contain: layout style;
+}
+
+.mw-cursor[hidden] {
+  display: none !important;
+}
+
+.mw-cursor-glow {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.7;
+  filter: blur(1.5px);
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--sage, #a9c6a0) 55%, transparent) 0%,
+    transparent 72%
+  );
+  animation: mw-cur-glow-cycle 10s ease-in-out infinite;
+}
+
+.mw-cursor-glyph {
+  position: absolute;
+  inset: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 16px 16px;
+  filter: drop-shadow(0 0 1.5px color-mix(in srgb, var(--gold, #c08a2e) 35%, transparent));
+  animation: mw-cur-tip-glow 10s ease-in-out infinite;
+}
+
+.mw-cursor[data-kind="default"] .mw-cursor-glyph {
+  background-image: url("/cursors/default.png");
+}
+.mw-cursor[data-kind="pointer"] .mw-cursor-glyph {
+  background-image: url("/cursors/pointer.png");
+}
+.mw-cursor[data-kind="text"] .mw-cursor-glyph {
+  background-image: url("/cursors/text.png");
+}
+.mw-cursor[data-kind="grab"] .mw-cursor-glyph {
+  background-image: url("/cursors/grab.png");
+}
+.mw-cursor[data-kind="grabbing"] .mw-cursor-glyph {
+  background-image: url("/cursors/grabbing.png");
+}
+
+html.dark .mw-cursor[data-kind="default"] .mw-cursor-glyph,
+html[data-theme="dark"] .mw-cursor[data-kind="default"] .mw-cursor-glyph {
+  background-image: url("/cursors/default-dark.png");
+}
+html.dark .mw-cursor[data-kind="pointer"] .mw-cursor-glyph,
+html[data-theme="dark"] .mw-cursor[data-kind="pointer"] .mw-cursor-glyph {
+  background-image: url("/cursors/pointer-dark.png");
+}
+html.dark .mw-cursor[data-kind="text"] .mw-cursor-glyph,
+html[data-theme="dark"] .mw-cursor[data-kind="text"] .mw-cursor-glyph {
+  background-image: url("/cursors/text-dark.png");
+}
+html.dark .mw-cursor[data-kind="grab"] .mw-cursor-glyph,
+html[data-theme="dark"] .mw-cursor[data-kind="grab"] .mw-cursor-glyph {
+  background-image: url("/cursors/grab-dark.png");
+}
+html.dark .mw-cursor[data-kind="grabbing"] .mw-cursor-glyph,
+html[data-theme="dark"] .mw-cursor[data-kind="grabbing"] .mw-cursor-glyph {
+  background-image: url("/cursors/grabbing-dark.png");
+}
+
+@keyframes mw-cur-glow-cycle {
+  0%,
+  100% {
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, #a9c6a0 58%, transparent) 0%,
+      transparent 72%
+    );
+  }
+  33% {
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, #c08a2e 52%, transparent) 0%,
+      transparent 72%
+    );
+  }
+  66% {
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, #2f5a38 48%, transparent) 0%,
+      transparent 72%
+    );
+  }
+}
+
+@keyframes mw-cur-tip-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 1.5px color-mix(in srgb, #a9c6a0 40%, transparent));
+  }
+  33% {
+    filter: drop-shadow(0 0 1.5px color-mix(in srgb, #c08a2e 42%, transparent));
+  }
+  66% {
+    filter: drop-shadow(0 0 1.5px color-mix(in srgb, #2f5a38 38%, transparent));
+  }
+}
+
+@keyframes mw-cur-glow-cycle-dark {
+  0%,
+  100% {
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, #7fae74 55%, transparent) 0%,
+      transparent 72%
+    );
+  }
+  33% {
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, #c08a2e 50%, transparent) 0%,
+      transparent 72%
+    );
+  }
+  66% {
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, #a9c6a0 48%, transparent) 0%,
+      transparent 72%
+    );
+  }
+}
+
+html.dark .mw-cursor-glow,
+html[data-theme="dark"] .mw-cursor-glow {
+  animation-name: mw-cur-glow-cycle-dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-cursor-glow,
+  .mw-cursor-glyph {
+    animation: none !important;
   }
 }
 

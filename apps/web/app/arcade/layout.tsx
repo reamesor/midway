@@ -7,6 +7,7 @@ import {
 import { AmbientSound } from "@/components/os/AmbientSound";
 import { OsProvider } from "@/components/os/OsContext";
 import { DitherFilter } from "@/components/os/DitherFilter";
+import { MidwayCursor } from "@/components/os/MidwayCursor";
 import { ArcadeMusicBridge } from "@/components/os/ArcadeMusicBridge";
 import { SolanaProviderGate } from "@/components/wallet/SolanaProviderGate";
 import "../globals.css";
@@ -45,6 +46,7 @@ export default function ArcadeLayout({
       className={`arcade-shell ${silkscreen.variable} ${pixelify.variable} ${vt323.variable} ${mono.variable}`}
     >
       <DitherFilter />
+      <MidwayCursor />
       <SolanaProviderGate>
         <OsProvider>
           <ArcadeMusicBridge>
