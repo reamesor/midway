@@ -459,6 +459,36 @@ html.dark .colors-stage-banner {
   image-rendering: crisp-edges;
 }
 
+/* Dark mode: settle swatch fills into the stage (keep cream rim) */
+html[data-theme="dark"] .colors-swatch-cube,
+html.dark .colors-swatch-cube {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, #fff 18%, var(--swatch)) 0 28%,
+      transparent 28% 100%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 0 62%,
+      color-mix(in srgb, #2a3830 28%, var(--swatch)) 62% 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      color-mix(in srgb, var(--line) 10%, transparent) 3px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 3px,
+      color-mix(in srgb, var(--line) 10%, transparent) 3px 4px
+    ),
+    color-mix(in srgb, #2a3830 26%, var(--swatch));
+  box-shadow:
+    3px 3px 0 color-mix(in srgb, var(--swatch) 55%, #2a3830),
+    5px 5px 0 color-mix(in srgb, #f7f5ef 55%, #1a2420);
+}
+
 /* Soft paper overlays (replacing neon CRT) */
 .crt-scanlines {
   pointer-events: none;

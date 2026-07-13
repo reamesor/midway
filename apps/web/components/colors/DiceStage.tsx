@@ -3,6 +3,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { useOs } from "@/components/os/OsContext";
 import type { ColorKey } from "@/lib/colors/engine";
 import { COLOR_HEX, COLOR_KEYS } from "@/lib/colors/engine";
 import { ResultBanner, type StageResult } from "./ResultBanner";
@@ -43,6 +44,8 @@ function mixHex(hex: string, other: string, t: number): string {
 
 /** Soft Midway shade — sage, never void black. */
 const SHADE_INK = "#7a9a72";
+/** Dark-stage paper — used to pull pastels down without greying them out. */
+const STAGE_INK = "#2a3830";
 /** Cream / paper rim — must read in dark mode (not black). */
 const FACE_RIM = "#f7f5ef";
 
@@ -54,21 +57,31 @@ const ROLL_BOB_AMP = 0.16;
 const ROLL_FACE_MS = 80;
 const SETTLE_LERP = 0.1;
 
-function shadeHex(hex: string, shade: FaceShade): string {
+/** Dark mode only: settle luminous pastels into the stage without muddying. */
+function faceBaseHex(hex: string, dark: boolean): string {
+  if (!dark) return hex;
+  return mixHex(hex, STAGE_INK, 0.26);
+}
+
+function shadeHex(hex: string, shade: FaceShade, dark: boolean): string {
   switch (shade) {
     case "lit":
-      return mixHex(hex, "#ffffff", 0.2);
+      return mixHex(hex, "#ffffff", dark ? 0.08 : 0.2);
     case "mid":
-      return mixHex(hex, "#ffffff", 0.02);
+      return mixHex(hex, "#ffffff", dark ? 0 : 0.02);
     case "shade":
-      return mixHex(hex, SHADE_INK, 0.08);
+      return mixHex(hex, SHADE_INK, dark ? 0.16 : 0.08);
     case "deep":
-      return mixHex(hex, SHADE_INK, 0.14);
+      return mixHex(hex, SHADE_INK, dark ? 0.24 : 0.14);
   }
 }
 
 /** Pixel face — pastel fill, soft bands, thin cream rim. */
-function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTexture {
+function makePixelFaceTexture(
+  hex: string,
+  shade: FaceShade,
+  dark: boolean,
+): THREE.CanvasTexture {
   const size = 32;
   const canvas =
     typeof document !== "undefined"
@@ -85,9 +98,10 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
-  const fill = shadeHex(hex, shade);
-  const lit = mixHex(fill, "#ffffff", 0.28);
-  const dark = mixHex(fill, SHADE_INK, 0.1);
+  const base = faceBaseHex(hex, dark);
+  const fill = shadeHex(base, shade, dark);
+  const lit = mixHex(fill, "#ffffff", dark ? 0.12 : 0.28);
+  const darkBand = mixHex(fill, SHADE_INK, dark ? 0.18 : 0.1);
 
   ctx.fillStyle = fill;
   ctx.fillRect(0, 0, size, size);
@@ -101,7 +115,7 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
   }
 
   // Hard shade band (bottom-right).
-  ctx.fillStyle = dark;
+  ctx.fillStyle = darkBand;
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       if (x + y > size * 1.2) ctx.fillRect(x, y, 1, 1);
@@ -109,7 +123,7 @@ function makePixelFaceTexture(hex: string, shade: FaceShade): THREE.CanvasTextur
   }
 
   // Soft sage pixel lattice — keep chroma readable.
-  ctx.fillStyle = "rgba(74,122,82,0.05)";
+  ctx.fillStyle = dark ? "rgba(74,122,82,0.1)" : "rgba(74,122,82,0.05)";
   for (let i = 0; i < size; i += 4) {
     ctx.fillRect(i, 0, 1, size);
     ctx.fillRect(0, i, size, 1);
@@ -142,6 +156,8 @@ export function DiceStage({
   prompt,
   result = null,
 }: DiceStageProps) {
+  const { theme } = useOs();
+  const dark = theme === "dark";
   const showPrompt = Boolean(prompt) && !rolling && !dice;
   const showTopBanner = rolling || Boolean(dice && result);
 
@@ -179,9 +195,9 @@ export function DiceStage({
         className="!h-full !w-full"
         style={{ imageRendering: "pixelated" }}
       >
-        {/* Flat arcade light — avoid soft PBR bloom */}
-        <ambientLight intensity={1} />
-        <directionalLight position={[4, 6, 5]} intensity={0.35} />
+        {/* Flat arcade light — avoid soft PBR bloom; slightly cooler in dark */}
+        <ambientLight intensity={dark ? 0.82 : 1} />
+        <directionalLight position={[4, 6, 5]} intensity={dark ? 0.28 : 0.35} />
         {[-2.15, 0, 2.15].map((x, i) => (
           <DieMesh
             key={i}
@@ -190,6 +206,7 @@ export function DiceStage({
             color={dice?.[i] ?? null}
             rolling={rolling}
             hit={Boolean(hits[i])}
+            dark={dark}
           />
         ))}
       </Canvas>
@@ -203,12 +220,14 @@ function DieMesh({
   color,
   rolling,
   hit,
+  dark,
 }: {
   index: number;
   x: number;
   color: ColorKey | null;
   rolling: boolean;
   hit: boolean;
+  dark: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
   const [spin, setSpin] = useState<ColorKey>(IDLE_FACES[index]![4]!);
@@ -281,17 +300,17 @@ function DieMesh({
 
   const materials = useMemo(() => {
     return faceKeys.map((key, i) => {
-      const tex = makePixelFaceTexture(COLOR_HEX[key], FACE_SHADES[i]!);
+      const tex = makePixelFaceTexture(COLOR_HEX[key], FACE_SHADES[i]!, dark);
       const mat = new THREE.MeshBasicMaterial({
         map: tex,
         toneMapped: false,
       });
       if (hit && !rolling && i === 4) {
-        mat.color = new THREE.Color("#fff4b0");
+        mat.color = new THREE.Color(dark ? "#e8d080" : "#fff4b0");
       }
       return mat;
     });
-  }, [faceKeys, hit, rolling]);
+  }, [faceKeys, hit, rolling, dark]);
 
   useEffect(() => {
     return () => {
