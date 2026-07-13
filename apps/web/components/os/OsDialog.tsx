@@ -16,6 +16,8 @@ type OsDialogProps = {
   body: ReactNode;
   detail?: ReactNode;
   shareHref?: string;
+  /** Brief JACKPOT.EXE entrance flourish (non-blocking). */
+  celebrate?: boolean;
   onRetry?: () => void;
   onClose: () => void;
 };
@@ -71,6 +73,7 @@ export function OsDialog({
   body,
   detail,
   shareHref,
+  celebrate = false,
   onRetry,
   onClose,
 }: OsDialogProps) {
@@ -166,17 +169,23 @@ export function OsDialog({
             role="dialog"
             aria-modal="true"
             aria-labelledby="os-dialog-title"
-            className={`bevel hard-shadow-lg flex max-h-[min(90dvh,720px)] w-full flex-col overflow-hidden bg-panel ${chrome}`}
+            className={`bevel hard-shadow-lg flex max-h-[min(90dvh,720px)] w-full flex-col overflow-hidden bg-panel ${chrome}${
+              variant === "jackpot" && celebrate ? " os-dialog--jackpot-fx" : ""
+            }${variant === "jackpot" ? " os-dialog--jackpot" : ""}`}
           >
             <div
-              className={`${DRAG_HANDLE} ${variant === "lose" ? "" : "focused"}`}
+              className={`${DRAG_HANDLE} ${variant === "lose" ? "" : "focused"}${
+                variant === "jackpot" && celebrate
+                  ? " os-dialog-titlebar--jackpot-fx"
+                  : ""
+              }`}
               style={
                 variant === "lose"
                   ? { background: "linear-gradient(90deg, var(--burn), #4a0000)" }
                   : variant === "jackpot"
                     ? {
-                        background: "linear-gradient(90deg, var(--acid), #5a6a00)",
-                        color: "#000",
+                        background: "linear-gradient(90deg, var(--gold), #8a6420 55%, #5a6a00)",
+                        color: "#121a14",
                       }
                     : {
                         background: "linear-gradient(90deg, var(--win), #0a4a00)",

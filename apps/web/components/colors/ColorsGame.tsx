@@ -74,6 +74,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     houseCut: number;
   } | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  /** Brief stage/dialog celebrate burst after a 3-match jackpot (non-blocking). */
+  const [jackpotFx, setJackpotFx] = useState(false);
   const [fairness, setFairness] = useState<Fairness | null>(null);
   const [nonce, setNonce] = useState(0);
   const [autobet, setAutobet] = useState(0);
@@ -125,7 +127,14 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
     setResult(null);
     setDice(null);
     setHits([false, false, false]);
+    setJackpotFx(false);
   }, []);
+
+  useEffect(() => {
+    if (!jackpotFx) return;
+    const id = window.setTimeout(() => setJackpotFx(false), 1800);
+    return () => window.clearTimeout(id);
+  }, [jackpotFx]);
 
   const closeResultDialog = useCallback(() => {
     setDialogOpen(false);
@@ -211,6 +220,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         stake: settlement.stake,
         houseCut: settlement.houseCut,
       });
+      setJackpotFx(settlement.matches === 3);
       setDialogOpen(true);
       onHouseCut(settlement.houseCut);
       setNonce((n) => n + 1);
@@ -439,6 +449,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
             rolling={phase === "rolling"}
             hits={hits}
             result={result}
+            jackpotFx={jackpotFx}
             prompt={
               phase === "rolling" ||
               phase === "done" ||
@@ -534,6 +545,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
       <OsDialog
         open={dialogOpen && Boolean(result)}
         variant={dialogVariant}
+        celebrate={jackpotFx && dialogVariant === "jackpot"}
         title={
           result?.matches === 3
             ? "★ JACKPOT · 3 MATCHES"

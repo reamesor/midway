@@ -186,6 +186,7 @@ const FACE_SHADES: FaceShade[] = [
 const SETTLE_QUAT = new THREE.Quaternion().setFromEuler(
   new THREE.Euler(0.78, 0.32, -0.06, "XYZ"),
 );
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 export function DiceStage({
   dice,
@@ -296,10 +297,7 @@ function DieMesh({
   const settleQuat = useMemo(() => {
     const q = SETTLE_QUAT.clone();
     q.multiply(
-      new THREE.Quaternion().setFromAxisAngle(
-        new THREE.Vector3(0, 1, 0),
-        (index - 1) * 0.1,
-      ),
+      new THREE.Quaternion().setFromAxisAngle(Y_AXIS, (index - 1) * 0.1),
     );
     return q;
   }, [index]);
@@ -346,7 +344,7 @@ function DieMesh({
       const target = scratchTarget.current.copy(settleQuat);
       if (burst > 0) {
         scratchSpin.current.setFromAxisAngle(
-          new THREE.Vector3(0, 1, 0),
+          Y_AXIS,
           burst * Math.PI * 2.1 * (1 - burst) +
             Math.sin(elapsed * 9 + phase) * 0.12 * burst,
         );

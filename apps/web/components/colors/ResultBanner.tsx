@@ -16,6 +16,8 @@ type ResultBannerProps = {
   hits: boolean[];
   result: StageResult | null;
   unit?: string;
+  /** Jackpot settle burst — pulses title / gold border briefly. */
+  celebrate?: boolean;
 };
 
 /**
@@ -28,6 +30,7 @@ export function ResultBanner({
   hits,
   result,
   unit = "DEMO SOL",
+  celebrate = false,
 }: ResultBannerProps) {
   if (rolling) {
     return (
@@ -51,7 +54,9 @@ export function ResultBanner({
 
   return (
     <div
-      className={`colors-stage-banner colors-stage-banner--${kind}`}
+      className={`colors-stage-banner colors-stage-banner--${kind}${
+        celebrate && kind === "jackpot" ? " is-jackpot-celebrate" : ""
+      }`}
       role="status"
       aria-live="polite"
     >
