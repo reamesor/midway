@@ -161,15 +161,18 @@ function Desktop() {
     burnedTokens: 0,
   });
   const [yourShare, setYourShare] = useState(0);
-  const [narrow, setNarrow] = useState(false);
+  const [layoutSize, setLayoutSize] = useState({ w: 1280, h: 800 });
 
   useEffect(() => {
+    const apply = () =>
+      setLayoutSize({ w: window.innerWidth, h: window.innerHeight });
+    apply();
     const mq = window.matchMedia("(max-width: 767px)");
-    const sync = () => setNarrow(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [booted]);
+
+  const narrow = layoutSize.w < 768;
 
   useEffect(() => {
     if (!pubkey) {
@@ -187,23 +190,10 @@ function Desktop() {
     return () => window.removeEventListener(SHARE_EVENT, onShare);
   }, [pubkey]);
 
-  const winDefaults = useMemo(() => {
-    if (typeof window === "undefined") {
-      return {
-        colors: { x: 100, y: 8, width: 780, height: 640 },
-        loop: { x: 900, y: 8, width: 420, height: 380 },
-        treasury: { x: 900, y: 396, width: 420, height: 260 },
-        wallet: { x: 220, y: 48, width: 420, height: 520 },
-        info: { x: 180, y: 40, width: 500, height: 520 },
-        token: { x: 200, y: 48, width: 480, height: 540 },
-        fairness: { x: 240, y: 120, width: 480, height: 320 },
-        dashboard: { x: 180, y: 48, width: 480, height: 620 },
-        leaderboard: { x: 260, y: 80, width: 460, height: 420 },
-        soon: { x: 280, y: 160, width: 360, height: 260 },
-      };
-    }
-    return tileLayout(window.innerWidth, window.innerHeight);
-  }, [booted, narrow]);
+  const winDefaults = useMemo(
+    () => tileLayout(layoutSize.w, layoutSize.h),
+    [layoutSize.h, layoutSize.w],
+  );
 
   // Remount when boot finishes or phone/desktop breakpoint flips so tiles fit
   const layoutKey = `${booted ? "live" : "boot"}-${narrow ? "m" : "d"}`;

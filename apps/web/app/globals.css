@@ -1359,8 +1359,11 @@ html.dark .desktop-wallpaper {
   to { transform: translateX(-50%); }
 }
 
-/* Window chrome — ink/sage titlebars */
+/* Window chrome — ink/sage titlebars (fixed within .win; only .win-body scrolls) */
 .win-titlebar {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1374,6 +1377,14 @@ html.dark .desktop-wallpaper {
   text-transform: uppercase;
   cursor: grab;
   user-select: none;
+}
+.win-body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+/* Sticky in-panel headers (e.g. INFO.TXT TL;DR) sit flush under the titlebar */
+.win-body .info-tldr {
+  top: 0;
 }
 .win-titlebar:active { cursor: grabbing; }
 .win-titlebar.focused {
@@ -1713,7 +1724,8 @@ html.dark .win-titlebar.focused {
   z-index: 10000;
   display: grid;
   place-items: center;
-  padding: 1.5rem;
+  padding: 0.75rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   pointer-events: auto;
 }
 .midway-wallet-modal__backdrop {
@@ -1729,6 +1741,8 @@ html.dark .win-titlebar.focused {
   position: relative;
   z-index: 1;
   width: min(400px, 100%);
+  max-height: min(90dvh, 720px);
+  overflow-y: auto;
   background: var(--panel);
   color: var(--ink);
   border: 2px solid var(--line);
@@ -1739,17 +1753,17 @@ html.dark .win-titlebar.focused {
 }
 .midway-wallet-modal__close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 28px;
-  height: 28px;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   background: var(--chrome);
   border: 2px solid;
   border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
   color: var(--ink);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
 }
@@ -1782,7 +1796,8 @@ html.dark .win-titlebar.focused {
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 12px;
+  min-height: 44px;
+  padding: 12px;
   background: var(--chrome);
   color: var(--ink);
   border: 2px solid;
@@ -1829,7 +1844,8 @@ html.dark .win-titlebar.focused {
 .midway-wallet-modal__demo {
   margin-top: 0.85rem;
   width: 100%;
-  padding: 10px 12px;
+  min-height: 44px;
+  padding: 12px;
   background: var(--acid);
   color: var(--btn);
   border: 2px solid;

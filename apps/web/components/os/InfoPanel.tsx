@@ -18,7 +18,7 @@ export function InfoPanel() {
 
   return (
     <div className="info-panel space-y-5 text-[14px] leading-relaxed text-ink">
-      <div className="info-tldr bevel-inset sticky top-0 z-10 -mx-1 mb-1 space-y-2 bg-panel px-3 py-3">
+      <div className="info-tldr bevel-inset sticky top-0 z-10 -mx-2 mb-1 space-y-2 border-b border-line bg-panel px-3 py-3 sm:-mx-3">
         <div className="font-heading text-[11px] tracking-wide text-ink">
           TL;DR — skim in ~20s
         </div>

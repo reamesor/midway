@@ -53,7 +53,7 @@ export function OsDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="os-dialog-title"
-        className={`bevel hard-shadow-lg max-h-[min(90dvh,720px)] w-full max-w-md overflow-y-auto bg-panel ${chrome}`}
+        className={`bevel hard-shadow-lg flex max-h-[min(90dvh,720px)] w-full max-w-md flex-col overflow-hidden bg-panel ${chrome}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -81,7 +81,7 @@ export function OsDialog({
             </button>
           </div>
         </div>
-        <div className="space-y-3 p-3 text-ink sm:p-4">
+        <div className="win-body min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3 text-ink sm:p-4">
           <div id="os-dialog-title" className="chroma font-heading text-base leading-snug sm:text-lg">
             {title}
           </div>

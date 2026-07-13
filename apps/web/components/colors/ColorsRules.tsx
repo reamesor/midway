@@ -28,7 +28,7 @@ export function ColorsRules({ open, onClose }: ColorsRulesProps) {
           </div>
         </div>
 
-        <div className="space-y-5 p-4 font-sans text-[14px] normal-case tracking-normal text-ink">
+        <div className="space-y-5 p-3 font-sans text-[14px] normal-case tracking-normal text-ink sm:p-4">
           <header className="border-b-2 border-line pb-3">
             <div className="font-heading text-sm text-hot">COLORS GAME RULES</div>
             <p className="mt-1 text-[12px] text-ink-dim">

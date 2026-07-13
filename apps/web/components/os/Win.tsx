@@ -98,11 +98,8 @@ export function Win({
     const pad = 4;
     rnd.updatePosition({ x: pad, y: pad });
     rnd.updateSize({
-      width: Math.max(Math.min(minWidth, parent.clientWidth - pad * 2), parent.clientWidth - pad * 2),
-      height: Math.max(
-        Math.min(minHeight, parent.clientHeight - pad * 2),
-        parent.clientHeight - pad * 2,
-      ),
+      width: Math.max(0, parent.clientWidth - pad * 2),
+      height: Math.max(0, parent.clientHeight - pad * 2),
     });
     setMaximized(true);
   }, [def, focusWin, id, maximized, minHeight, minWidth]);
@@ -136,7 +133,7 @@ export function Win({
       className="absolute pointer-events-auto"
     >
       <div
-        className={`flex h-full flex-col bevel hard-shadow ${
+        className={`win flex h-full flex-col overflow-hidden bevel hard-shadow ${
           isFocused ? "outline outline-1 outline-ink" : ""
         }`}
         onMouseDown={() => focusWin(id)}
@@ -159,8 +156,8 @@ export function Win({
             </button>
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-panel p-2 text-ink sm:p-3">
-          {children}
+        <div className="win-body min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain bg-panel text-ink">
+          <div className="win-body-inner p-2 sm:p-3">{children}</div>
         </div>
       </div>
     </Rnd>
