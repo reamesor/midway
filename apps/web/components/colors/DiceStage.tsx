@@ -244,8 +244,8 @@ export function DiceStage({
       ) : null}
       <Canvas
         // High angle so settled +Y (result) tops dominate over side faces.
-        // Pulled back slightly so ~20% smaller cubes still frame with margin.
-        camera={{ position: [0, 4.85, 5.75], fov: 34 }}
+        // DieMesh is ~20% smaller than before so cubes read smaller in-frame.
+        camera={{ position: [0, 4.35, 5.15], fov: 34 }}
         dpr={[1, 1]}
         gl={{ antialias: false, alpha: true }}
         className="!h-full !w-full"

@@ -462,9 +462,9 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           <div className="flex shrink-0 flex-col gap-1.5 md:gap-1">
             <ColorPicker picked={picked} locked={locked} onToggle={toggleColor} />
 
-            <div className="bevel px-1.5 py-1 font-heading text-[11px] md:px-2 md:py-1">
+            <div className="bevel px-1.5 py-1 font-heading text-[11px] md:px-1.5 md:py-0.5">
               <div className="mb-0.5 text-ink-dim">AUTOBET</div>
-              <div className="grid grid-cols-4 gap-1 sm:grid-cols-7">
+              <div className="grid grid-cols-4 gap-1 sm:grid-cols-7 md:gap-0.5">
                 {AUTOBET_OPTIONS.map((n) => (
                   <AutobetButton
                     key={n}
@@ -493,30 +493,30 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
                 </div>
               )}
             </div>
-          </div>
 
-          {fairness && (
-            <button
-              type="button"
-              className="bevel-btn shrink-0 min-h-11 w-full py-2 text-cyber md:min-h-7 md:py-1"
-              onClick={() => openWin("fairness")}
-            >
-              ▶ VERIFY FAIRNESS.LOG
-            </button>
-          )}
-          {fairness && (
-            <details className="bevel-inset shrink-0 px-1.5 py-1 font-mono text-[10px] text-ink-dim md:text-[11px]">
-              <summary className="cursor-pointer py-0.5 text-cyber">seeds (inline)</summary>
-              <div className="mt-1 space-y-1 break-all">
-                <div>hash: {fairness.serverSeedHash}</div>
-                <div>server: {fairness.serverSeed}</div>
-                <div>client: {fairness.clientSeed}</div>
-                <div>nonce: {fairness.nonce}</div>
-                <div>dice: {fairness.dice.join(", ")}</div>
-                <div>payout: {PAYOUT_MODE}</div>
-              </div>
-            </details>
-          )}
+            {fairness && (
+              <button
+                type="button"
+                className="bevel-btn min-h-11 w-full py-2 text-cyber md:min-h-7 md:py-1"
+                onClick={() => openWin("fairness")}
+              >
+                ▶ VERIFY FAIRNESS.LOG
+              </button>
+            )}
+            {fairness && (
+              <details className="bevel-inset px-1.5 py-1 font-mono text-[10px] text-ink-dim md:text-[11px]">
+                <summary className="cursor-pointer py-0.5 text-cyber">seeds (inline)</summary>
+                <div className="mt-1 space-y-1 break-all">
+                  <div>hash: {fairness.serverSeedHash}</div>
+                  <div>server: {fairness.serverSeed}</div>
+                  <div>client: {fairness.clientSeed}</div>
+                  <div>nonce: {fairness.nonce}</div>
+                  <div>dice: {fairness.dice.join(", ")}</div>
+                  <div>payout: {PAYOUT_MODE}</div>
+                </div>
+              </details>
+            )}
+          </div>
         </div>
 
         <div className="flex h-full min-h-0 min-w-0 flex-col">
