@@ -185,8 +185,8 @@ html.one-bit {
     --dock-w: 70px;
     --dock-mobile-h: 58px;
     --taskbar-h: 40px;
-    /* Desktop Chrome ignores OS dock in safe-area; keep Midway taskbar clear of it. */
-    --shell-pad-bottom: max(56px, env(safe-area-inset-bottom, 0px));
+    /* Only real device safe-area (usually 0 on desktop) — never force a 56px beige gap. */
+    --shell-pad-bottom: env(safe-area-inset-bottom, 0px);
     --chrome-bottom: calc(var(--taskbar-h) + var(--shell-pad-bottom));
     position: relative;
     overflow: hidden;
@@ -988,14 +988,14 @@ html.dark .colors-swatch-cube {
   position: fixed;
   inset: 0;
   /* top right bottom left — keep overlays off dock rail + taskbar/safe area */
-  clip-path: inset(0 0 var(--chrome-bottom, 96px) var(--dock-w, 70px));
+  clip-path: inset(0 0 var(--chrome-bottom, 40px) var(--dock-w, 70px));
 }
 @media (max-width: 767px) {
   .crt-scanlines,
   .crt-vignette,
   .crt-grain {
     clip-path: inset(
-      var(--dock-mobile-h, 58px) 0 var(--chrome-bottom, 96px) 0
+      var(--dock-mobile-h, 58px) 0 var(--chrome-bottom, 40px) 0
     );
   }
 }
@@ -2160,18 +2160,20 @@ html.dark .os-dialog-titlebar.focused {
   transition: width 400ms steps(8);
 }
 
-/* Taskbar — sits above OS dock clearance; opaque; full-bleed under left rail gap */
+/* Taskbar — flush to shell bottom; opaque; full-bleed under left rail gap */
 .taskbar {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--shell-pad-bottom, 56px);
+  bottom: 0;
   z-index: 110;
-  height: var(--taskbar-h, 40px);
+  height: calc(var(--taskbar-h, 40px) + var(--shell-pad-bottom, 0px));
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
+  padding-bottom: calc(4px + var(--shell-pad-bottom, 0px));
+  box-sizing: border-box;
   background-color: var(--chrome);
   background-image: none;
   opacity: 1;
@@ -2185,18 +2187,6 @@ html.dark .os-dialog-titlebar.focused {
   inset: 0;
   z-index: -1;
   background-color: var(--chrome);
-  pointer-events: none;
-}
-/* Dead zone under taskbar so wallpaper never peeks through OS-dock clearance */
-.arcade-shell > .os-bottom-clearance,
-.arcade-desktop-clearance {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: var(--shell-pad-bottom, 56px);
-  z-index: 105;
-  background-color: var(--void);
   pointer-events: none;
 }
 
