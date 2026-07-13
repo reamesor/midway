@@ -205,7 +205,7 @@ export function DiceStage({
 
   return (
     <div
-      className={`colors-dice-stage bevel-inset relative isolate min-h-[220px] flex-1 overflow-hidden sm:min-h-[240px] md:min-h-[260px]${
+      className={`colors-dice-stage bevel-inset relative isolate min-h-[180px] flex-1 overflow-hidden sm:min-h-[200px] md:min-h-[210px] lg:h-[240px] lg:max-h-[240px] lg:flex-none${
         isJackpot ? " is-jackpot" : ""
       }${celebrate ? " is-jackpot-fx" : ""}`}
     >
@@ -244,7 +244,8 @@ export function DiceStage({
       ) : null}
       <Canvas
         // High angle so settled +Y (result) tops dominate over side faces.
-        camera={{ position: [0, 4.35, 5.15], fov: 34 }}
+        // Pulled back slightly so ~20% smaller cubes still frame with margin.
+        camera={{ position: [0, 4.85, 5.75], fov: 34 }}
         dpr={[1, 1]}
         gl={{ antialias: false, alpha: true }}
         className="!h-full !w-full"
@@ -253,7 +254,7 @@ export function DiceStage({
         {/* Flat arcade light — avoid soft PBR bloom; slightly cooler in dark */}
         <ambientLight intensity={dark ? 0.82 : 1} />
         <directionalLight position={[4, 6, 5]} intensity={dark ? 0.28 : 0.35} />
-        {[-2.15, 0, 2.15].map((x, i) => (
+        {[-1.72, 0, 1.72].map((x, i) => (
           <DieMesh
             key={i}
             index={i}
@@ -420,7 +421,7 @@ function DieMesh({
   }, [materials]);
 
   const edges = useMemo(
-    () => new THREE.EdgesGeometry(new THREE.BoxGeometry(1.42, 1.42, 1.42)),
+    () => new THREE.EdgesGeometry(new THREE.BoxGeometry(1.14, 1.14, 1.14)),
     [],
   );
   const edgeMat = useMemo(
@@ -444,7 +445,7 @@ function DieMesh({
   return (
     <group ref={group} position={[x, 0, 0]}>
       <mesh>
-        <boxGeometry args={[1.4, 1.4, 1.4]} />
+        <boxGeometry args={[1.12, 1.12, 1.12]} />
         {materials.map((mat, i) => (
           <primitive key={i} object={mat} attach={`material-${i}`} />
         ))}
@@ -452,7 +453,7 @@ function DieMesh({
       <lineSegments geometry={edges} material={edgeMat} renderOrder={2} />
       {hit && !rolling && (
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-          <torusGeometry args={[1.05, celebrate ? 0.085 : 0.06, 4, 16]} />
+          <torusGeometry args={[0.84, celebrate ? 0.07 : 0.05, 4, 16]} />
           <meshBasicMaterial
             color={celebrate ? "#ffe066" : "#f5c542"}
             toneMapped={false}

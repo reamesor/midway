@@ -51,15 +51,15 @@ export function BetPanel({
     (Boolean(!walletConnected || needsDeposit) || !placingDisabled);
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-col gap-2 font-heading text-[11px] md:gap-1.5 lg:h-full lg:justify-center">
-      <div className="bevel-inset shrink-0 p-2">
+    <div className="flex min-h-0 min-w-0 flex-col gap-2 font-heading text-[11px] md:gap-1.5 lg:h-full lg:justify-center lg:gap-2">
+      <div className="bevel-inset shrink-0 px-2 py-1.5 md:py-1.5">
         <div className="flex flex-wrap items-center justify-between gap-1.5">
           <div className="text-ink-dim">MIDWAY WALLET · DEMO</div>
           <WalletConnectControl size="panel" />
         </div>
-        <div className="num text-xl text-acid md:text-lg">
+        <div className="num text-xl text-acid md:text-base">
           {walletConnected ? fmtSol(balance) : "—"}{" "}
-          <span className="text-sm text-ink-dim">SOL</span>
+          <span className="text-sm text-ink-dim md:text-xs">SOL</span>
         </div>
         {!walletConnected ? (
           <p className="mt-0.5 font-sans text-[10px] leading-snug normal-case tracking-normal text-ink-dim md:text-[11px]">
@@ -84,13 +84,13 @@ export function BetPanel({
         )}
       </div>
 
-      <div className="bevel flex shrink-0 flex-col gap-1.5 p-2">
+      <div className="bevel flex shrink-0 flex-col gap-1.5 p-2 md:gap-1 md:px-2 md:py-1.5">
         <div>
-          <div className="mb-1 text-ink-dim">BET AMOUNT (SOL)</div>
+          <div className="mb-1 text-ink-dim md:mb-0.5">BET AMOUNT (SOL)</div>
           <div className="flex items-center gap-1">
             <button
               type="button"
-              className="bevel-btn size-11 shrink-0 text-base md:size-9"
+              className="bevel-btn size-11 shrink-0 text-base md:size-8 md:text-sm"
               disabled={leverArmed}
               aria-label="Decrease bet"
               onClick={() => onBetChange(roundSol(Math.max(0.01, bet - step)))}
@@ -98,7 +98,7 @@ export function BetPanel({
               −
             </button>
             <input
-              className="num bevel-inset h-11 min-w-0 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none disabled:opacity-50 md:h-9 md:text-base"
+              className="num bevel-inset h-11 min-w-0 flex-1 bg-[var(--void)] text-center text-lg text-ink outline-none disabled:opacity-50 md:h-8 md:text-sm"
               type="number"
               inputMode="decimal"
               min={0.01}
@@ -111,7 +111,7 @@ export function BetPanel({
             />
             <button
               type="button"
-              className="bevel-btn size-11 shrink-0 text-base md:size-9"
+              className="bevel-btn size-11 shrink-0 text-base md:size-8 md:text-sm"
               disabled={leverArmed}
               aria-label="Increase bet"
               onClick={() => onBetChange(roundSol(bet + step))}
@@ -125,7 +125,7 @@ export function BetPanel({
             <button
               key={v}
               type="button"
-              className="bevel-btn min-h-11 min-w-0 px-1 py-1.5 md:min-h-8 md:py-1"
+              className="bevel-btn min-h-11 min-w-0 px-1 py-1.5 md:min-h-7 md:py-0.5"
               disabled={leverArmed}
               onClick={() => onBetChange(v)}
             >
@@ -134,7 +134,7 @@ export function BetPanel({
           ))}
           <button
             type="button"
-            className="bevel-btn min-h-11 min-w-0 px-1 py-1.5 md:min-h-8 md:py-1"
+            className="bevel-btn min-h-11 min-w-0 px-1 py-1.5 md:min-h-7 md:py-0.5"
             disabled={leverArmed || !walletConnected}
             onClick={onMax}
           >
@@ -146,12 +146,12 @@ export function BetPanel({
         </p>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-2 md:gap-1.5">
+      <div className="flex shrink-0 flex-col gap-1.5 md:gap-1">
         {leverArmed ? (
           <button
             type="button"
             onClick={onCancelPlace}
-            className="bevel-btn min-h-11 w-full py-2.5 text-burn md:min-h-9 md:py-2"
+            className="bevel-btn min-h-11 w-full py-2.5 text-burn md:min-h-8 md:py-1.5"
           >
             CANCEL BET
           </button>
@@ -166,7 +166,7 @@ export function BetPanel({
               }
               onPlace();
             }}
-            className="bevel-btn bevel-btn-hot min-h-11 w-full py-2.5 text-sm md:min-h-9 md:py-2"
+            className="bevel-btn bevel-btn-hot min-h-11 w-full py-2.5 text-sm md:min-h-8 md:py-1.5 md:text-[12px]"
           >
             {placeLabel}
           </button>
@@ -176,7 +176,7 @@ export function BetPanel({
           type="button"
           disabled={!canRoll}
           onClick={onPullLever}
-          className={`bevel-btn bevel-btn-acid relative min-h-12 w-full overflow-hidden py-3 text-sm md:min-h-10 md:py-2.5 ${
+          className={`bevel-btn bevel-btn-acid relative min-h-12 w-full overflow-hidden py-3 text-sm md:min-h-9 md:py-2 md:text-[12px] ${
             leverArmed ? "glitch-pulse" : ""
           }`}
         >

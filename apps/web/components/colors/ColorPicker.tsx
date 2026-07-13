@@ -25,7 +25,7 @@ export function ColorPicker({ picked, locked, onToggle }: ColorPickerProps) {
               disabled={locked}
               onClick={() => onToggle(c)}
               aria-pressed={active}
-              className={`bevel hard-shadow-sm flex min-h-11 flex-col items-center justify-center px-1 py-1.5 text-center font-heading text-[10px] uppercase transition-none disabled:opacity-50 md:min-h-0 md:py-0.5 ${
+              className={`bevel hard-shadow-sm flex min-h-11 flex-col items-center justify-center px-1 py-1.5 text-center font-heading text-[10px] uppercase transition-none disabled:opacity-50 md:min-h-0 md:px-0.5 md:py-0.5 ${
                 active ? "bg-acid text-black outline outline-2 outline-offset-1" : ""
               }`}
               style={active ? { outlineColor: "var(--acid)" } : undefined}
