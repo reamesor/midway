@@ -156,8 +156,10 @@ export function Win({
             </button>
           </div>
         </div>
-        <div className="win-body min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain bg-panel text-ink">
-          <div className="win-body-inner p-1.5 sm:p-2">{children}</div>
+        <div className="win-body flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain bg-panel text-ink">
+          <div className="win-body-inner flex min-h-full flex-1 flex-col p-1.5 sm:p-2">
+            {children}
+          </div>
         </div>
       </div>
     </Rnd>
