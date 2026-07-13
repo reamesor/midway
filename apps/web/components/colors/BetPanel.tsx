@@ -84,7 +84,7 @@ export function BetPanel({
         )}
       </div>
 
-      <div className="bevel flex min-h-0 flex-col justify-center gap-1.5 p-2 lg:flex-1">
+      <div className="bevel flex shrink-0 flex-col gap-1.5 p-2">
         <div>
           <div className="mb-1 text-ink-dim">BET AMOUNT (SOL)</div>
           <div className="flex items-center gap-1">
@@ -146,7 +146,7 @@ export function BetPanel({
         </p>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-2 md:gap-1.5">
+      <div className="mt-auto flex shrink-0 flex-col gap-2 md:gap-1.5">
         {leverArmed ? (
           <button
             type="button"
