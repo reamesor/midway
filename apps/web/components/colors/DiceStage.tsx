@@ -140,14 +140,23 @@ function makePixelFaceTexture(
   return texture;
 }
 
+/**
+ * BoxGeometry material order: +X, -X, +Y, -Y, +Z, -Z.
+ * Result / winning color is always material index 2 (+Y top).
+ */
+const RESULT_FACE = 2;
+
 const FACE_SHADES: FaceShade[] = [
   "shade", // +X
   "shade", // -X
-  "lit", // +Y
+  "lit", // +Y (result / top)
   "deep", // -Y
-  "mid", // +Z (result)
+  "mid", // +Z
   "deep", // -Z
 ];
+
+/** Settled pose: tip top (+Y) toward camera; mild Y so sides don't dominate. */
+const SETTLE_ROT = { x: -0.42, y: 0.28, z: 0 } as const;
 
 export function DiceStage({
   dice,
@@ -189,7 +198,8 @@ export function DiceStage({
         </div>
       ) : null}
       <Canvas
-        camera={{ position: [0, 1.1, 7.2], fov: 40 }}
+        // Slight high angle so settled +Y (result) tops read clearly, not foreshortened.
+        camera={{ position: [0, 3.05, 6.35], fov: 38 }}
         dpr={[1, 1]}
         gl={{ antialias: false, alpha: true }}
         className="!h-full !w-full"
@@ -230,7 +240,7 @@ function DieMesh({
   dark: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
-  const [spin, setSpin] = useState<ColorKey>(IDLE_FACES[index]![4]!);
+  const [spin, setSpin] = useState<ColorKey>(IDLE_FACES[index]![RESULT_FACE]!);
   const idleFaces = IDLE_FACES[index]!;
 
   useEffect(() => {
@@ -255,12 +265,13 @@ function DieMesh({
     }
 
     if (color) {
-      // Settle toward a readable isometric pose; tiny victory bob on hits.
+      // Settle with +Y (result color) facing up / toward the high camera.
       group.current.rotation.x +=
-        (-0.28 - group.current.rotation.x) * SETTLE_LERP;
+        (SETTLE_ROT.x - group.current.rotation.x) * SETTLE_LERP;
       group.current.rotation.y +=
-        (0.42 - group.current.rotation.y) * SETTLE_LERP;
-      group.current.rotation.z += (0 - group.current.rotation.z) * SETTLE_LERP;
+        (SETTLE_ROT.y - group.current.rotation.y) * SETTLE_LERP;
+      group.current.rotation.z +=
+        (SETTLE_ROT.z - group.current.rotation.z) * SETTLE_LERP;
       const bob = hit ? Math.sin(t * 3.2 + phase) * 0.06 : Math.sin(t * 1.6 + phase) * 0.03;
       group.current.position.y += (bob - group.current.position.y) * 0.15;
       return;
@@ -275,23 +286,24 @@ function DieMesh({
 
   const faceKeys = useMemo((): ColorKey[] => {
     if (rolling) {
-      // Spinning: keep side faces fixed, flash the front.
+      // Spinning: keep side faces fixed, flash the top (+Y).
       return [
         idleFaces[0]!,
         idleFaces[1]!,
-        idleFaces[2]!,
-        idleFaces[3]!,
         spin,
+        idleFaces[3]!,
+        idleFaces[4]!,
         idleFaces[5]!,
       ];
     }
     if (color) {
+      // Engine result lands on top (+Y) — same colors as ResultBanner chips.
       return [
         idleFaces[0]!,
         idleFaces[1]!,
-        idleFaces[2]!,
-        idleFaces[3]!,
         color,
+        idleFaces[3]!,
+        idleFaces[4]!,
         idleFaces[5]!,
       ];
     }
@@ -305,7 +317,7 @@ function DieMesh({
         map: tex,
         toneMapped: false,
       });
-      if (hit && !rolling && i === 4) {
+      if (hit && !rolling && i === RESULT_FACE) {
         mat.color = new THREE.Color(dark ? "#e8d080" : "#fff4b0");
       }
       return mat;
