@@ -21,7 +21,7 @@ const DiceStage = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bevel-inset min-h-[200px] flex-1 bg-black sm:min-h-[220px] md:min-h-[240px]" />
+      <div className="bevel-inset min-h-[220px] flex-1 bg-black sm:min-h-[240px] md:min-h-[260px]" />
     ),
   },
 );
@@ -432,8 +432,8 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
         Midway play balance ({DEMO_PLAY_SOL} SOL seed). Main wallet = connect / withdraw only.
       </div>
 
-      <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,260px)] lg:grid-rows-none lg:items-stretch lg:gap-2.5">
-        <div className="flex min-h-0 min-w-0 flex-col gap-2 md:gap-1.5">
+      <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,260px)] lg:grid-rows-[minmax(0,1fr)] lg:items-stretch lg:gap-2.5">
+        <div className="flex h-full min-h-0 min-w-0 flex-col gap-1.5 md:gap-1">
           <DiceStage
             dice={dice}
             rolling={phase === "rolling"}
@@ -448,40 +448,40 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
                 : prompt
             }
           />
-          <div className="shrink-0">
+          <div className="flex shrink-0 flex-col gap-1.5 md:gap-1">
             <ColorPicker picked={picked} locked={locked} onToggle={toggleColor} />
-          </div>
 
-          <div className="bevel shrink-0 p-1.5 font-heading text-[11px] md:p-2">
-            <div className="mb-1 text-ink-dim">AUTOBET</div>
-            <div className="grid grid-cols-4 gap-1 sm:grid-cols-7">
-              {AUTOBET_OPTIONS.map((n) => (
-                <AutobetButton
-                  key={n}
-                  n={n}
-                  active={autobet === n && autoLeft !== 0}
-                  onSelect={() => {
-                    setAutobet(n);
-                    setAutoLeft(n);
-                  }}
-                />
-              ))}
-            </div>
-            {autoLeft !== 0 && (
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
-                <span>remaining: {autoLeft < 0 ? "∞" : autoLeft}</span>
-                <button
-                  type="button"
-                  className="bevel-btn min-h-11 px-2.5 py-1.5 text-burn md:min-h-8"
-                  onClick={() => {
-                    setAutobet(0);
-                    setAutoLeft(0);
-                  }}
-                >
-                  STOP
-                </button>
+            <div className="bevel p-1 font-heading text-[11px] md:p-1.5">
+              <div className="mb-0.5 text-ink-dim">AUTOBET</div>
+              <div className="grid grid-cols-4 gap-1 sm:grid-cols-7">
+                {AUTOBET_OPTIONS.map((n) => (
+                  <AutobetButton
+                    key={n}
+                    n={n}
+                    active={autobet === n && autoLeft !== 0}
+                    onSelect={() => {
+                      setAutobet(n);
+                      setAutoLeft(n);
+                    }}
+                  />
+                ))}
               </div>
-            )}
+              {autoLeft !== 0 && (
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 font-sans text-[11px] normal-case tracking-normal text-ink-dim">
+                  <span>remaining: {autoLeft < 0 ? "∞" : autoLeft}</span>
+                  <button
+                    type="button"
+                    className="bevel-btn min-h-11 px-2.5 py-1.5 text-burn md:min-h-7 md:py-0.5"
+                    onClick={() => {
+                      setAutobet(0);
+                      setAutoLeft(0);
+                    }}
+                  >
+                    STOP
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {fairness && (
@@ -508,7 +508,7 @@ export function ColorsGame({ onHouseCut }: ColorsGameProps) {
           )}
         </div>
 
-        <div className="flex min-h-0 min-w-0 flex-col lg:h-full">
+        <div className="flex h-full min-h-0 min-w-0 flex-col">
           <BetPanel
             balance={balance}
             bet={bet}
@@ -581,7 +581,7 @@ function AutobetButton({
     <button
       type="button"
       onClick={onSelect}
-      className={`bevel-btn min-h-11 min-w-0 px-1 py-1.5 text-[10px] md:min-h-8 md:py-1 ${
+      className={`bevel-btn min-h-11 min-w-0 px-1 py-1.5 text-[10px] md:min-h-7 md:py-0.5 ${
         active ? "bevel-btn-acid" : ""
       }`}
     >
