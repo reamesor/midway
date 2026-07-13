@@ -84,6 +84,13 @@ html.light {
   --radius: 0px;
   --shadow-cut: #1f3e26;
   color-scheme: light;
+
+  /* Midway pixel cursors — dual-halo ink/paper + gold flag tip (hotspot at tip) */
+  --mw-cur-default: url("/cursors/default.png") 2 2, auto;
+  --mw-cur-pointer: url("/cursors/pointer.png") 2 2, pointer;
+  --mw-cur-text: url("/cursors/text.png") 10 14, text;
+  --mw-cur-grab: url("/cursors/grab.png") 16 10, grab;
+  --mw-cur-grabbing: url("/cursors/grabbing.png") 16 10, grabbing;
 }
 
 /* Dark = deeper ink/void of the same tokens */
@@ -114,6 +121,12 @@ html.dark {
   --foreground: var(--ink);
   --shadow-cut: #000;
   color-scheme: dark;
+
+  --mw-cur-default: url("/cursors/default-dark.png") 2 2, auto;
+  --mw-cur-pointer: url("/cursors/pointer-dark.png") 2 2, pointer;
+  --mw-cur-text: url("/cursors/text-dark.png") 10 14, text;
+  --mw-cur-grab: url("/cursors/grab-dark.png") 16 10, grab;
+  --mw-cur-grabbing: url("/cursors/grabbing-dark.png") 16 10, grabbing;
 }
 
 /* 1-BIT MODE */
@@ -135,6 +148,11 @@ html.one-bit {
   --amber: #fff;
   --gold: #fff;
   --sage: #fff;
+  --mw-cur-default: url("/cursors/default-dark.png") 2 2, auto;
+  --mw-cur-pointer: url("/cursors/pointer-dark.png") 2 2, pointer;
+  --mw-cur-text: url("/cursors/text-dark.png") 10 14, text;
+  --mw-cur-grab: url("/cursors/grab-dark.png") 16 10, grab;
+  --mw-cur-grabbing: url("/cursors/grabbing-dark.png") 16 10, grabbing;
 }
 
 @layer base {
@@ -164,7 +182,6 @@ html.one-bit {
   }
 
   .arcade-shell {
-    cursor: crosshair;
     overflow: hidden;
     min-height: 100dvh;
   }
@@ -211,6 +228,79 @@ html.one-bit {
     -webkit-appearance: none;
     appearance: none;
     margin: 0;
+  }
+}
+
+/*
+  Midway custom cursors (arcade).
+  Static pixel PNGs — no animation, so prefers-reduced-motion is a no-op.
+  Only on fine pointers; touch devices keep the OS/default (usually none).
+*/
+@media (hover: hover) and (pointer: fine) {
+  .arcade-shell {
+    cursor: var(--mw-cur-default);
+  }
+
+  .arcade-shell :is(
+    a,
+    button,
+    summary,
+    label[for],
+    select,
+    [role="button"],
+    [role="tab"],
+    [role="menuitem"],
+    [role="option"],
+    [role="link"],
+    .cursor-pointer,
+    .desk-icon,
+    .idle-cube,
+    .bevel-btn,
+    .task-tab,
+    .win-controls button
+  ):not(:disabled):not([aria-disabled="true"]) {
+    cursor: var(--mw-cur-pointer);
+  }
+
+  .arcade-shell :is(
+    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
+        [type="checkbox"]
+      ):not([type="radio"]):not([type="range"]):not([type="file"]):not(
+        [type="color"]
+      ),
+    textarea,
+    [contenteditable="true"],
+    [contenteditable=""]
+  ) {
+    cursor: var(--mw-cur-text);
+  }
+
+  .arcade-shell :is(
+    input[type="checkbox"],
+    input[type="radio"],
+    input[type="range"],
+    input[type="file"],
+    input[type="color"]
+  ) {
+    cursor: var(--mw-cur-pointer);
+  }
+
+  .arcade-shell .win-titlebar,
+  .arcade-shell .cursor-grab {
+    cursor: var(--mw-cur-grab);
+  }
+
+  .arcade-shell .win-titlebar:active,
+  .arcade-shell .cursor-grabbing {
+    cursor: var(--mw-cur-grabbing);
+  }
+
+  .arcade-shell :is(:disabled, [aria-disabled="true"], .cursor-not-allowed) {
+    cursor: not-allowed;
+  }
+
+  .arcade-shell .cursor-wait {
+    cursor: wait;
   }
 }
 
@@ -928,7 +1018,7 @@ html.dark .desktop-wallpaper {
   border: 0;
   background: transparent;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
   display: grid;
   place-items: center;
   perspective: 640px;
@@ -1405,7 +1495,7 @@ html.dark .desktop-wallpaper {
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  cursor: grab;
+  cursor: var(--mw-cur-grab);
   user-select: none;
 }
 .win-body {
@@ -1416,7 +1506,7 @@ html.dark .desktop-wallpaper {
 .win-body .info-tldr {
   top: 0;
 }
-.win-titlebar:active { cursor: grabbing; }
+.win-titlebar:active { cursor: var(--mw-cur-grabbing); }
 .win-titlebar.focused {
   background: linear-gradient(90deg, var(--ink), var(--ink-dim) 55%, var(--chrome));
   color: var(--btn);
@@ -1534,7 +1624,7 @@ html.dark .win-titlebar.focused {
   letter-spacing: 0.06em;
   text-align: center;
   text-transform: uppercase;
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
   user-select: none;
 }
 .desk-icon:hover,
@@ -1645,7 +1735,7 @@ html.dark .win-titlebar.focused {
   background: var(--paper-2);
   border: 1.5px solid var(--ink);
   box-shadow: inset 1px 1px 0 var(--bevel-lo);
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
 }
 .music-vol-slider:disabled {
   opacity: 0.45;
@@ -1659,7 +1749,7 @@ html.dark .win-titlebar.focused {
   background: var(--btn);
   border: 1.5px solid var(--ink);
   box-shadow: 1px 1px 0 var(--shadow-cut);
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
 }
 .music-vol-slider::-moz-range-thumb {
   width: 12px;
@@ -1668,7 +1758,7 @@ html.dark .win-titlebar.focused {
   border: 1.5px solid var(--ink);
   box-shadow: 1px 1px 0 var(--shadow-cut);
   border-radius: 0;
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
 }
 
 /* Wallet adapter / Midway connect modal — above boot (200), OS dialogs, window stack.
@@ -1764,7 +1854,7 @@ html.dark .win-titlebar.focused {
   border: 0;
   margin: 0;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
   background: color-mix(in srgb, var(--void) 55%, transparent);
 }
 .midway-wallet-modal__card {
@@ -1795,7 +1885,7 @@ html.dark .win-titlebar.focused {
   color: var(--ink);
   font-size: 18px;
   line-height: 1;
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
 }
 .midway-wallet-modal__title {
   margin: 0.25rem 2rem 0.5rem 0.25rem;
@@ -1834,7 +1924,7 @@ html.dark .win-titlebar.focused {
   border-color: var(--bevel-hi) var(--bevel-lo) var(--bevel-lo) var(--bevel-hi);
   font-family: var(--font-heading), ui-monospace, monospace;
   font-size: 12px;
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
   text-align: left;
 }
 .midway-wallet-modal__btn:hover:not(:disabled) {
@@ -1884,7 +1974,7 @@ html.dark .win-titlebar.focused {
   font-size: 11px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  cursor: pointer;
+  cursor: var(--mw-cur-pointer);
 }
 .midway-wallet-modal__demo:hover {
   filter: brightness(1.05);

@@ -16,6 +16,23 @@
     --paper:#e9e6df; --paper-2:#e3e1d8; --sage:#a9c6a0; --sage-2:#b9d3b1;
     --ink:#2f5a38; --ink-2:#3d6b45; --ink-dim:#6e8a6c; --line:#4a7a52;
     --gold:#c08a2e; --btn:#f4f2ec;
+    --mw-cur-default:url("/cursors/default.png") 2 2, auto;
+    --mw-cur-pointer:url("/cursors/pointer.png") 2 2, pointer;
+    --mw-cur-text:url("/cursors/text.png") 10 14, text;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --mw-cur-default:url("/cursors/default-dark.png") 2 2, auto;
+      --mw-cur-pointer:url("/cursors/pointer-dark.png") 2 2, pointer;
+      --mw-cur-text:url("/cursors/text-dark.png") 10 14, text;
+    }
+  }
+  /* Static pixel cursors — fine pointers only; touch skips custom cursor */
+  @media (hover: hover) and (pointer: fine){
+    html,body{cursor:var(--mw-cur-default);}
+    a,button,summary,label[for],select,[role="button"],.btn,.music-btn,.music-spotify,.music-subed button,.music-subed a{cursor:var(--mw-cur-pointer);}
+    input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),textarea,[contenteditable="true"]{cursor:var(--mw-cur-text);}
+    input[type="range"],input[type="checkbox"],input[type="radio"]{cursor:var(--mw-cur-pointer);}
   }
   html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);
     font-family:'Instrument Sans',system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;}
@@ -41,7 +58,7 @@
   .hero p{max-width:440px;color:var(--ink-2);font-size:16px;margin:0;}
   .hero .btn{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--btn);
     border:1.5px solid var(--ink);border-radius:9px;padding:12px 22px;font-weight:600;font-size:15px;
-    cursor:pointer;box-shadow:2px 2px 0 #1f3e26;text-decoration:none;transition:transform .12s,box-shadow .12s;}
+    cursor:var(--mw-cur-pointer);box-shadow:2px 2px 0 #1f3e26;text-decoration:none;transition:transform .12s,box-shadow .12s;}
   .hero .btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1f3e26;}
   .hero .btn:active{transform:translate(2px,2px);box-shadow:0 0 0 #1f3e26;}
   .hero .mini-mark{width:56px;height:56px;margin-bottom:4px;}
@@ -53,7 +70,7 @@
   body.intro-done .music-dock{opacity:1;animation:none;}
   .music-dock .music-btn{display:inline-flex;align-items:center;gap:6px;background:var(--btn);color:var(--ink);
     border:1.5px solid var(--ink);border-radius:6px;padding:7px 10px;font-family:'Space Mono',monospace;
-    font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;
+    font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:var(--mw-cur-pointer);
     box-shadow:2px 2px 0 #1f3e26;text-decoration:none;}
   .music-dock .music-btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1f3e26;}
   .music-dock .music-btn:active{transform:translate(1px,1px);box-shadow:0 0 0 #1f3e26;}
@@ -67,7 +84,7 @@
   .music-dock .music-spotify{display:inline-flex;margin-top:8px;width:100%;justify-content:center;
     font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink);
     font-family:'Space Mono',monospace;background:transparent;border:1.5px solid var(--ink);
-    border-radius:6px;padding:7px 10px;cursor:pointer;box-shadow:2px 2px 0 #1f3e26;text-decoration:none;}
+    border-radius:6px;padding:7px 10px;cursor:var(--mw-cur-pointer);box-shadow:2px 2px 0 #1f3e26;text-decoration:none;}
   .music-dock .music-spotify:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1f3e26;}
   .music-dock .music-track{margin:6px 0 0;font-size:10px;line-height:1.35;color:var(--ink);
     font-family:'Instrument Sans',system-ui,sans-serif;max-width:200px;overflow:hidden;
@@ -75,7 +92,7 @@
   .music-dock .music-subactions{margin-top:4px;display:flex;flex-direction:column;gap:2px;}
   .music-dock .music-subed button,.music-dock .music-subed a{background:none;border:0;padding:4px 0;
     font-size:10px;letter-spacing:0.5px;color:var(--ink-dim);font-family:'Space Mono',monospace;
-    cursor:pointer;text-align:left;text-decoration:none;}
+    cursor:var(--mw-cur-pointer);text-align:left;text-decoration:none;}
 
   /* Colors mascot parade — orderly march along the hero bottom edge */
   .hero-parade{position:fixed;left:56px;right:56px;bottom:14px;height:34px;z-index:3;
